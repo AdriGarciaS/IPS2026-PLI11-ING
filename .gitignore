@@ -1,0 +1,25 @@
+# Maven
+target/
+
+# Base de datos SQLite generada automaticamente al arrancar la app
+# (se recrea sola con datos de ejemplo, no hace falta versionarla)
+data/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# VS Code
+.vscode/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

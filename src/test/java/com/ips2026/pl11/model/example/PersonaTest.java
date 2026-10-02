@@ -1,4 +1,4 @@
-package com.ips2026.pl11.modelo;
+package com.ips2026.pl11.model.example;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

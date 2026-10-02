@@ -1,7 +1,8 @@
 package com.ips2026.pl11;
 
-import com.ips2026.pl11.datos.ConexionBD;
-import com.ips2026.pl11.vista.VentanaPrincipal;
+import com.ips2026.pl11.data.ConexionBD;
+import com.ips2026.pl11.view.common.Branding;
+import com.ips2026.pl11.view.menu.VentanaPrincipal;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -31,6 +32,9 @@ public final class App {
     }
 
     private static void iniciarAplicacion() {
+        // Aspecto comun de todas las ventanas (Nimbus con los colores del club).
+        Branding.installLookAndFeel();
+
         try {
             ConexionBD.inicializar();
         } catch (SQLException excepcion) {

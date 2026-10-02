@@ -1,4 +1,4 @@
-package com.ips2026.pl11.datos;
+package com.ips2026.pl11.data;
 
 import java.io.IOException;
 import java.io.InputStream;

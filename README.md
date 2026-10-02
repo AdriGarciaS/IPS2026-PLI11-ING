@@ -2,7 +2,7 @@
 
 Proyecto base del equipo PL11 para la asignatura IPS (curso 2026), desarrollado en tres sprints según las user stories.
 
-Sigue el patrón **MVC** (Modelo-Vista-Controlador) y usa una base de datos **SQLite** (un único archivo, sin servidor que instalar) como ejemplo de acceso a datos. Al arrancar, la app abre una ventana con un botón "Mostrar datos base de datos" que consulta la base de datos y muestra el resultado en una tabla. A partir de aquí se irán añadiendo las funcionalidades de cada sprint.
+Sigue el patrón **MVC** (Modelo-Vista-Controlador) y usa una base de datos **SQLite** (un único archivo, sin servidor que instalar) como ejemplo de acceso a datos. Al arrancar, la app abre la ventana del menú principal: una cabecera (hueco para el logo + título) y cuatro botones en una rejilla 2x2, que de momento no hacen nada, y un pie de página. A partir de aquí se irán conectando con las funcionalidades de cada sprint.
 
 ## Requisitos
 
@@ -41,7 +41,7 @@ mvn package
 java -jar target/IPS2026-PL11-ING.jar
 ```
 
-Al ejecutarlo debería abrirse una ventana con el texto "La aplicación funciona correctamente" y un botón "Mostrar datos base de datos". La primera vez que arranca, se crea automáticamente el archivo `data/demo.db` con una tabla `personas` y unas filas de ejemplo — no hace falta instalar ni configurar nada de base de datos a mano.
+Al ejecutarlo debería abrirse la ventana del menú principal ("Football Club Management") con cuatro botones. La primera vez que arranca, se crea automáticamente el archivo `data/demo.db` con una tabla `personas` y unas filas de ejemplo — no hace falta instalar ni configurar nada de base de datos a mano.
 
 ### Opción B: desde IntelliJ IDEA
 
@@ -90,7 +90,7 @@ IPS2026-PL11-ING/
     │   ├── modelo/
     │   │   └── Persona.java                        # Modelo: solo datos (id, nombre, email)
     │   ├── vista/
-    │   │   └── VentanaPrincipal.java                # Vista: la ventana Swing, botón y tabla de resultados
+    │   │   └── VentanaPrincipal.java                # Vista: menú principal (cabecera + 4 botones + pie), estilo lazy de WindowBuilder
     │   ├── controlador/
     │   │   └── PersonaControlador.java              # Controlador: intermediario entre vista y datos
     │   └── datos/
@@ -105,11 +105,12 @@ IPS2026-PL11-ING/
         └── modelo/PersonaTest.java                  # Test del modelo Persona
 ```
 
-Cómo fluyen los datos: `VentanaPrincipal` (vista) nunca habla con la base de datos directamente. Cuando se pulsa el botón, le pregunta a `PersonaControlador` (controlador), que a su vez usa `PersonaDAO` (datos) para leer la tabla y devolver una lista de `Persona` (modelo). Este orden — vista → controlador → datos → modelo — es el que hay que seguir para añadir pantallas nuevas: una carpeta `modelo/` con las clases de datos, una `vista/` con las ventanas, un `controlador/` que las conecte, y `datos/` si esa pantalla necesita leer o escribir en la base de datos.
+Cómo fluyen los datos: una vista nunca habla con la base de datos directamente. Le pregunta a su controlador (por ejemplo `PersonaControlador`), que a su vez usa el DAO (`PersonaDAO`) para leer la tabla y devolver objetos del modelo (`Persona`). Las clases `Persona*` se mantienen como ejemplo de referencia, aunque ya no se usan desde el menú principal. Este orden — vista → controlador → datos → modelo — es el que hay que seguir para añadir pantallas nuevas: una carpeta `modelo/` con las clases de datos, una `vista/` con las ventanas, un `controlador/` que las conecte, y `datos/` si esa pantalla necesita leer o escribir en la base de datos.
 
 ## Notas para el equipo
 
 - El paquete base de todo el código Java es `com.ips2026.pl11`. Las clases nuevas van en el paquete que les corresponda según el patrón MVC de arriba (`modelo`, `vista`, `controlador`, `datos`), siguiendo la convención estándar de nombres de paquete en minúsculas.
+- Las ventanas Swing se escriben con la generación de código **lazy** de Eclipse WindowBuilder (un atributo privado por componente y un getter `getXxx()` que lo crea la primera vez), para poder seguir editándolas desde la pestaña *Design*.
 - Los tests van en `src/test/java`, en el mismo subpaquete que la clase que prueban.
 - La base de datos es SQLite: un único archivo (`data/demo.db`) que se crea y se rellena solo la primera vez que se ejecuta la app. No hace falta instalar MySQL, PostgreSQL ni ningún gestor de base de datos aparte.
 - Si algo no compila o no importa bien en tu IDE, lo normal es que sea un problema de configuración local (versión de JDK distinta, caché de Maven, etc.) — comentadlo en el grupo antes de tocar el `pom.xml`.

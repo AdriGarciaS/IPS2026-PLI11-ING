@@ -1,8 +1,6 @@
 package com.ips2026.pl11;
 
-import com.ips2026.pl11.controlador.PersonaControlador;
 import com.ips2026.pl11.datos.ConexionBD;
-import com.ips2026.pl11.datos.PersonaDAO;
 import com.ips2026.pl11.vista.VentanaPrincipal;
 
 import javax.swing.JOptionPane;
@@ -13,8 +11,8 @@ import java.sql.SQLException;
  * Punto de entrada de la aplicacion.
  *
  * <p>Al arrancar: inicializa la base de datos (crea el archivo y la tabla
- * de ejemplo si no existen) y despues abre la ventana principal, montando
- * las tres capas del MVC (modelo, vista y controlador). A partir de aqui se
+ * de ejemplo si no existen) y despues abre la ventana principal con el
+ * menu de la aplicacion. A partir de aqui se
  * ira ampliando con las funcionalidades de las user stories de cada
  * sprint.</p>
  */
@@ -43,7 +41,6 @@ public final class App {
             return;
         }
 
-        PersonaControlador controlador = new PersonaControlador(new PersonaDAO());
-        new VentanaPrincipal(controlador).setVisible(true);
+        new VentanaPrincipal().setVisible(true);
     }
 }

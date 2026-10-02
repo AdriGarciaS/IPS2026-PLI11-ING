@@ -56,6 +56,26 @@ Al ejecutarlo debería abrirse una ventana con el texto "La aplicación funciona
 3. Eclipse descarga las dependencias automáticamente.
 4. Clic derecho sobre `App.java` → `Run As` → `Java Application`.
 
+## Base de datos
+
+Al arrancar, la app ejecuta los scripts de `src/main/resources/db/`:
+
+- `schema.sql`: creación de las tablas (usar siempre `CREATE TABLE IF NOT EXISTS`). Se ejecuta en cada arranque.
+- `data.sql`: datos de ejemplo. Solo se cargan cuando la base de datos se crea desde cero.
+
+Cada sentencia debe terminar en `;` y los comentarios van en líneas que empiecen por `--`.
+
+En `config.properties`, la opción `bd.borrarAlCerrar` decide qué pasa al cerrar la app:
+
+- `false` (por defecto): la base de datos `data/demo.db` se **mantiene** entre ejecuciones. Si cambiáis `schema.sql` o `data.sql`, borrad la carpeta `data/` para que se regenere.
+- `true`: la base de datos se **borra** al cerrar, así que cada arranque empieza limpio con `schema.sql` + `data.sql`.
+
+También se puede elegir al ejecutar, sin tocar el archivo:
+
+```bash
+java -Dbd.borrarAlCerrar=true -jar target/IPS2026-PL11-ING.jar
+```
+
 ## Estructura del proyecto (MVC)
 
 ```
@@ -74,8 +94,12 @@ IPS2026-PL11-ING/
     │   ├── controlador/
     │   │   └── PersonaControlador.java              # Controlador: intermediario entre vista y datos
     │   └── datos/
-    │       ├── ConexionBD.java                      # Abre la conexión SQLite y crea la BD/tabla de ejemplo
+    │       ├── ConexionBD.java                      # Abre la conexión SQLite y ejecuta los scripts de db/
     │       └── PersonaDAO.java                      # Las consultas SQL a la tabla "personas"
+    ├── main/resources/db/
+    │   ├── schema.sql                              # CREATE TABLE de todas las tablas
+    │   ├── data.sql                                # Datos de ejemplo (dummy data)
+    │   └── config.properties                       # Mantener la BD o borrarla al cerrar
     └── test/java/com/ips2026/pl11/
         ├── AppTest.java                             # Test de arranque (JUnit 5)
         └── modelo/PersonaTest.java                  # Test del modelo Persona

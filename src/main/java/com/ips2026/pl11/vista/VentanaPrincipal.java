@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -36,12 +38,14 @@ public class VentanaPrincipal extends JFrame {
     private JLabel lblLogo;
     private JLabel lblTitle;
     private JPanel pnButtons;
-    private JButton btnOption1;
+    private JButton btnGeneralManager;
     private JButton btnOption2;
     private JButton btnOption3;
     private JButton btnOption4;
     private JPanel pnFooter;
     private JLabel lblFooter;
+    
+    private GMWorkScheduleWindow gmWorkScheduleWindow = new GMWorkScheduleWindow(this);
 
     public VentanaPrincipal() {
         setTitle("IPS2026-PL11-ING");
@@ -94,7 +98,7 @@ public class VentanaPrincipal extends JFrame {
         if (pnButtons == null) {
             pnButtons = new JPanel();
             pnButtons.setLayout(new GridLayout(2, 2, 15, 15));
-            pnButtons.add(getBtnOption1());
+            pnButtons.add(getBtnGeneralManager());
             pnButtons.add(getBtnOption2());
             pnButtons.add(getBtnOption3());
             pnButtons.add(getBtnOption4());
@@ -102,12 +106,19 @@ public class VentanaPrincipal extends JFrame {
         return pnButtons;
     }
 
-    private JButton getBtnOption1() {
-        if (btnOption1 == null) {
-            btnOption1 = new JButton("Option 1");
-            btnOption1.setFont(new Font("Tahoma", Font.PLAIN, 16));
+    private JButton getBtnGeneralManager() {
+        if (btnGeneralManager == null) {
+            btnGeneralManager = new JButton("General Manager");
+            btnGeneralManager.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    
+                    gmWorkScheduleWindow.setVisible(true);
+                }
+            });
+            btnGeneralManager.setFont(new Font("Tahoma", Font.PLAIN, 16));
         }
-        return btnOption1;
+        return btnGeneralManager;
     }
 
     private JButton getBtnOption2() {

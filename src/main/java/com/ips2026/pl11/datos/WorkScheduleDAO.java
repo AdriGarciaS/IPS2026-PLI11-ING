@@ -1,0 +1,70 @@
+package com.ips2026.pl11.datos;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Time;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.ips2026.pl11.modelo.WorkSchedule;
+
+public class WorkScheduleDAO {
+
+    public List<WorkSchedule> getAllSchedules() throws SQLException {
+        String sql = "SELECT id, employee_id, week_day, start_time, end_time FROM work_schedule ORDER BY id";
+        List<WorkSchedule> workSchedules = new ArrayList<>();
+
+        try (Connection conexion = ConexionBD.obtenerConexion();
+            Statement sentencia = conexion.createStatement();
+            ResultSet resultado = sentencia.executeQuery(sql)) {
+
+            while (resultado.next()) {
+                workSchedules.add(new WorkSchedule(resultado.getLong("id"), resultado.getLong("employee_id"),
+                    resultado.getInt("week_day"), resultado.getTime("start_time").toLocalTime(),
+                    resultado.getTime("end_time").toLocalTime()));
+            }
+        }
+
+        return workSchedules;
+    }
+
+    public List<WorkSchedule> getSchedulesByEmployee(long employeeId) throws SQLException {
+        String sql = "select id, employee_id, week_day, start_time, end_time "
+            + "from work_schedule where employee_id = ? order by week_day, start_time";
+
+        List<WorkSchedule> result = new ArrayList<>();
+
+        try (Connection conexion = ConexionBD.obtenerConexion();
+            PreparedStatement ps = conexion.prepareStatement(sql)) {
+
+            ps.setLong(1, employeeId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(new WorkSchedule(rs.getLong("id"), rs.getLong("employee_id"), rs.getInt("week_day"),
+                        rs.getTime("start_time").toLocalTime(), rs.getTime("end_time").toLocalTime()));
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public void insertSchedule(WorkSchedule ws) throws SQLException {
+        String sql = "insert into work_schedule (employee_id, week_day, start_time, end_time) values (?, ?, ?, ?)";
+        
+        try (Connection conexion = ConexionBD.obtenerConexion();
+            PreparedStatement ps = conexion.prepareStatement(sql)) {
+            
+            ps.setLong(1, ws.getEmployeeId());
+            ps.setInt(2, ws.getWeekDay());
+            ps.setTime(3, Time.valueOf(ws.getStartTime()));
+            ps.setTime(4, Time.valueOf(ws.getEndTime()));
+            
+            ps.executeUpdate();
+        }
+    }
+}

@@ -60,7 +60,7 @@ public class VentanaPrincipal extends JFrame {
         contentPane.add(getPnHeader(), BorderLayout.NORTH);
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         contentPane.add(getPnFooter(), BorderLayout.SOUTH);
-        setLocationRelativeTo(null); // Centra la ventana en pantalla
+        setLocationRelativeTo(null);
     }
 
     private JPanel getPnHeader() {
@@ -106,14 +106,12 @@ public class VentanaPrincipal extends JFrame {
 
     private JButton getBtnOption1() {
         if (btnOption1 == null) {
-            btnOption1 = new JButton("Employees Registration");
+            btnOption1 = new JButton("Employees Management");
             btnOption1.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 16));
             btnOption1.setFocusPainted(false);
             btnOption1.setContentAreaFilled(false);
             btnOption1.setOpaque(true);
             btnOption1.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            
-            // Azul muy claro con texto en negro y borde sutil
             btnOption1.setBackground(new Color(225, 238, 252));
             btnOption1.setForeground(Color.BLACK);
             btnOption1.setBorder(BorderFactory.createCompoundBorder(
@@ -140,7 +138,7 @@ public class VentanaPrincipal extends JFrame {
 
             btnOption1.addActionListener(e -> {
                 activateButton(btnOption1);
-                new AddEmployeeView(this).setVisible(true);
+                new EmployeeMenuDialog(this).setVisible(true);
             });
         }
         return btnOption1;

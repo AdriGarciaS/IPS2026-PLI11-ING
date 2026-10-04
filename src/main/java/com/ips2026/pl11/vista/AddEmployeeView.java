@@ -21,6 +21,8 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDate;
@@ -99,28 +101,28 @@ public class AddEmployeeView extends JDialog {
             pnForm.setLayout(new GridLayout(8, 2, 12, 14));
             pnForm.setBorder(new EmptyBorder(10, 5, 10, 5));
 
-            pnForm.add(crearLabel("First Name:"));
+            pnForm.add(createLabel("First Name:"));
             pnForm.add(getTxtFirstName());
 
-            pnForm.add(crearLabel("Last Name:"));
+            pnForm.add(createLabel("Last Name:"));
             pnForm.add(getTxtLastName());
 
-            pnForm.add(crearLabel("National ID / Passport:"));
+            pnForm.add(createLabel("National ID / Passport:"));
             pnForm.add(getTxtNationalId());
 
-            pnForm.add(crearLabel("Birth Date (YYYY-MM-DD):"));
+            pnForm.add(createLabel("Birth Date (YYYY-MM-DD):"));
             pnForm.add(getTxtBirthDate());
 
-            pnForm.add(crearLabel("Phone Number:"));
+            pnForm.add(createLabel("Phone Number:"));
             pnForm.add(getTxtPhone());
 
-            pnForm.add(crearLabel("Staff Category:"));
+            pnForm.add(createLabel("Staff Category:"));
             pnForm.add(getCbCategory());
 
-            pnForm.add(crearLabel("Position:"));
+            pnForm.add(createLabel("Position:"));
             pnForm.add(getCbPosition());
 
-            pnForm.add(crearLabel("Gross Annual Salary (€):"));
+            pnForm.add(createLabel("Gross Annual Salary (€):"));
             pnForm.add(getTxtSalary());
         }
         return pnForm;
@@ -139,28 +141,28 @@ public class AddEmployeeView extends JDialog {
 
     private JTextField getTxtFirstName() {
         if (txtFirstName == null) {
-            txtFirstName = crearTextField();
+            txtFirstName = createTextField();
         }
         return txtFirstName;
     }
 
     private JTextField getTxtLastName() {
         if (txtLastName == null) {
-            txtLastName = crearTextField();
+            txtLastName = createTextField();
         }
         return txtLastName;
     }
 
     private JTextField getTxtNationalId() {
         if (txtNationalId == null) {
-            txtNationalId = crearTextField();
+            txtNationalId = createTextField();
         }
         return txtNationalId;
     }
 
     private JTextField getTxtBirthDate() {
         if (txtBirthDate == null) {
-            txtBirthDate = crearTextField();
+            txtBirthDate = createTextField();
             txtBirthDate.setToolTipText("Format: YYYY-MM-DD");
         }
         return txtBirthDate;
@@ -168,14 +170,14 @@ public class AddEmployeeView extends JDialog {
 
     private JTextField getTxtPhone() {
         if (txtPhone == null) {
-            txtPhone = crearTextField();
+            txtPhone = createTextField();
         }
         return txtPhone;
     }
 
     private JTextField getTxtSalary() {
         if (txtSalary == null) {
-            txtSalary = crearTextField();
+            txtSalary = createTextField();
         }
         return txtSalary;
     }
@@ -187,7 +189,7 @@ public class AddEmployeeView extends JDialog {
             cbCategory.setBackground(Color.WHITE);
             cbCategory.setForeground(Color.BLACK);
             cbCategory.setBorder(new LineBorder(new Color(203, 213, 225), 1, true));
-            cbCategory.addActionListener(e -> actualizarPuestos());
+            cbCategory.addActionListener(e -> refreshPositions());
         }
         return cbCategory;
     }
@@ -232,7 +234,7 @@ public class AddEmployeeView extends JDialog {
         return btnSubmit;
     }
 
-    private JLabel crearLabel(String texto) {
+    private JLabel createLabel(String texto) {
         JLabel label = new JLabel(texto);
         label.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 13));
         label.setForeground(new Color(51, 65, 85));
@@ -240,7 +242,7 @@ public class AddEmployeeView extends JDialog {
         return label;
     }
 
-    private JTextField crearTextField() {
+    private JTextField createTextField() {
         JTextField tf = new JTextField();
         tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         tf.setBackground(Color.WHITE);
@@ -250,9 +252,9 @@ public class AddEmployeeView extends JDialog {
                 BorderFactory.createEmptyBorder(6, 8, 6, 8)
         ));
 
-        tf.addFocusListener(new java.awt.event.FocusAdapter() {
+        tf.addFocusListener(new FocusAdapter() {
             @Override
-            public void focusGained(java.awt.event.FocusEvent e) {
+            public void focusGained(FocusEvent e) {
                 tf.setBorder(BorderFactory.createCompoundBorder(
                         new LineBorder(new Color(140, 185, 235), 2, true),
                         BorderFactory.createEmptyBorder(5, 7, 5, 7)
@@ -260,7 +262,7 @@ public class AddEmployeeView extends JDialog {
             }
 
             @Override
-            public void focusLost(java.awt.event.FocusEvent e) {
+            public void focusLost(FocusEvent e) {
                 tf.setBorder(BorderFactory.createCompoundBorder(
                         new LineBorder(new Color(203, 213, 225), 1, true),
                         BorderFactory.createEmptyBorder(6, 8, 6, 8)
@@ -271,7 +273,7 @@ public class AddEmployeeView extends JDialog {
         return tf;
     }
 
-    private void actualizarPuestos() {
+    private void refreshPositions() {
         JComboBox<String> comboPosition = getCbPosition();
         comboPosition.removeAllItems();
         String selectedCat = (String) getCbCategory().getSelectedItem();
@@ -287,16 +289,7 @@ public class AddEmployeeView extends JDialog {
             LocalDate birthDate = LocalDate.parse(getTxtBirthDate().getText().trim());
             double salary = Double.parseDouble(getTxtSalary().getText().trim());
 
-            controller.registerEmployee(
-                    getTxtFirstName().getText(),
-                    getTxtLastName().getText(),
-                    getTxtNationalId().getText(),
-                    birthDate,
-                    getTxtPhone().getText(),
-                    (String) getCbCategory().getSelectedItem(),
-                    (String) getCbPosition().getSelectedItem(),
-                    salary
-            );
+            controller.registerEmployee(getTxtFirstName().getText(),getTxtLastName().getText(),getTxtNationalId().getText(),birthDate,getTxtPhone().getText(),(String) getCbCategory().getSelectedItem(),(String) getCbPosition().getSelectedItem(),salary);
 
             JOptionPane.showMessageDialog(this, "Employee successfully registered!", "Success", JOptionPane.INFORMATION_MESSAGE);
             dispose();

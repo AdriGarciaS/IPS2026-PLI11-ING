@@ -57,4 +57,37 @@ public class EmployeeDAO {
         }
         return employees;
     }
+    
+    public void update(Employee employee) throws SQLException {
+        // No se actualiza 'position' para respetar la regla de negocio
+        String sql = "UPDATE employees SET first_name = ?, last_name = ?, national_id = ?, "
+                   + "birth_date = ?, phone_number = ?, category = ?, gross_annual_salary = ? "
+                   + "WHERE id = ?";
+
+        try (Connection connection = ConexionBD.obtenerConexion();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, employee.getFirstName());
+            statement.setString(2, employee.getLastName());
+            statement.setString(3, employee.getNationalId());
+            statement.setString(4, employee.getBirthDate().format(DateTimeFormatter.ISO_LOCAL_DATE));
+            statement.setString(5, employee.getPhoneNumber());
+            statement.setString(6, employee.getCategory());
+            statement.setDouble(7, employee.getGrossAnnualSalary());
+            statement.setInt(8, employee.getId());
+
+            statement.executeUpdate();
+        }
+    }
+    
+    public void delete(int employeeId) throws SQLException {
+        String sql = "DELETE FROM employees WHERE id = ?";
+
+        try (Connection connection = ConexionBD.obtenerConexion();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, employeeId);
+            statement.executeUpdate();
+        }
+    }
 }

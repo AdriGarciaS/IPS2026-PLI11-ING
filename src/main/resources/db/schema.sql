@@ -9,6 +9,17 @@ CREATE TABLE IF NOT EXISTS personas (
     email  TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS employees (
+    id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name           TEXT NOT NULL,
+    last_name            TEXT NOT NULL,
+    national_id          TEXT NOT NULL UNIQUE,
+    birth_date           TEXT NOT NULL, -- Format: YYYY-MM-DD
+    phone_number         TEXT NOT NULL,
+    category             TEXT NOT NULL, -- 'SPORTS' or 'NON_SPORTS'
+    position             TEXT NOT NULL,
+    gross_annual_salary  REAL NOT NULL
+);
 -- Merchandising products sold in the club store.
 -- available_units: number of units in stock (a sale can never exceed it).
 CREATE TABLE IF NOT EXISTS MERCHANDISING (

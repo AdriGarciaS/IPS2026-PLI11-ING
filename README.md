@@ -160,7 +160,11 @@ IPS2026-PL11-ING/
     │   └── config.properties                       # Mantener la BD o borrarla al cerrar
     └── test/java/com/ips2026/pl11/
         ├── AppTest.java                             # Test de arranque (JUnit 5)
-        └── model/example/PersonaTest.java           # Test del modelo Persona (mismo subpaquete que la clase)
+        ├── model/example/PersonaTest.java           # Test del modelo Persona (mismo subpaquete que la clase)
+        ├── model/store/CartTest.java                # Carrito: unidades, límites de stock, total
+        ├── controller/store/StoreSalesControllerTest.java  # Búsqueda, filtro por tipo y compra (con DAOs falsos)
+        ├── data/TestDatabase.java                   # Ayuda para tests de DAO: BD temporal (nunca toca data/demo.db)
+        └── data/store/MerchandiseDAOTest.java, MerchandiseSaleDAOTest.java  # Consultas y registro de ventas en SQLite
 ```
 
 Cómo fluyen los datos: una vista nunca habla con la base de datos directamente. Le pregunta a su controlador (por ejemplo `PersonaControlador`), que a su vez usa el DAO (`PersonaDAO`) para leer la tabla y devolver objetos del modelo (`Persona`). Las clases `Persona*` se mantienen como ejemplo de referencia, aunque ya no se usan desde el menú principal. Este orden — vista → controlador → datos → modelo — es el que hay que seguir para añadir pantallas nuevas.

@@ -1,4 +1,4 @@
-package com.ips2026.pl11.modelo;
+package com.ips2026.pl11.model.employee;
 
 import java.time.LocalDate;
 import java.time.Period;

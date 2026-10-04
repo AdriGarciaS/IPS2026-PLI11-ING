@@ -1,7 +1,7 @@
-package com.ips2026.pl11.controlador;
+package com.ips2026.pl11.controller.employee;
 
-import com.ips2026.pl11.datos.EmployeeDAO;
-import com.ips2026.pl11.modelo.Employee;
+import com.ips2026.pl11.data.employee.EmployeeDAO;
+import com.ips2026.pl11.model.employee.Employee;
 
 import java.time.LocalDate;
 

@@ -23,11 +23,15 @@ import java.util.Properties;
  * {@code data.sql} (datos de ejemplo). Segun {@code config.properties}, la
  * base de datos se mantiene entre ejecuciones o se borra al cerrar la
  * aplicacion.</p>
+ *
+ * <p>La ruta del archivo se puede cambiar con la propiedad del sistema
+ * {@code bd.ruta} (por ejemplo, los tests usan una base de datos temporal
+ * para no tocar {@code data/demo.db}).</p>
  */
 public final class ConexionBD {
 
-    private static final Path RUTA_BD = Path.of("data", "demo.db");
-    private static final String URL_BD = "jdbc:sqlite:" + RUTA_BD;
+    private static final Path RUTA_POR_DEFECTO = Path.of("data", "demo.db");
+    public static final String PROPIEDAD_RUTA = "bd.ruta";
 
     private static final String SCRIPT_ESQUEMA = "/db/schema.sql";
     private static final String SCRIPT_DATOS = "/db/data.sql";
@@ -38,6 +42,12 @@ public final class ConexionBD {
         // Clase de utilidades: no se instancia.
     }
 
+    /** Ruta del archivo de la base de datos: {@code bd.ruta} si esta definida, si no {@code data/demo.db}. */
+    private static Path rutaBD() {
+        String ruta = System.getProperty(PROPIEDAD_RUTA);
+        return ruta == null || ruta.isBlank() ? RUTA_POR_DEFECTO : Path.of(ruta);
+    }
+
     /**
      * Abre una conexion nueva a la base de datos.
      *
@@ -46,7 +56,7 @@ public final class ConexionBD {
      * sin usar.</p>
      */
     public static Connection obtenerConexion() throws SQLException {
-        return DriverManager.getConnection(URL_BD);
+        return DriverManager.getConnection("jdbc:sqlite:" + rutaBD());
     }
 
     /**
@@ -56,19 +66,22 @@ public final class ConexionBD {
      */
     public static void inicializar() throws SQLException {
         boolean borrarAlCerrar = debeBorrarseAlCerrar();
+        Path rutaBD = rutaBD();
 
         try {
-            Files.createDirectories(RUTA_BD.getParent());
+            if (rutaBD.getParent() != null) {
+                Files.createDirectories(rutaBD.getParent());
+            }
             if (borrarAlCerrar) {
                 // Por si una ejecucion anterior termino de forma brusca y no
                 // llego a borrar el archivo: siempre empezamos desde cero.
-                Files.deleteIfExists(RUTA_BD);
+                Files.deleteIfExists(rutaBD);
             }
         } catch (IOException excepcion) {
             throw new SQLException("No se pudo preparar el archivo de la base de datos", excepcion);
         }
 
-        boolean esNueva = Files.notExists(RUTA_BD);
+        boolean esNueva = Files.notExists(rutaBD);
 
         try (Connection conexion = obtenerConexion()) {
             ejecutarScript(conexion, SCRIPT_ESQUEMA);
@@ -80,7 +93,7 @@ public final class ConexionBD {
         if (borrarAlCerrar) {
             // Los shutdown hooks se ejecutan al cerrar la JVM (por ejemplo,
             // al cerrar la ventana con EXIT_ON_CLOSE, que llama a System.exit).
-            Runtime.getRuntime().addShutdownHook(new Thread(ConexionBD::borrarBaseDeDatos));
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> borrarBaseDeDatos(rutaBD)));
         }
     }
 
@@ -145,11 +158,11 @@ public final class ConexionBD {
         }
     }
 
-    private static void borrarBaseDeDatos() {
+    private static void borrarBaseDeDatos(Path rutaBD) {
         try {
-            Files.deleteIfExists(RUTA_BD);
+            Files.deleteIfExists(rutaBD);
         } catch (IOException excepcion) {
-            System.err.println("No se pudo borrar la base de datos " + RUTA_BD + ": " + excepcion.getMessage());
+            System.err.println("No se pudo borrar la base de datos " + rutaBD + ": " + excepcion.getMessage());
         }
     }
 }

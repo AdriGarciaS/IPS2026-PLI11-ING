@@ -18,10 +18,10 @@ import javax.swing.border.MatteBorder;
 import com.ips2026.pl11.controller.store.StoreSalesController;
 import com.ips2026.pl11.data.store.MerchandiseDAO;
 import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
-
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.store.StoreSalesWindow;
+import com.ips2026.pl11.view.employee.AddEmployeeView;
 
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
@@ -29,7 +29,8 @@ import com.ips2026.pl11.view.store.StoreSalesWindow;
  * <p>Tiene la cabecera del club ({@link HeaderPanel}), cuatro
  * botones tipo "tarjeta" en una rejilla de 2x2 y un pie de pagina. Los
  * botones se iran conectando con las funcionalidades de cada sprint (el
- * boton 3 abre la venta de merchandising); mientras no tengan funcionalidad
+ * boton 1 abre el registro de empleados y el boton 3 la venta de
+ * merchandising); mientras no tengan funcionalidad
  * se muestran deshabilitados.</p>
  *
  * <p>El codigo sigue la generacion "lazy" de Eclipse WindowBuilder: cada
@@ -90,11 +91,14 @@ public class VentanaPrincipal extends JFrame {
         return pnButtons;
     }
 
+
+
     private MenuCardButton getBtnOption1() {
         if (btnOption1 == null) {
-            btnOption1 = new MenuCardButton("Option 1", COMING_SOON);
+            btnOption1 = new MenuCardButton("Employees Registration", "Register new sports and non-sports staff");
             btnOption1.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
-            btnOption1.setEnabled(false);
+            btnOption1.setMnemonic('E');
+            btnOption1.addActionListener(event -> new AddEmployeeView(this).setVisible(true));
         }
         return btnOption1;
     }

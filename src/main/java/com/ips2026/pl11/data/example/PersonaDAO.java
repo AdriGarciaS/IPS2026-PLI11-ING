@@ -1,6 +1,7 @@
-package com.ips2026.pl11.datos;
+package com.ips2026.pl11.data.example;
 
-import com.ips2026.pl11.modelo.Persona;
+import com.ips2026.pl11.data.ConexionBD;
+import com.ips2026.pl11.model.example.Persona;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

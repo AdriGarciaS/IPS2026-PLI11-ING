@@ -29,3 +29,30 @@ INSERT INTO MERCHANDISING (name, type, available_units, price) VALUES
     ('Signed Team Poster', 'Souvenirs', 5, 24.90),
     ('Official Match Ball', 'Equipment', 12, 29.95),
     ('Goalkeeper Gloves', 'Equipment', 8, 39.95);
+
+INSERT INTO FACILITY (id, name) VALUES
+    (1, 'Main Pitch'),
+    (2, 'Training Pitch 1'),
+    (3, 'Training Pitch 2'),
+    (4, 'Gym'),
+    (5, 'Indoor Court');
+
+-- Sample team uses for the next 32 days, relative to the day in which the
+-- database is created (so there is always data to see).
+WITH RECURSIVE days(n) AS (SELECT 0 UNION ALL SELECT n + 1 FROM days WHERE n < 31)
+INSERT INTO FACILITY_TEAM_USE (facility_id, team_name, use_date, start_time, end_time)
+SELECT 2, 'First Team', date('now', 'localtime', '+' || n || ' days'), '10:00', '12:00' FROM days
+UNION ALL
+SELECT 2, 'U19 Team', date('now', 'localtime', '+' || n || ' days'), '18:00', '20:00' FROM days
+UNION ALL
+SELECT 3, 'U16 Team', date('now', 'localtime', '+' || n || ' days'), '17:00', '19:00' FROM days
+UNION ALL
+SELECT 4, 'First Team', date('now', 'localtime', '+' || n || ' days'), '09:00', '10:30' FROM days
+UNION ALL
+SELECT 4, 'Women''s Team', date('now', 'localtime', '+' || n || ' days'), '16:00', '17:30' FROM days
+UNION ALL
+SELECT 1, 'First Team (match)', date('now', 'localtime', '+' || n || ' days'), '17:00', '19:00' FROM days WHERE n % 7 = 2;
+
+-- An existing reservation, so the "Reserved" periods can be seen.
+INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reservation_date, start_time, end_time, hours, total_price, created_at) VALUES
+    (2, 'Laura Perez', '**** **** **** 1111', date('now', 'localtime', '+1 day'), '14:00', '16:00', 2, 100.0, datetime('now', 'localtime'));

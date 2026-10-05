@@ -43,3 +43,46 @@ CREATE TABLE IF NOT EXISTS MERCHANDISING_SALE (
     total_price REAL    NOT NULL CHECK (total_price >= 0),
     sale_date   TEXT    NOT NULL
 );
+
+-- ---------------------------------------------------------------------------
+-- Facility reservations for external people (US: facility manager).
+-- ---------------------------------------------------------------------------
+
+-- Club facilities that can be used by the teams and booked by external people.
+CREATE TABLE IF NOT EXISTS FACILITY (
+    id   INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT    NOT NULL UNIQUE
+);
+
+-- Periods in which a team of the club uses a facility (trainings, matches...).
+-- For now only sample data; another user story will manage these rows.
+-- After each use the facility can not be booked for 1 h 30 min.
+-- use_date: YYYY-MM-DD, start_time / end_time: HH:MM.
+CREATE TABLE IF NOT EXISTS FACILITY_TEAM_USE (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    facility_id INTEGER NOT NULL REFERENCES FACILITY (id),
+    team_name   TEXT    NOT NULL,
+    use_date    TEXT    NOT NULL,
+    start_time  TEXT    NOT NULL,
+    end_time    TEXT    NOT NULL,
+    CHECK (end_time > start_time)
+);
+
+-- One row per reservation made by an external person.
+-- card_number: only the masked number is stored (for example
+-- "**** **** **** 1111"), never the full card number.
+-- total_price: hours x 50 EUR, the money obtained with the reservation.
+-- created_at: moment in which the reservation was made (YYYY-MM-DD HH:MM:SS).
+CREATE TABLE IF NOT EXISTS FACILITY_RESERVATION (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    facility_id      INTEGER NOT NULL REFERENCES FACILITY (id),
+    holder_name      TEXT    NOT NULL,
+    card_number      TEXT    NOT NULL,
+    reservation_date TEXT    NOT NULL,
+    start_time       TEXT    NOT NULL,
+    end_time         TEXT    NOT NULL,
+    hours            INTEGER NOT NULL CHECK (hours >= 1),
+    total_price      REAL    NOT NULL CHECK (total_price >= 0),
+    created_at       TEXT    NOT NULL,
+    CHECK (end_time > start_time)
+);

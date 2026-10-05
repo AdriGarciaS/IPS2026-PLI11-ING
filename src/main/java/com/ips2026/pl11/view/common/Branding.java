@@ -39,6 +39,9 @@ public final class Branding {
     public static final Color BACKGROUND = new Color(0xF3F5F9);
     public static final Color TEXT_MUTED = new Color(0x6B7280);
     public static final Color BORDER = new Color(0xD6DBE4);
+    /** Status messages: something is correct / something is wrong. */
+    public static final Color SUCCESS = new Color(0x15803D);
+    public static final Color ERROR = new Color(0xB91C1C);
 
     /** Base font of the application; titles use bigger/bold versions of it. */
     public static final String FONT_FAMILY = "Tahoma";

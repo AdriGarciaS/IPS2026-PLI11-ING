@@ -1,3 +1,4 @@
+
 package com.ips2026.pl11;
 
 import com.ips2026.pl11.data.ConexionBD;
@@ -48,3 +49,4 @@ public final class App {
         new VentanaPrincipal().setVisible(true);
     }
 }
+

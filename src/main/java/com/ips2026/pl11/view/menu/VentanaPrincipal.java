@@ -1,12 +1,16 @@
 package com.ips2026.pl11.view.menu;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -22,6 +26,7 @@ import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.store.StoreSalesWindow;
 import com.ips2026.pl11.view.employee.AddEmployeeView;
+import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
 
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
@@ -53,6 +58,7 @@ public class VentanaPrincipal extends JFrame {
     private MenuCardButton btnOption4;
     private JPanel pnFooter;
     private JLabel lblFooter;
+    private JButton selectedButton;
 
     public VentanaPrincipal() {
         setTitle("Football Club Management");
@@ -95,10 +101,30 @@ public class VentanaPrincipal extends JFrame {
 
     private MenuCardButton getBtnOption1() {
         if (btnOption1 == null) {
-            btnOption1 = new MenuCardButton("Employees Registration", "Register new sports and non-sports staff");
+            btnOption1 = new MenuCardButton("Employees Management", "Register, modify and delete sports and non-sports staff");
             btnOption1.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
             btnOption1.setMnemonic('E');
-            btnOption1.addActionListener(event -> new AddEmployeeView(this).setVisible(true));
+            
+            selectedButton = btnOption1;
+            btnOption1.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    if (selectedButton != btnOption1) {
+                        btnOption1.setBackground(new Color(241, 245, 249));
+                    }
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    if (selectedButton != btnOption1) {
+                        btnOption1.setBackground(Color.WHITE);
+                    }
+                }
+            });
+
+            btnOption1.addActionListener(e -> {
+                new EmployeeMenuDialog(this).setVisible(true);
+            });
         }
         return btnOption1;
     }

@@ -78,7 +78,6 @@ public final class App {
                             emp.getCategory());
                 }
             }
-            System.out.println("====================================================\n");
 
         } catch (SQLException e) {
             System.err.println("Error reading employees on startup: " + e.getMessage());

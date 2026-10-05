@@ -35,18 +35,18 @@ import com.ips2026.pl11.controlador.EmployeeController;
 import com.ips2026.pl11.datos.EmployeeDAO;
 import com.ips2026.pl11.modelo.Employee;
 
-public class ModifyEmployeeView extends JDialog {
+public class DeleteEmployeeView extends JDialog{
 
-    private static final long serialVersionUID = 1L;
-
-    private final EmployeeController controller = new EmployeeController(new EmployeeDAO());
-    private List<Employee> employeeList;
+	private static final long serialVersionUID = 1L;
+	
+	private final EmployeeController controller = new EmployeeController(new EmployeeDAO());
+	private List<Employee> employeeList;
     private Employee selectedEmployee;
-
+    
     private JPanel contentPane;
     private JPanel pnHeader;
     private JSplitPane splitPane;
-
+    
     private JPanel pnTableContainer;
     private JScrollPane spTable;
     private JTable tblEmployees;
@@ -64,10 +64,10 @@ public class ModifyEmployeeView extends JDialog {
     private JComboBox<String> cbCategory;
 
     private JPanel pnActions;
-    private JButton btnSave;
+    private JButton btnDelete;
     private JButton btnClose;
 
-    public ModifyEmployeeView(JDialog parent) {
+    public DeleteEmployeeView(JDialog parent) {
         super(parent, "Modify Employee", true);
         setSize(950, 620);
         setLocationRelativeTo(parent);
@@ -90,11 +90,11 @@ public class ModifyEmployeeView extends JDialog {
             pnHeader.setOpaque(false);
             pnHeader.setBorder(new MatteBorder(0, 0, 1, 0, new Color(226, 232, 240)));
 
-            JLabel lblTitle = new JLabel("Modify Employee");
+            JLabel lblTitle = new JLabel("Delete Employee");
             lblTitle.setFont(new Font("Segoe UI Semibold", Font.BOLD, 20));
             lblTitle.setForeground(new Color(30, 41, 59));
 
-            JLabel lblSubtitle = new JLabel("Select an employee from the table to edit their details. Job position cannot be altered.");
+            JLabel lblSubtitle = new JLabel("Select an employee from the table to delete from the system.");
             lblSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
             lblSubtitle.setForeground(new Color(100, 116, 139));
             lblSubtitle.setBorder(new EmptyBorder(0, 0, 8, 0));
@@ -285,7 +285,7 @@ public class ModifyEmployeeView extends JDialog {
             pnActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
             pnActions.setOpaque(false);
             pnActions.add(getBtnClose());
-            pnActions.add(getBtnSave());
+            pnActions.add(getBtnDelete());
         }
         return pnActions;
     }
@@ -307,36 +307,36 @@ public class ModifyEmployeeView extends JDialog {
         return btnClose;
     }
 
-    private JButton getBtnSave() {
-        if (btnSave == null) {
-            btnSave = new JButton("Save Changes");
-            btnSave.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 13));
-            btnSave.setFocusPainted(false);
-            btnSave.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            btnSave.setBackground(new Color(24, 76, 120));
-            btnSave.setForeground(Color.BLACK);
-            btnSave.setBorder(BorderFactory.createEmptyBorder(8, 18, 8, 18));
-            btnSave.setEnabled(false); // Deshabilitado hasta que seleccionen un empleado
+    private JButton getBtnDelete() {
+        if (btnDelete == null) {
+            btnDelete = new JButton("Delete Employee");
+            btnDelete.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 13));
+            btnDelete.setFocusPainted(false);
+            btnDelete.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            btnDelete.setBackground(Color.red);
+            btnDelete.setForeground(Color.BLACK);
+            btnDelete.setBorder(BorderFactory.createEmptyBorder(8, 18, 8, 18));
+            btnDelete.setEnabled(false); // Deshabilitado hasta que seleccionen un empleado
 
-            btnSave.addMouseListener(new MouseAdapter() {
+            btnDelete.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseEntered(MouseEvent e) {
-                    if (btnSave.isEnabled()) {
-                        btnSave.setBackground(new Color(32, 101, 160));
+                    if (btnDelete.isEnabled()) {
+                    	btnDelete.setBackground(Color.RED);
                     }
                 }
 
                 @Override
                 public void mouseExited(MouseEvent e) {
-                    if (btnSave.isEnabled()) {
-                        btnSave.setBackground(new Color(24, 76, 120));
+                    if (btnDelete.isEnabled()) {
+                    	btnDelete.setBackground(Color.white);
                     }
                 }
             });
 
-            btnSave.addActionListener(e -> saveChanges());
+            btnDelete.addActionListener(e -> saveChanges());
         }
-        return btnSave;
+        return btnDelete;
     }
 
     private JLabel createLabel(String texto) {
@@ -390,48 +390,47 @@ public class ModifyEmployeeView extends JDialog {
         getTxtPosition().setText(emp.getPosition());
         getTxtSalary().setText(String.valueOf(emp.getGrossAnnualSalary()));
 
-        getTxtFirstName().setEnabled(true);
-        getTxtLastName().setEnabled(true);
-        getTxtNationalId().setEnabled(true);
-        getTxtBirthDate().setEnabled(true);
-        getTxtPhone().setEnabled(true);
-        getCbCategory().setEnabled(true);
-        getTxtSalary().setEnabled(true);
+        getTxtFirstName().setEnabled(false);
+        getTxtLastName().setEnabled(false);
+        getTxtNationalId().setEnabled(false);
+        getTxtBirthDate().setEnabled(false);
+        getTxtPhone().setEnabled(false);
+        getCbCategory().setEnabled(false);
+        getTxtSalary().setEnabled(false);
 
-        getBtnSave().setEnabled(true);
+        getBtnDelete().setEnabled(true);
     }
 
     private void saveChanges() {
-        if (selectedEmployee == null) {
+        int selectedRow = tblEmployees.getSelectedRow();
+        
+        if (selectedRow == -1) {
+          JOptionPane.showMessageDialog(this, "Please select an employee from the table to delete.", "Selection Required", JOptionPane.WARNING_MESSAGE);
+          return;
+      }
+    	
+    	if (selectedEmployee == null) {
         	return;
         }
+    	
+      Employee selected = employeeList.get(selectedRow);
 
-        try {
-            LocalDate birthDate = LocalDate.parse(getTxtBirthDate().getText().trim());
-            double salary = Double.parseDouble(getTxtSalary().getText().trim());
+      int confirm = JOptionPane.showConfirmDialog(
+              this,
+              "Are you sure you want to terminate and delete employee #" + selected.getId() + " (" + selected.getFirstName() + " " + selected.getLastName() + ")?",
+              "Confirm Termination",
+              JOptionPane.YES_NO_OPTION,
+              JOptionPane.WARNING_MESSAGE
+      );
 
-            controller.updateEmployee(
-                    selectedEmployee.getId(),
-                    getTxtFirstName().getText(),
-                    getTxtLastName().getText(),
-                    getTxtNationalId().getText(),
-                    birthDate,
-                    getTxtPhone().getText(),
-                    (String) getCbCategory().getSelectedItem(),
-                    selectedEmployee.getPosition(), 
-                    salary
-            );
-
-            JOptionPane.showMessageDialog(this, "Employee updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                      
-            loadEmployees();
-
-        } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(this, "Invalid date format. Please use YYYY-MM-DD (e.g. 1998-05-15).", "Date Error", JOptionPane.ERROR_MESSAGE);
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Gross annual salary must be a valid number.", "Format Error", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Update Error", JOptionPane.ERROR_MESSAGE);
-        }     
+      if (confirm == JOptionPane.YES_OPTION) {
+          try {
+              controller.deleteEmployee(selected.getId());
+              JOptionPane.showMessageDialog(this, "Employee successfully deleted.", "Success", JOptionPane.INFORMATION_MESSAGE);
+              loadEmployees(); // Refresca la tabla tras el borrado
+          } catch (SQLException ex) {
+              JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+          }
+      }
     }
 }

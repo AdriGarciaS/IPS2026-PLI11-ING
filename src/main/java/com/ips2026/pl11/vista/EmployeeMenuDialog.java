@@ -202,10 +202,11 @@ public class EmployeeMenuDialog extends JDialog {
                 }
             });
 
-//            btnDelete.addActionListener(e -> {
-//                // Abre la tabla donde seleccionas y eliminas
-//                new EmployeeManagementView((JFrame) getOwner()).setVisible(true);
-//            });
+            btnDelete.addActionListener(e -> {
+                // Abre la tabla donde seleccionas y eliminas
+            	DeleteEmployeeView deleteView = new DeleteEmployeeView(this);
+                deleteView.setVisible(true);
+            });
         }
         return btnDelete;
     }

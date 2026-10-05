@@ -19,11 +19,16 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
+import com.ips2026.pl11.controller.reservation.FacilityReservationController;
 import com.ips2026.pl11.controller.store.StoreSalesController;
+import com.ips2026.pl11.data.reservation.FacilityDAO;
+import com.ips2026.pl11.data.reservation.ReservationDAO;
+import com.ips2026.pl11.data.reservation.TeamUseDAO;
 import com.ips2026.pl11.data.store.MerchandiseDAO;
 import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.store.StoreSalesWindow;
 import com.ips2026.pl11.view.employee.AddEmployeeView;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
@@ -34,9 +39,9 @@ import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
  * <p>Tiene la cabecera del club ({@link HeaderPanel}), cuatro
  * botones tipo "tarjeta" en una rejilla de 2x2 y un pie de pagina. Los
  * botones se iran conectando con las funcionalidades de cada sprint (el
- * boton 1 abre el registro de empleados y el boton 3 la venta de
- * merchandising); mientras no tengan funcionalidad
- * se muestran deshabilitados.</p>
+ * boton 1 abre el registro de empleados, el boton 3 la venta de
+ * merchandising y el boton 4 la reserva de instalaciones); mientras no
+ * tengan funcionalidad se muestran deshabilitados.</p>
  *
  * <p>El codigo sigue la generacion "lazy" de Eclipse WindowBuilder: cada
  * componente es un atributo privado que se crea la primera vez que se llama
@@ -150,11 +155,26 @@ public class VentanaPrincipal extends JFrame {
 
     private MenuCardButton getBtnOption4() {
         if (btnOption4 == null) {
-            btnOption4 = new MenuCardButton("Option 4", COMING_SOON);
+            btnOption4 = new MenuCardButton("Facility Reservations", "Book club facilities for external people");
             btnOption4.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
-            btnOption4.setEnabled(false);
+            btnOption4.setMnemonic('F');
+            btnOption4.addActionListener(event -> openFacilityReservations());
         }
         return btnOption4;
+    }
+
+    private void openFacilityReservations() {
+        FacilityReservationController controller = new FacilityReservationController(
+                new FacilityDAO(), new TeamUseDAO(), new ReservationDAO());
+        try {
+            controller.loadFacilities();
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this,
+                    "The facilities could not be loaded:\n" + exception.getMessage(),
+                    "Facility Reservations", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        new FacilityReservationWindow(controller, this).setVisible(true);
     }
 
     private void openStoreSales() {

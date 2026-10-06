@@ -1,4 +1,4 @@
-package com.ips2026.pl11.vista;
+package com.ips2026.pl11.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

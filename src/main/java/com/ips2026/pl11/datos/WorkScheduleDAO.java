@@ -9,7 +9,7 @@ import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ips2026.pl11.modelo.WorkSchedule;
+import com.ips2026.pl11.model.WorkSchedule;
 
 public class WorkScheduleDAO {
 

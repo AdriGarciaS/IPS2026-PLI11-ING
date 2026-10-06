@@ -1,4 +1,4 @@
-package com.ips2026.pl11.vista;
+package com.ips2026.pl11.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -29,9 +29,9 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.table.DefaultTableModel;
 
-import com.ips2026.pl11.controlador.WorkScheduleController;
+import com.ips2026.pl11.controller.WorkScheduleController;
 import com.ips2026.pl11.datos.WorkScheduleDAO;
-import com.ips2026.pl11.modelo.WorkSchedule;
+import com.ips2026.pl11.model.WorkSchedule;
 
 public class GMWorkScheduleWindow extends JFrame {
 

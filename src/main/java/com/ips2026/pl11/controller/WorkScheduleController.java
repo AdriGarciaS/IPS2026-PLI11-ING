@@ -1,11 +1,11 @@
-package com.ips2026.pl11.controlador;
+package com.ips2026.pl11.controller;
 
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.List;
 
 import com.ips2026.pl11.datos.WorkScheduleDAO;
-import com.ips2026.pl11.modelo.WorkSchedule;
+import com.ips2026.pl11.model.WorkSchedule;
 
 public class WorkScheduleController {
 

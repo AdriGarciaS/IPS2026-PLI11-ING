@@ -1,7 +1,7 @@
-package com.ips2026.pl11.controlador;
+package com.ips2026.pl11.controller;
 
 import com.ips2026.pl11.datos.PersonaDAO;
-import com.ips2026.pl11.modelo.Persona;
+import com.ips2026.pl11.model.Persona;
 
 import java.sql.SQLException;
 import java.util.List;

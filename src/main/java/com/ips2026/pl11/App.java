@@ -1,7 +1,7 @@
 package com.ips2026.pl11;
 
 import com.ips2026.pl11.datos.ConexionBD;
-import com.ips2026.pl11.vista.VentanaPrincipal;
+import com.ips2026.pl11.view.VentanaPrincipal;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;

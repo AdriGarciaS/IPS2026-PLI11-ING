@@ -1,4 +1,4 @@
-package com.ips2026.pl11.modelo;
+package com.ips2026.pl11.model;
 
 import java.time.Duration;
 import java.time.LocalTime;

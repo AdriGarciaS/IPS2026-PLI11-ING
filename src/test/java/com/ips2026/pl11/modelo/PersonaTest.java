@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
+import com.ips2026.pl11.model.Persona;
+
 class PersonaTest {
 
     @Test

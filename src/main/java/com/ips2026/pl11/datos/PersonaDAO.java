@@ -1,13 +1,13 @@
 package com.ips2026.pl11.datos;
 
-import com.ips2026.pl11.modelo.Persona;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.ips2026.pl11.model.Persona;
 
 
 public class PersonaDAO {

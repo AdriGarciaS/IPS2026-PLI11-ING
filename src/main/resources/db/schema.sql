@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS employees (
     phone_number         TEXT NOT NULL,
     category             TEXT NOT NULL, -- 'SPORTS' or 'NON_SPORTS'
     position             TEXT NOT NULL,
-    gross_annual_salary  REAL NOT NULL
+    gross_annual_salary  REAL NOT NULL,
+    gender               TEXT CHECK (gender IN ('MALE', 'FEMALE')) -- optional, needed for players of male or female teams
 );
 -- Merchandising products sold in the club store.
 -- available_units: number of units in stock (a sale can never exceed it).
@@ -96,3 +97,39 @@ create table if not exists work_schedule(
 	foreign key (employee_id) references employees(id)
 	
 );
+
+-- ---------------------------------------------------------------------------
+-- Sports teams (US: general manager adds sports teams).
+-- ---------------------------------------------------------------------------
+
+-- category: FIRST_TEAM or SUBSIDIARY (professional teams) or JUVENIL, CADETE,
+-- INFANTIL, ALEVIN, BENJAMIN, PREBENJAMIN (youth teams).
+-- gender: MALE, FEMALE or MIXED (players must match; MIXED accepts anyone).
+-- first_coach_id / second_coach_id: mandatory, technical sports employees.
+-- created_at: YYYY-MM-DD HH:MM:SS.
+CREATE TABLE IF NOT EXISTS TEAM (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    name            TEXT    NOT NULL UNIQUE COLLATE NOCASE,
+    category        TEXT    NOT NULL CHECK (category IN ('FIRST_TEAM', 'SUBSIDIARY', 'JUVENIL', 'CADETE',
+                                                         'INFANTIL', 'ALEVIN', 'BENJAMIN', 'PREBENJAMIN')),
+    gender          TEXT    NOT NULL CHECK (gender IN ('MALE', 'FEMALE', 'MIXED')),
+    first_coach_id  INTEGER NOT NULL REFERENCES employees (id),
+    second_coach_id INTEGER NOT NULL REFERENCES employees (id),
+    created_at      TEXT    NOT NULL,
+    CHECK (first_coach_id <> second_coach_id)
+);
+
+-- Players and other technical staff of each team (the two coaches are in TEAM).
+-- role: PLAYER or STAFF; task: what a STAFF member does (for example "Goalkeepers").
+CREATE TABLE IF NOT EXISTS TEAM_MEMBER (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    team_id     INTEGER NOT NULL REFERENCES TEAM (id),
+    employee_id INTEGER NOT NULL REFERENCES employees (id),
+    role        TEXT    NOT NULL CHECK (role IN ('PLAYER', 'STAFF')),
+    task        TEXT,
+    UNIQUE (team_id, employee_id)
+);
+
+-- A player can only belong to one team.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_team_member_one_team_per_player ON TEAM_MEMBER (employee_id) WHERE role = 'PLAYER';
+

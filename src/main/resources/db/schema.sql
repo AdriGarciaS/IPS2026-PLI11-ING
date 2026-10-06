@@ -96,3 +96,5 @@ create table if not exists work_schedule(
 	foreign key (employee_id) references employees(id)
 	
 );
+
+CREATE TABLE IF NOT EXISTS SLOTS_INTERVIEW();

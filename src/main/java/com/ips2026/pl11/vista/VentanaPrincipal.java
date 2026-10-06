@@ -98,14 +98,22 @@ public class VentanaPrincipal extends JFrame {
         if (pnButtons == null) {
             pnButtons = new JPanel();
             pnButtons.setLayout(new GridLayout(2, 2, 15, 15));
+            pnButtons.add(getBtnOption1());
             pnButtons.add(getBtnGeneralManager());
-            pnButtons.add(getBtnOption2());
             pnButtons.add(getBtnOption3());
             pnButtons.add(getBtnOption4());
         }
         return pnButtons;
     }
 
+    private JButton getBtnOption1() {
+        if (btnOption2 == null) {
+            btnOption2 = new JButton("Option 1");
+            btnOption2.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        }
+        return btnOption2;
+    }
+    
     private JButton getBtnGeneralManager() {
         if (btnGeneralManager == null) {
             btnGeneralManager = new JButton("General Manager");
@@ -121,13 +129,6 @@ public class VentanaPrincipal extends JFrame {
         return btnGeneralManager;
     }
 
-    private JButton getBtnOption2() {
-        if (btnOption2 == null) {
-            btnOption2 = new JButton("Option 2");
-            btnOption2.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        }
-        return btnOption2;
-    }
 
     private JButton getBtnOption3() {
         if (btnOption3 == null) {

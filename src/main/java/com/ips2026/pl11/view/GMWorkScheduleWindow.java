@@ -9,7 +9,9 @@ import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -42,6 +44,8 @@ public class GMWorkScheduleWindow extends JFrame {
         "Sunday" };
 
     private WorkScheduleController controller = new WorkScheduleController(new WorkScheduleDAO());
+    
+    private List<WorkSchedule> schedulesList = new ArrayList<>();
 
     private VentanaPrincipal mw;
     private JPanel pnHeader;
@@ -62,6 +66,15 @@ public class GMWorkScheduleWindow extends JFrame {
     private JButton btnAdd;
     private JScrollPane spnTable;
     private JTable table;
+    
+    private DefaultTableModel tableModel = new DefaultTableModel(
+        new Object[][] {
+        },
+        new String[] {
+            "Day", "Start", "End"
+        }
+    );
+    
 
     /**
      * Create the frame.
@@ -81,6 +94,8 @@ public class GMWorkScheduleWindow extends JFrame {
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         rootPane.setDefaultButton(btnAdd);
         setLocationRelativeTo(mw);
+        
+        initializeTable();
 
     }
 
@@ -265,10 +280,11 @@ public class GMWorkScheduleWindow extends JFrame {
             long employeeId = Long.parseLong(txtWorkerId.getText().trim());
             int weekDay = cbDay.getSelectedIndex() + 1;
             
+            
             LocalTime start = ((Date) spStart.getValue()).toInstant()
-                    .atZone(ZoneId.systemDefault()).toLocalTime();
+                    .atZone(ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0);
             LocalTime end = ((Date) spEnd.getValue()).toInstant()
-                    .atZone(ZoneId.systemDefault()).toLocalTime();
+                    .atZone(ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0);
             
             controller.addShift(new WorkSchedule(0L, employeeId, weekDay, start, end));
 
@@ -287,7 +303,7 @@ public class GMWorkScheduleWindow extends JFrame {
         try {
             long employeeId = Long.parseLong(txtWorkerId.getText().trim());
             DefaultTableModel model = (DefaultTableModel) table.getModel();
-            model.setRowCount(0);
+//            model.setRowCount(0);
             for (WorkSchedule s : controller.getWorkSchedulesByEmployee(employeeId)) {
                 model.addRow(new Object[] {
                         DAYS[s.getWeekDay() - 1], s.getStartTime(), s.getEndTime()});
@@ -314,14 +330,24 @@ public class GMWorkScheduleWindow extends JFrame {
     private JTable getTable() {
         if (table == null) {
         	table = new JTable();
-        	table.setModel(new DefaultTableModel(
-        	    new Object[][] {
-        	    },
-        	    new String[] {
-        	        "Start", "End", "Date"
-        	    }
-        	));
+        	table.setModel(tableModel);
         }
         return table;
     }
+    
+    private void initializeTable() {
+        try {
+            schedulesList = controller.getWorkSchedules();
+            for (WorkSchedule s: schedulesList) {
+                tableModel.addRow(new Object[]{
+                        DAYS[s.getWeekDay()-1],
+                        s.getStartTime(),
+                        s.getEndTime()
+                });
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error loading employees: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
 }

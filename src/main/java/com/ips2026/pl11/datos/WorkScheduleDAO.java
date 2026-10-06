@@ -5,7 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Time;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,8 +23,8 @@ public class WorkScheduleDAO {
 
             while (resultado.next()) {
                 workSchedules.add(new WorkSchedule(resultado.getLong("id"), resultado.getLong("employee_id"),
-                    resultado.getInt("week_day"), resultado.getTime("start_time").toLocalTime(),
-                    resultado.getTime("end_time").toLocalTime()));
+                    resultado.getInt("week_day"), LocalTime.parse(resultado.getString("start_time")),
+                    LocalTime.parse(resultado.getString("end_time"))));
             }
         }
 
@@ -45,7 +45,7 @@ public class WorkScheduleDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     result.add(new WorkSchedule(rs.getLong("id"), rs.getLong("employee_id"), rs.getInt("week_day"),
-                        rs.getTime("start_time").toLocalTime(), rs.getTime("end_time").toLocalTime()));
+                        LocalTime.parse(rs.getString("start_time")), LocalTime.parse(rs.getString("end_time"))));
                 }
             }
         }
@@ -61,8 +61,8 @@ public class WorkScheduleDAO {
             
             ps.setLong(1, ws.getEmployeeId());
             ps.setInt(2, ws.getWeekDay());
-            ps.setTime(3, Time.valueOf(ws.getStartTime()));
-            ps.setTime(4, Time.valueOf(ws.getEndTime()));
+            ps.setString(3, String.valueOf(ws.getStartTime()));
+            ps.setString(4, String.valueOf(ws.getEndTime()));
             
             ps.executeUpdate();
         }

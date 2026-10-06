@@ -1,4 +1,4 @@
--- Creacion de las tablas de la base de datos.
+ -- Creacion de las tablas de la base de datos.
 -- Se ejecuta al arrancar la aplicacion. Usar siempre "IF NOT EXISTS" para que
 -- no falle si la base de datos ya existe (modo "mantener").
 -- Cada sentencia debe terminar en ";".
@@ -91,8 +91,8 @@ create table if not exists work_schedule(
 	id			integer primary key autoincrement,
 	employee_id integer not null,
 	week_day 	integer not null,
-	start_time	time not null,
-	end_time	time not null,
+	start_time	text not null,
+	end_time	text not null,
 	foreign key (employee_id) references employees(id)
 	
 );

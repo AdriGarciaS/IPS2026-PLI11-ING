@@ -56,3 +56,6 @@ SELECT 1, 'First Team (match)', date('now', 'localtime', '+' || n || ' days'), '
 -- An existing reservation, so the "Reserved" periods can be seen.
 INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reservation_date, start_time, end_time, hours, total_price, created_at) VALUES
     (2, 'Laura Perez', '**** **** **** 1111', date('now', 'localtime', '+1 day'), '14:00', '16:00', 2, 100.0, datetime('now', 'localtime'));
+    
+insert into work_schedule (id, employee_id, week_day, start_time, end_time) VALUES
+	(0, 1, 2, '12:30', '14:30');

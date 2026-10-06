@@ -166,4 +166,5 @@ public class VentanaPrincipal extends JFrame {
         }
         return lblFooter;
     }
+
 }

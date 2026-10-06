@@ -1,11 +1,11 @@
-package com.ips2026.pl11.controller;
+package com.ips2026.pl11.controller.schedule;
 
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.List;
 
 import com.ips2026.pl11.data.schedule.WorkScheduleDAO;
-import com.ips2026.pl11.model.WorkSchedule;
+import com.ips2026.pl11.model.schedule.WorkSchedule;
 
 public class WorkScheduleController {
 
@@ -49,8 +49,9 @@ public class WorkScheduleController {
                 dayTotal = dayTotal.plus(ws.duration());
 
                 // If the shift overlaps with another one then it cannot be added.
-                boolean shiftOverlaps = newShift.getStartTime().isBefore(ws.getEndTime())
-                    && ws.getStartTime().isBefore(ws.getEndTime());
+                boolean shiftOverlaps =
+                    newShift.getStartTime().isBefore(ws.getEndTime())
+                    && ws.getStartTime().isBefore(newShift.getEndTime());
                 if (shiftOverlaps) {
                     throw new IllegalArgumentException("New shift overlaps with an existing one.");
                 }

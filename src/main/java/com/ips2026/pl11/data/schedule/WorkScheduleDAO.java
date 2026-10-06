@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.ips2026.pl11.data.ConexionBD;
-import com.ips2026.pl11.model.WorkSchedule;
+import com.ips2026.pl11.model.schedule.WorkSchedule;
 
 public class WorkScheduleDAO {
 

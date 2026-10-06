@@ -30,12 +30,12 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.table.DefaultTableModel;
 
-import com.ips2026.pl11.controller.WorkScheduleController;
 import com.ips2026.pl11.controller.employee.EmployeeController;
+import com.ips2026.pl11.controller.schedule.WorkScheduleController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.data.schedule.WorkScheduleDAO;
-import com.ips2026.pl11.model.WorkSchedule;
 import com.ips2026.pl11.model.employee.Employee;
+import com.ips2026.pl11.model.schedule.WorkSchedule;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.menu.MainWindow;

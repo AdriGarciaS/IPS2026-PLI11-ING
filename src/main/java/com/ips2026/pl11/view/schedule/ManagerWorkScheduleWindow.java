@@ -39,7 +39,7 @@ import com.ips2026.pl11.model.schedule.WorkSchedule;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 
-public class GMWorkScheduleWindow extends JFrame {
+public class ManagerWorkScheduleWindow extends JFrame {
 
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
@@ -106,7 +106,7 @@ public class GMWorkScheduleWindow extends JFrame {
     /**
      * Create the frame.
      */
-    public GMWorkScheduleWindow(WorkScheduleWindow workScheduleWindow) {
+    public ManagerWorkScheduleWindow(WorkScheduleWindow workScheduleWindow) {
         setTitle("Football Club Management");
         this.wsw = workScheduleWindow;
 

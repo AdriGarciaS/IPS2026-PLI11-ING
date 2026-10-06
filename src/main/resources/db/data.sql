@@ -59,3 +59,4 @@ INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reserva
     
 insert into work_schedule (id, employee_id, week_day, start_time, end_time) VALUES
 	(0, 1, 2, '12:30', '14:30');
+

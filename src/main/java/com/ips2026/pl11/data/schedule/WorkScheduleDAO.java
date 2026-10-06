@@ -1,4 +1,4 @@
-package com.ips2026.pl11.datos;
+package com.ips2026.pl11.data.schedule;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,6 +9,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ips2026.pl11.data.ConexionBD;
 import com.ips2026.pl11.model.WorkSchedule;
 
 public class WorkScheduleDAO {

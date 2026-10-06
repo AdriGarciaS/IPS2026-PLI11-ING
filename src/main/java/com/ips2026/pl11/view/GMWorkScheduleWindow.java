@@ -32,8 +32,9 @@ import javax.swing.border.MatteBorder;
 import javax.swing.table.DefaultTableModel;
 
 import com.ips2026.pl11.controller.WorkScheduleController;
-import com.ips2026.pl11.datos.WorkScheduleDAO;
+import com.ips2026.pl11.data.schedule.WorkScheduleDAO;
 import com.ips2026.pl11.model.WorkSchedule;
+import com.ips2026.pl11.view.menu.MainWindow;
 
 public class GMWorkScheduleWindow extends JFrame {
 
@@ -47,7 +48,7 @@ public class GMWorkScheduleWindow extends JFrame {
     
     private List<WorkSchedule> schedulesList = new ArrayList<>();
 
-    private VentanaPrincipal mw;
+    private MainWindow mw;
     private JPanel pnHeader;
     private JLabel lblLogo;
     private JLabel lblWeeklyWorkSchedule;
@@ -79,8 +80,8 @@ public class GMWorkScheduleWindow extends JFrame {
     /**
      * Create the frame.
      */
-    public GMWorkScheduleWindow(VentanaPrincipal mw) {
-        this.mw = mw;
+    public GMWorkScheduleWindow(MainWindow ventanaPrincipal) {
+        this.mw = ventanaPrincipal;
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 603, 547);
@@ -93,7 +94,7 @@ public class GMWorkScheduleWindow extends JFrame {
         contentPane.add(getLblFooter(), BorderLayout.SOUTH);
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         rootPane.setDefaultButton(btnAdd);
-        setLocationRelativeTo(mw);
+        setLocationRelativeTo(ventanaPrincipal);
         
         initializeTable();
 

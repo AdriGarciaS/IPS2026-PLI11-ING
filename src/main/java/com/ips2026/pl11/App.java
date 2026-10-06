@@ -1,11 +1,14 @@
+
 package com.ips2026.pl11;
 
-import com.ips2026.pl11.datos.ConexionBD;
-import com.ips2026.pl11.view.VentanaPrincipal;
+import java.sql.SQLException;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import java.sql.SQLException;
+
+import com.ips2026.pl11.data.ConexionBD;
+import com.ips2026.pl11.view.common.Branding;
+import com.ips2026.pl11.view.menu.MainWindow;
 
 /**
  * Punto de entrada de la aplicacion.
@@ -31,6 +34,9 @@ public final class App {
     }
 
     private static void iniciarAplicacion() {
+        // Aspecto comun de todas las ventanas (Nimbus con los colores del club).
+        Branding.installLookAndFeel();
+
         try {
             ConexionBD.inicializar();
         } catch (SQLException excepcion) {
@@ -41,6 +47,7 @@ public final class App {
             return;
         }
 
-        new VentanaPrincipal().setVisible(true);
+        new MainWindow().setVisible(true);
     }
 }
+

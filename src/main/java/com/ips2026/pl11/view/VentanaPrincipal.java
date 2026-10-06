@@ -38,7 +38,7 @@ public class VentanaPrincipal extends JFrame {
     private JLabel lblLogo;
     private JLabel lblTitle;
     private JPanel pnButtons;
-    private JButton btnGeneralManager;
+    private JButton btnScheduleMgmt;
     private JButton btnOption2;
     private JButton btnOption3;
     private JButton btnOption4;
@@ -99,7 +99,7 @@ public class VentanaPrincipal extends JFrame {
             pnButtons = new JPanel();
             pnButtons.setLayout(new GridLayout(2, 2, 15, 15));
             pnButtons.add(getBtnOption1());
-            pnButtons.add(getBtnGeneralManager());
+            pnButtons.add(getBtnScheduleMgmt());
             pnButtons.add(getBtnOption3());
             pnButtons.add(getBtnOption4());
         }
@@ -114,19 +114,19 @@ public class VentanaPrincipal extends JFrame {
         return btnOption2;
     }
     
-    private JButton getBtnGeneralManager() {
-        if (btnGeneralManager == null) {
-            btnGeneralManager = new JButton("General Manager");
-            btnGeneralManager.addActionListener(new ActionListener() {
+    private JButton getBtnScheduleMgmt() {
+        if (btnScheduleMgmt == null) {
+            btnScheduleMgmt = new JButton("Schedule Management");
+            btnScheduleMgmt.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     
                     gmWorkScheduleWindow.setVisible(true);
                 }
             });
-            btnGeneralManager.setFont(new Font("Tahoma", Font.PLAIN, 16));
+            btnScheduleMgmt.setFont(new Font("Tahoma", Font.PLAIN, 16));
         }
-        return btnGeneralManager;
+        return btnScheduleMgmt;
     }
 
 

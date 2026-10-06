@@ -7,12 +7,15 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Year;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -43,9 +46,12 @@ public class ManagerWorkScheduleWindow extends JFrame {
 
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
-
+    
     private static final String[] DAYS = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
-        "Sunday" };
+    "Sunday" };
+    
+    private static final String[] MONTHS = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
     private WorkScheduleController wsController = new WorkScheduleController(new WorkScheduleDAO());
     private EmployeeController eController = new EmployeeController(new EmployeeDAO());
@@ -59,15 +65,14 @@ public class ManagerWorkScheduleWindow extends JFrame {
     private JLabel lblFooter;
     private JPanel pnButtons;
     private JTextField txtWorkerId;
-    private JComboBox cbDay;
+    private JComboBox cbMonth;
     private JSpinner spStart;
     private JSpinner spEnd;
     private JLabel lblWorkers;
-    private JLabel lblDay;
     private JLabel lblStart;
     private JLabel lblEnd;
     private JButton btnReturn;
-    private JButton btnAdd;
+    private JButton btnModify;
     private JScrollPane spnShifts;
     private JTable tableShifts;
     
@@ -101,6 +106,9 @@ public class ManagerWorkScheduleWindow extends JFrame {
     private JScrollPane spnWorkers;
     private JTable tableWorkers;
     private JLabel lblSelectedWorkerId;
+    private JComboBox cbDay;
+    private JComboBox cbYear;
+    private JLabel lblDate;
     
 
     /**
@@ -121,7 +129,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
         contentPane.add(getPnFooter(), BorderLayout.SOUTH);
         contentPane.add(getLblFooter(), BorderLayout.SOUTH);
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
-        rootPane.setDefaultButton(btnAdd);
+        rootPane.setDefaultButton(btnModify);
         setLocationRelativeTo(wsw);
         
         initializeShiftsTable();
@@ -132,8 +140,8 @@ public class ManagerWorkScheduleWindow extends JFrame {
     //
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
-            pnHeader = new HeaderPanel("Weekly Work Schedule Management",
-                    "Add schedules for non sporting employees", false);
+            pnHeader = new HeaderPanel("Specific Work Schedule Management",
+                    "Modify specific days from non sporting employees", false);
             pnHeader.setMinimumSize(new Dimension(564, 76));
             pnHeader.setPreferredSize(new Dimension(564, 76));
         }
@@ -165,19 +173,21 @@ public class ManagerWorkScheduleWindow extends JFrame {
             pnButtons = new JPanel();
             pnButtons.setLayout(null);
             pnButtons.add(getTxtWorkerId());
-            pnButtons.add(getCbDay());
             pnButtons.add(getSpStart());
             pnButtons.add(getSpEnd());
             pnButtons.add(getLblWorkers());
-            pnButtons.add(getLblDay());
             pnButtons.add(getLblStart());
             pnButtons.add(getLblEnd());
             pnButtons.add(getBtnReturn());
-            pnButtons.add(getBtnAdd());
+            pnButtons.add(getBtnModify());
             pnButtons.add(getSpnShifts());
             pnButtons.add(getLblCurrentShifts());
             pnButtons.add(getSpnWorkers());
             pnButtons.add(getLblSelectedWorkerId());
+            pnButtons.add(getLblDate());
+            pnButtons.add(getCbYear());
+            pnButtons.add(getCbMonth());
+            pnButtons.add(getCbDay());
         }
         return pnButtons;
     }
@@ -186,16 +196,45 @@ public class ManagerWorkScheduleWindow extends JFrame {
         if (txtWorkerId == null) {
             txtWorkerId = new JTextField();
             txtWorkerId.setEditable(false);
-            txtWorkerId.setBounds(505, 49, 63, 25);
+            txtWorkerId.setBounds(482, 68, 63, 25);
             txtWorkerId.setColumns(10);
         }
         return txtWorkerId;
     }
+    
+    private JComboBox getCbYear() {
+        if (cbYear == null) {
+            cbYear = new JComboBox(years());
+            cbYear.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    refreshMonths();
+                    refreshDays();
+                }
+            });
+            cbYear.setBounds(401, 104, 67, 25);
+        }
+        return cbYear;
+    }
 
+    private JComboBox getCbMonth() {
+        if (cbMonth == null) {
+            cbMonth = new JComboBox(determineMonths());
+            cbMonth.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    refreshDays();
+                }
+            });
+            cbMonth.setBounds(473, 104, 64, 25);
+        }
+        return cbMonth;
+    }
+    
     private JComboBox getCbDay() {
         if (cbDay == null) {
-            cbDay = new JComboBox(DAYS);
-            cbDay.setBounds(484, 85, 108, 25);
+            cbDay = new JComboBox(determineDays());
+            cbDay.setBounds(544, 104, 63, 25);
         }
         return cbDay;
     }
@@ -204,7 +243,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
         if (spStart == null) {
             spStart = new JSpinner(new SpinnerDateModel());
             spStart.setEditor(new JSpinner.DateEditor(spStart, "HH:mm"));
-            spStart.setBounds(451, 121, 75, 25);
+            spStart.setBounds(428, 141, 75, 25);
         }
         return spStart;
     }
@@ -213,7 +252,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
         if (spEnd == null) {
             spEnd = new JSpinner(new SpinnerDateModel());
             spEnd.setEditor(new JSpinner.DateEditor(spEnd, "HH:mm"));
-            spEnd.setBounds(446, 155, 75, 25);
+            spEnd.setBounds(428, 175, 75, 25);
         }
         return spEnd;
     }
@@ -228,23 +267,12 @@ public class ManagerWorkScheduleWindow extends JFrame {
         return lblWorkers;
     }
 
-    private JLabel getLblDay() {
-        if (lblDay == null) {
-            lblDay = new JLabel("Day of the week:");
-            lblDay.setToolTipText("D");
-            lblDay.setLabelFor(getCbDay());
-            lblDay.setDisplayedMnemonic('W');
-            lblDay.setBounds(393, 86, 101, 23);
-        }
-        return lblDay;
-    }
-
     private JLabel getLblStart() {
         if (lblStart == null) {
             lblStart = new JLabel("Start time:");
             lblStart.setLabelFor(lblStart);
             lblStart.setDisplayedMnemonic('S');
-            lblStart.setBounds(393, 122, 63, 23);
+            lblStart.setBounds(370, 142, 63, 23);
         }
         return lblStart;
     }
@@ -253,7 +281,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
         if (lblEnd == null) {
             lblEnd = new JLabel("End time:");
             lblEnd.setDisplayedMnemonic('W');
-            lblEnd.setBounds(393, 156, 63, 23);
+            lblEnd.setBounds(370, 176, 63, 23);
         }
         return lblEnd;
     }
@@ -275,20 +303,20 @@ public class ManagerWorkScheduleWindow extends JFrame {
         return btnReturn;
     }
 
-    private JButton getBtnAdd() {
-        if (btnAdd == null) {
-            btnAdd = new JButton("Add shift");
-            btnAdd.addActionListener(new ActionListener() {
+    private JButton getBtnModify() {
+        if (btnModify == null) {
+            btnModify = new JButton("Modify");
+            btnModify.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     addShift();
                 }
             });
-            btnAdd.setFont(new Font("Tahoma", Font.BOLD, 11));
-            btnAdd.setBackground(UIManager.getColor("Button.background"));
-            btnAdd.setBounds(880, 386, 85, 27);
+            btnModify.setFont(new Font("Tahoma", Font.BOLD, 11));
+            btnModify.setBackground(UIManager.getColor("Button.background"));
+            btnModify.setBounds(880, 386, 85, 27);
         }
-        return btnAdd;
+        return btnModify;
     }
 
     private void showError(String message) {
@@ -348,6 +376,15 @@ public class ManagerWorkScheduleWindow extends JFrame {
         	spnWorkers.setViewportView(getTableWorkers());
         }
         return spnWorkers;
+    }
+    
+    private JLabel getLblSelectedWorkerId() {
+        if (lblSelectedWorkerId == null) {
+            lblSelectedWorkerId = new JLabel("Selected Worker ID:");
+            lblSelectedWorkerId.setLabelFor(getTxtWorkerId());
+            lblSelectedWorkerId.setBounds(370, 73, 108, 14);
+        }
+        return lblSelectedWorkerId;
     }
     
     
@@ -412,7 +449,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
     private void addShift() {
         try {
             long employeeId = Long.parseLong(txtWorkerId.getText().trim());
-            int weekDay = cbDay.getSelectedIndex() + 1;
+            int weekDay = cbMonth.getSelectedIndex() + 1;
             
             
             LocalTime start = ((Date) spStart.getValue()).toInstant()
@@ -434,12 +471,79 @@ public class ManagerWorkScheduleWindow extends JFrame {
     }
     
     
-    private JLabel getLblSelectedWorkerId() {
-        if (lblSelectedWorkerId == null) {
-        	lblSelectedWorkerId = new JLabel("Selected Worker ID:");
-        	lblSelectedWorkerId.setLabelFor(getTxtWorkerId());
-        	lblSelectedWorkerId.setBounds(393, 54, 108, 14);
+    private Object[] years() {
+        List<Object> years = new ArrayList<>();
+        int currentYear = Year.now().getValue();
+        for(int i = currentYear; i < currentYear + 80; i++) {
+            years.add(i);
         }
-        return lblSelectedWorkerId;
+        
+        return years.toArray();
+        
+    }
+    
+    private Object[] determineDays() {
+        int highestDay = 31;
+        int lowestDay = 1;
+        if(cbMonth.getSelectedItem().equals("Feb")) {
+            int year = (Integer) cbYear.getSelectedItem();
+            if((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
+                highestDay = 29;
+            } else {
+                highestDay = 28;
+            }
+        }
+        if(cbMonth.getSelectedIndex() % 2 == 0 && cbMonth.getSelectedIndex() < 8) { // Jan, Mar, May, Jul, 
+            highestDay = 31;
+        }
+        if(cbMonth.getSelectedIndex() % 2 == 0 && cbMonth.getSelectedIndex() >= 8) { // Sep, Nov
+            highestDay = 30;
+        }
+        List<Object> res = new ArrayList<>();
+        
+        int month = LocalDate.now().getMonthValue();
+        int year = LocalDate.now().getYear();
+        int selectedMonth = cbMonth.getSelectedIndex();
+
+        if (cbYear.getSelectedIndex() == 0) {
+            selectedMonth += LocalDate.now().getMonthValue();
+        }
+        if(selectedMonth == month && cbYear.getSelectedIndex() == 0) {
+            lowestDay = LocalDate.now().getDayOfMonth();
+        }
+        
+        for(int i = highestDay; i>= lowestDay; i--) {
+            res.add(i);
+        }
+        
+        return res.reversed().toArray();
+        
+    }
+    
+    private Object[] determineMonths() {
+        if(cbYear.getSelectedIndex() == 0) {
+            int month = LocalDate.now().getMonthValue();
+            List<Object> res = new ArrayList<>();
+            for(int i = month-1; i<MONTHS.length; i++) {
+                res.add(MONTHS[i]);
+            }
+            return res.toArray();
+        }
+        return MONTHS;
+    }
+    
+    private void refreshDays() {
+        cbDay.setModel(new DefaultComboBoxModel(determineDays()));
+    }
+    
+    private void refreshMonths() {
+        cbMonth.setModel(new DefaultComboBoxModel(determineMonths()));
+    }
+    private JLabel getLblDate() {
+        if (lblDate == null) {
+        	lblDate = new JLabel("Date:");
+        	lblDate.setBounds(369, 109, 48, 14);
+        }
+        return lblDate;
     }
 }

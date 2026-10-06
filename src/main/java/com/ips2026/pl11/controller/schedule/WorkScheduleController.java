@@ -59,10 +59,10 @@ public class WorkScheduleController {
         }
 
         // Validate weekly and daily hours
-        if (dayTotal.compareTo(MAX_DAILY) >= 0) {
+        if (dayTotal.compareTo(MAX_DAILY) > 0) {
             throw new IllegalArgumentException("Worker cannot exceed 8 hours a day");
         }
-        if (weekTotal.compareTo(MAX_WEEKLY) >= 0) {
+        if (weekTotal.compareTo(MAX_WEEKLY) > 0) {
             throw new IllegalArgumentException("Worker cannot exceed 40 hours a week");
         }
         

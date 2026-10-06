@@ -68,4 +68,29 @@ public class WorkScheduleDAO {
             ps.executeUpdate();
         }
     }
+    
+    public WorkSchedule getScheduleById(long id) throws SQLException{
+        String sql = "select id, employee_id, week_day, start_time, end_time "
+            + "from work_schedule where id = ?";
+
+        try (Connection conexion = ConexionBD.obtenerConexion();
+            PreparedStatement ps = conexion.prepareStatement(sql)) {
+
+            ps.setLong(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    return new WorkSchedule(
+                        rs.getLong("id"),
+                        rs.getLong("employee_id"),
+                        rs.getInt("week_day"),
+                        LocalTime.parse(rs.getString("start_time")),
+                        LocalTime.parse(rs.getString("end_time"))
+                    );
+                }
+            }
+        }
+
+        return null;
+    }
 }

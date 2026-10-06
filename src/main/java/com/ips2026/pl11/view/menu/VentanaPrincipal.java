@@ -32,6 +32,8 @@ import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.store.StoreSalesWindow;
 import com.ips2026.pl11.view.employee.AddEmployeeView;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
@@ -64,6 +66,8 @@ public class VentanaPrincipal extends JFrame {
     private JPanel pnFooter;
     private JLabel lblFooter;
     private JButton selectedButton;
+    private MenuCardButton btnOption5;
+    private MenuCardButton btnOption6;
 
     public VentanaPrincipal() {
         setTitle("Football Club Management");
@@ -98,6 +102,8 @@ public class VentanaPrincipal extends JFrame {
             pnButtons.add(getBtnOption2());
             pnButtons.add(getBtnOption3());
             pnButtons.add(getBtnOption4());
+            pnButtons.add(getBtnOption5());
+            pnButtons.add(getBtnOption6());
         }
         return pnButtons;
     }
@@ -162,6 +168,25 @@ public class VentanaPrincipal extends JFrame {
         }
         return btnOption4;
     }
+    
+    private MenuCardButton getBtnOption5() {
+		if (btnOption5 == null) {
+			btnOption5 = new MenuCardButton("Handle slots for interviews","Create interviews for players");
+			btnOption5.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+			btnOption5.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+				}
+			});
+		}
+		return btnOption5;
+	}
+	private MenuCardButton getBtnOption6() {
+		if (btnOption6 == null) {
+			btnOption6 = new MenuCardButton("Sports Teams","Add sports teams to manage them");
+			btnOption6.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+		}
+		return btnOption6;
+	}
 
     private void openFacilityReservations() {
         FacilityReservationController controller = new FacilityReservationController(
@@ -212,4 +237,5 @@ public class VentanaPrincipal extends JFrame {
         }
         return lblFooter;
     }
+	
 }

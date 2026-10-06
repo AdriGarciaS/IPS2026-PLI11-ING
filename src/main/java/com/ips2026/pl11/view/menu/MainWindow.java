@@ -28,11 +28,11 @@ import com.ips2026.pl11.data.reservation.ReservationDAO;
 import com.ips2026.pl11.data.reservation.TeamUseDAO;
 import com.ips2026.pl11.data.store.MerchandiseDAO;
 import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
-import com.ips2026.pl11.view.GMWorkScheduleWindow;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
+import com.ips2026.pl11.view.schedule.GMWorkScheduleWindow;
 import com.ips2026.pl11.view.store.StoreSalesWindow;
 
 /**
@@ -144,7 +144,7 @@ public class MainWindow extends JFrame {
 
     private MenuCardButton getBtnOption2() {
         if (btnOption2 == null) {
-            btnOption2 = new MenuCardButton("Schedule Management", "create schedules for non sporting employees");
+            btnOption2 = new MenuCardButton("Schedule Management", "Add schedules for non sporting employees");
             btnOption2.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {

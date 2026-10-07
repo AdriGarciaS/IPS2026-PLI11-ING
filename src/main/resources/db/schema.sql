@@ -97,4 +97,28 @@ create table if not exists work_schedule(
 	
 );
 
-CREATE TABLE IF NOT EXISTS SLOTS_INTERVIEW();
+-- Table: interview_slots
+CREATE TABLE IF NOT EXISTS interview_slots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id INTEGER NOT NULL,
+    coach_id INTEGER NOT NULL,
+    slot_date TEXT NOT NULL,         -- Format: YYYY-MM-DD
+    start_time TEXT NOT NULL,        -- Format: HH:MM
+    end_time TEXT NOT NULL,          -- Format: HH:MM
+    status TEXT NOT NULL DEFAULT 'AVAILABLE', -- 'AVAILABLE', 'BOOKED', 'CANCELLED'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (player_id) REFERENCES employees(id),
+    FOREIGN KEY (coach_id) REFERENCES employees(id)
+);
+
+-- Table: interviews (Assigned / Booked sessions)
+CREATE TABLE IF NOT EXISTS interviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slot_id INTEGER NOT NULL UNIQUE,
+    player_id INTEGER NOT NULL,
+    interviewer_name TEXT NOT NULL,
+    media_outlet TEXT,
+    status TEXT NOT NULL DEFAULT 'CONFIRMED', -- 'CONFIRMED', 'COMPLETED', 'CANCELLED'
+    FOREIGN KEY (slot_id) REFERENCES interview_slots(id),
+    FOREIGN KEY (player_id) REFERENCES employees(id)
+);

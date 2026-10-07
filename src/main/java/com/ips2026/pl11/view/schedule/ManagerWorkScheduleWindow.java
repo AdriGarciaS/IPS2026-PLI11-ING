@@ -9,11 +9,14 @@ import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.Year;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -34,10 +37,13 @@ import javax.swing.border.MatteBorder;
 import javax.swing.table.DefaultTableModel;
 
 import com.ips2026.pl11.controller.employee.EmployeeController;
+import com.ips2026.pl11.controller.schedule.DayScheduleController;
 import com.ips2026.pl11.controller.schedule.WorkScheduleController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
+import com.ips2026.pl11.data.schedule.DayScheduleDAO;
 import com.ips2026.pl11.data.schedule.WorkScheduleDAO;
 import com.ips2026.pl11.model.employee.Employee;
+import com.ips2026.pl11.model.schedule.DaySchedule;
 import com.ips2026.pl11.model.schedule.WorkSchedule;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
@@ -52,11 +58,16 @@ public class ManagerWorkScheduleWindow extends JFrame {
     
     private static final String[] MONTHS = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+    
+    private static final String RECURRING = "Weekly";
 
-    private WorkScheduleController wsController = new WorkScheduleController(new WorkScheduleDAO());
+    private WorkScheduleDAO wsDAO = new WorkScheduleDAO();
+    private WorkScheduleController wsController = new WorkScheduleController(wsDAO);
+    private DayScheduleController dsController = new DayScheduleController(new DayScheduleDAO(), wsDAO);
     private EmployeeController eController = new EmployeeController(new EmployeeDAO());
     
     private List<WorkSchedule> schedulesList = new ArrayList<>();
+    private List<DaySchedule> daySchedulesList = new ArrayList<>();
     private List<Employee> workersList = new ArrayList<>();
 
     private WorkScheduleWindow wsw;
@@ -80,7 +91,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
         new Object[][] {
         },
         new String[] {
-            "ID", "Day", "Start", "End"
+            "ID","Date", "Day", "Start", "End"
         }
     ) {
         @Override
@@ -119,7 +130,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
         this.wsw = workScheduleWindow;
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setBounds(100, 100, 1000, 559);
+        setBounds(100, 100, 1128, 559);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
@@ -196,7 +207,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
         if (txtWorkerId == null) {
             txtWorkerId = new JTextField();
             txtWorkerId.setEditable(false);
-            txtWorkerId.setBounds(482, 68, 63, 25);
+            txtWorkerId.setBounds(549, 69, 63, 25);
             txtWorkerId.setColumns(10);
         }
         return txtWorkerId;
@@ -212,7 +223,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
                     refreshDays();
                 }
             });
-            cbYear.setBounds(401, 104, 67, 25);
+            cbYear.setBounds(468, 105, 67, 25);
         }
         return cbYear;
     }
@@ -226,7 +237,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
                     refreshDays();
                 }
             });
-            cbMonth.setBounds(473, 104, 64, 25);
+            cbMonth.setBounds(540, 105, 64, 25);
         }
         return cbMonth;
     }
@@ -234,7 +245,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
     private JComboBox getCbDay() {
         if (cbDay == null) {
             cbDay = new JComboBox(determineDays());
-            cbDay.setBounds(544, 104, 63, 25);
+            cbDay.setBounds(611, 105, 63, 25);
         }
         return cbDay;
     }
@@ -243,7 +254,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
         if (spStart == null) {
             spStart = new JSpinner(new SpinnerDateModel());
             spStart.setEditor(new JSpinner.DateEditor(spStart, "HH:mm"));
-            spStart.setBounds(428, 141, 75, 25);
+            spStart.setBounds(495, 142, 75, 25);
         }
         return spStart;
     }
@@ -252,7 +263,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
         if (spEnd == null) {
             spEnd = new JSpinner(new SpinnerDateModel());
             spEnd.setEditor(new JSpinner.DateEditor(spEnd, "HH:mm"));
-            spEnd.setBounds(428, 175, 75, 25);
+            spEnd.setBounds(495, 176, 75, 25);
         }
         return spEnd;
     }
@@ -272,7 +283,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
             lblStart = new JLabel("Start time:");
             lblStart.setLabelFor(lblStart);
             lblStart.setDisplayedMnemonic('S');
-            lblStart.setBounds(370, 142, 63, 23);
+            lblStart.setBounds(437, 143, 63, 23);
         }
         return lblStart;
     }
@@ -281,7 +292,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
         if (lblEnd == null) {
             lblEnd = new JLabel("End time:");
             lblEnd.setDisplayedMnemonic('W');
-            lblEnd.setBounds(370, 176, 63, 23);
+            lblEnd.setBounds(437, 177, 63, 23);
         }
         return lblEnd;
     }
@@ -298,7 +309,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
             });
             btnReturn.setBackground(new Color(240, 240, 240));
             btnReturn.setFont(new Font("Tahoma", Font.PLAIN, 11));
-            btnReturn.setBounds(785, 386, 85, 27);
+            btnReturn.setBounds(900, 388, 85, 27);
         }
         return btnReturn;
     }
@@ -314,7 +325,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
             });
             btnModify.setFont(new Font("Tahoma", Font.BOLD, 11));
             btnModify.setBackground(UIManager.getColor("Button.background"));
-            btnModify.setBounds(880, 386, 85, 27);
+            btnModify.setBounds(995, 388, 85, 27);
         }
         return btnModify;
     }
@@ -326,7 +337,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
     private JScrollPane getSpnShifts() {
         if (spnShifts == null) {
         	spnShifts = new JScrollPane();
-        	spnShifts.setBounds(630, 49, 315, 315);
+        	spnShifts.setBounds(695, 52, 385, 315);
         	spnShifts.setViewportView(getTableShifts());
         }
         return spnShifts;
@@ -365,14 +376,14 @@ public class ManagerWorkScheduleWindow extends JFrame {
         if (lblCurrentShifts == null) {
         	lblCurrentShifts = new JLabel("Current Shifts:");
         	lblCurrentShifts.setLabelFor(getSpnShifts());
-        	lblCurrentShifts.setBounds(630, 27, 108, 14);
+        	lblCurrentShifts.setBounds(695, 30, 108, 14);
         }
         return lblCurrentShifts;
     }
     private JScrollPane getSpnWorkers() {
         if (spnWorkers == null) {
         	spnWorkers = new JScrollPane();
-        	spnWorkers.setBounds(31, 49, 315, 315);
+        	spnWorkers.setBounds(31, 49, 385, 315);
         	spnWorkers.setViewportView(getTableWorkers());
         }
         return spnWorkers;
@@ -382,22 +393,38 @@ public class ManagerWorkScheduleWindow extends JFrame {
         if (lblSelectedWorkerId == null) {
             lblSelectedWorkerId = new JLabel("Selected Worker ID:");
             lblSelectedWorkerId.setLabelFor(getTxtWorkerId());
-            lblSelectedWorkerId.setBounds(370, 73, 108, 14);
+            lblSelectedWorkerId.setBounds(437, 74, 108, 14);
         }
         return lblSelectedWorkerId;
+    }
+    
+    private JLabel getLblDate() {
+        if (lblDate == null) {
+            lblDate = new JLabel("Date:");
+            lblDate.setBounds(436, 110, 48, 14);
+        }
+        return lblDate;
     }
     
     
     //////////////////////////////////////// METHODS /////////////////////////////////////////////
     
-    private void refreshShiftsTable() {
+    public void refreshShiftsTable() {
         try {
-            long employeeId = Long.parseLong(txtWorkerId.getText().trim());
             DefaultTableModel model = (DefaultTableModel) tableShifts.getModel();
-            for (WorkSchedule s : wsController.getWorkSchedulesByEmployee(employeeId)) {
+            model.setRowCount(0);
+            for (WorkSchedule s : wsController.getWorkSchedules()) {
                 model.addRow(new Object[] {
-                        s.getEmployeeId(), DAYS[s.getWeekDay() - 1], s.getStartTime(), s.getEndTime()});
+                        s.getEmployeeId(), RECURRING, DAYS[s.getWeekDay() - 1], s.getStartTime(), s.getEndTime()
+                });
             }
+            for (DaySchedule ds : dsController.getAllSchedules()) {
+                model.addRow(new Object[] {
+                    wsController.getWorkScheduleById(ds.getWorkScheduleId()).getEmployeeId(),
+                        ds.getDate(), DAYS[ds.getDate().getDayOfWeek().getValue()-1], ds.getStartTime(), ds.getEndTime()
+                });
+            }
+            
         } catch (NumberFormatException e) {
             showError("Employee id must be a number");
         } catch (SQLException e) {
@@ -408,14 +435,26 @@ public class ManagerWorkScheduleWindow extends JFrame {
     private void initializeShiftsTable() {
         try {
             schedulesList = wsController.getWorkSchedules();
+            daySchedulesList = dsController.getAllSchedules();
             for (WorkSchedule s: schedulesList) {
                 shiftsModel.addRow(new Object[]{
-                        s.getEmployeeId(),
+                        s.getEmployeeId(), RECURRING,
                         DAYS[s.getWeekDay()-1],
                         s.getStartTime(),
                         s.getEndTime()
                 });
             }
+            
+            for(DaySchedule ds : daySchedulesList) {
+                shiftsModel.addRow(new Object[] {
+                    wsController.getWorkScheduleById(ds.getWorkScheduleId()).getEmployeeId(),
+                    ds.getDate(),
+                    DAYS[ds.getDate().getDayOfWeek().getValue() -1],
+                    ds.getStartTime(),
+                    ds.getEndTime()
+                });
+            }
+            
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error loading work schedules: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -434,6 +473,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
                     });
                 }
             }
+            tableWorkers.setRowSelectionInterval(0, 0);
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error loading employees: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -449,15 +489,18 @@ public class ManagerWorkScheduleWindow extends JFrame {
     private void addShift() {
         try {
             long employeeId = Long.parseLong(txtWorkerId.getText().trim());
-            int weekDay = cbMonth.getSelectedIndex() + 1;
             
+            LocalDate date = LocalDate.of((Integer)cbYear.getSelectedItem(),
+                obtainMonthNumber((String) cbMonth.getSelectedItem()), (Integer)cbDay.getSelectedItem());
+            
+            long workScheduleId = obtainWorkScheduleId(employeeId, date);
             
             LocalTime start = ((Date) spStart.getValue()).toInstant()
                     .atZone(ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0);
             LocalTime end = ((Date) spEnd.getValue()).toInstant()
                     .atZone(ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0);
             
-            wsController.addShift(new WorkSchedule(0L, employeeId, weekDay, start, end));
+            dsController.addShift(new DaySchedule(0L, workScheduleId, date, start, end));
 
             refreshShiftsTable();
             JOptionPane.showMessageDialog(this, "Shift added");
@@ -468,6 +511,21 @@ public class ManagerWorkScheduleWindow extends JFrame {
         } catch (IllegalArgumentException e) {
             showError(e.getMessage());
         }
+    }
+    
+    private int obtainMonthNumber(String monthString) {
+        return Month.from(DateTimeFormatter.ofPattern("MMM", Locale.ENGLISH).parse(monthString)).getValue();
+    }
+
+    private long obtainWorkScheduleId(long employeeId, LocalDate date) throws SQLException, IllegalArgumentException {
+        List<WorkSchedule> workSchedules = wsController.getWorkSchedulesByEmployee(employeeId);
+        int dayOfWeek = date.getDayOfWeek().getValue();
+        for(WorkSchedule ws : workSchedules) {
+            if(ws.getWeekDay() == dayOfWeek) {
+                return ws.getId();
+            }
+        }
+        throw new IllegalArgumentException("There's no work schedule assigned to " + date.getDayOfWeek().toString());
     }
     
     
@@ -539,11 +597,5 @@ public class ManagerWorkScheduleWindow extends JFrame {
     private void refreshMonths() {
         cbMonth.setModel(new DefaultComboBoxModel(determineMonths()));
     }
-    private JLabel getLblDate() {
-        if (lblDate == null) {
-        	lblDate = new JLabel("Date:");
-        	lblDate.setBounds(369, 109, 48, 14);
-        }
-        return lblDate;
-    }
+    
 }

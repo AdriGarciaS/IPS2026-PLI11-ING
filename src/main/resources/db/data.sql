@@ -58,7 +58,12 @@ SELECT 1, 'First Team (match)', date('now', 'localtime', '+' || n || ' days'), '
 INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reservation_date, start_time, end_time, hours, total_price, created_at) VALUES
     (2, 'Laura Perez', '**** **** **** 1111', date('now', 'localtime', '+1 day'), '14:00', '16:00', 2, 100.0, datetime('now', 'localtime'));
     
--- Dummy work schedule to test the Recurring Work Schedules user story.
-insert into work_schedule (id, employee_id, week_day, start_time, end_time) VALUES
-	(0, 1, 2, '12:30', '14:30');
+-- Dummy work schedule to test the Recurring Work Schedules user story and the Specific Schedules user story.
+insert into work_schedule (employee_id, week_day, start_time, end_time) VALUES
+	(3, 1, '09:00', '17:00'),
+	(3, 2, '09:00', '17:00'),
+	(3, 3, '09:00', '17:00'),
+	(4, 4, '09:00', '17:00'),
+	(4, 5, '09:00', '10:00'),
+	(4, 6, '09:00', '16:00');
 

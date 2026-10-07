@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -49,5 +50,25 @@ public class DayScheduleDAO {
         }
 
         return result;
+    }
+    
+    public List<DaySchedule> getAllSchedules() {
+        String sql = "SELECT id, work_schedule_id, date, start_time, end_time FROM day_schedule ORDER BY id";
+        List<DaySchedule> daySchedules = new ArrayList<>();
+
+        try (Connection conexion = ConexionBD.obtenerConexion();
+            Statement sentencia = conexion.createStatement();
+            ResultSet resultado = sentencia.executeQuery(sql)) {
+
+            while (resultado.next()) {
+                
+                daySchedules.add(new DaySchedule(resultado.getLong("id"), resultado.getLong("work_schedule_id"),
+                    LocalDate.parse(resultado.getString("date")), LocalTime.parse(resultado.getString("start_time")),
+                    LocalTime.parse(resultado.getString("end_time"))));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return daySchedules;
     }
 }

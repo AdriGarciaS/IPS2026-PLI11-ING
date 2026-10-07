@@ -25,6 +25,10 @@ public class WorkScheduleController {
     public List<WorkSchedule> getWorkSchedulesByEmployee(long employeeId) throws SQLException {
         return workScheduleDAO.getSchedulesByEmployee(employeeId);
     }
+    
+    public WorkSchedule getWorkScheduleById(long id) throws SQLException {
+        return workScheduleDAO.getScheduleById(id);
+    }
 
     public void addShift(WorkSchedule newShift) throws SQLException {
         // Validates the new shift length (must start before it ends)

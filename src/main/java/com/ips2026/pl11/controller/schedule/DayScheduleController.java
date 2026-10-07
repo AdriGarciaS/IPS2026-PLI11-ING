@@ -29,7 +29,7 @@ public class DayScheduleController {
         }
 
         // Get the work schedule to be modified
-        WorkSchedule recurringSchedule = workScheduleDAO.getScheduleById(newShift.getId());
+        WorkSchedule recurringSchedule = workScheduleDAO.getScheduleById(newShift.getWorkScheduleId());
         if (recurringSchedule == null) {
             throw new IllegalArgumentException("The referenced recurring schedule does not exist.");
         }
@@ -73,5 +73,9 @@ public class DayScheduleController {
         
         dayScheduleDAO.insertSchedule(newShift);
 
+    }
+    
+    public List<DaySchedule> getAllSchedules() throws SQLException{
+        return dayScheduleDAO.getAllSchedules();
     }
 }

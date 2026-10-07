@@ -186,7 +186,7 @@ public class GMWorkScheduleWindow extends JFrame {
         if (txtWorkerId == null) {
             txtWorkerId = new JTextField();
             txtWorkerId.setEditable(false);
-            txtWorkerId.setBounds(505, 49, 63, 25);
+            txtWorkerId.setBounds(504, 65, 63, 25);
             txtWorkerId.setColumns(10);
         }
         return txtWorkerId;
@@ -195,7 +195,7 @@ public class GMWorkScheduleWindow extends JFrame {
     private JComboBox getCbDay() {
         if (cbDay == null) {
             cbDay = new JComboBox(DAYS);
-            cbDay.setBounds(484, 85, 108, 25);
+            cbDay.setBounds(483, 101, 108, 25);
         }
         return cbDay;
     }
@@ -204,7 +204,7 @@ public class GMWorkScheduleWindow extends JFrame {
         if (spStart == null) {
             spStart = new JSpinner(new SpinnerDateModel());
             spStart.setEditor(new JSpinner.DateEditor(spStart, "HH:mm"));
-            spStart.setBounds(451, 121, 75, 25);
+            spStart.setBounds(450, 137, 75, 25);
         }
         return spStart;
     }
@@ -213,7 +213,7 @@ public class GMWorkScheduleWindow extends JFrame {
         if (spEnd == null) {
             spEnd = new JSpinner(new SpinnerDateModel());
             spEnd.setEditor(new JSpinner.DateEditor(spEnd, "HH:mm"));
-            spEnd.setBounds(446, 155, 75, 25);
+            spEnd.setBounds(445, 171, 75, 25);
         }
         return spEnd;
     }
@@ -234,7 +234,7 @@ public class GMWorkScheduleWindow extends JFrame {
             lblDay.setToolTipText("D");
             lblDay.setLabelFor(getCbDay());
             lblDay.setDisplayedMnemonic('W');
-            lblDay.setBounds(393, 86, 101, 23);
+            lblDay.setBounds(392, 102, 101, 23);
         }
         return lblDay;
     }
@@ -244,7 +244,7 @@ public class GMWorkScheduleWindow extends JFrame {
             lblStart = new JLabel("Start time:");
             lblStart.setLabelFor(lblStart);
             lblStart.setDisplayedMnemonic('S');
-            lblStart.setBounds(393, 122, 63, 23);
+            lblStart.setBounds(392, 138, 63, 23);
         }
         return lblStart;
     }
@@ -253,7 +253,7 @@ public class GMWorkScheduleWindow extends JFrame {
         if (lblEnd == null) {
             lblEnd = new JLabel("End time:");
             lblEnd.setDisplayedMnemonic('W');
-            lblEnd.setBounds(393, 156, 63, 23);
+            lblEnd.setBounds(392, 172, 63, 23);
         }
         return lblEnd;
     }
@@ -353,11 +353,11 @@ public class GMWorkScheduleWindow extends JFrame {
     
     //////////////////////////////////////// METHODS /////////////////////////////////////////////
     
-    private void refreshShiftsTable() {
+    public void refreshShiftsTable() {
         try {
-            long employeeId = Long.parseLong(txtWorkerId.getText().trim());
             DefaultTableModel model = (DefaultTableModel) tableShifts.getModel();
-            for (WorkSchedule s : wsController.getWorkSchedulesByEmployee(employeeId)) {
+            model.setRowCount(0);
+            for (WorkSchedule s : wsController.getWorkSchedules()) {
                 model.addRow(new Object[] {
                         s.getEmployeeId(), DAYS[s.getWeekDay() - 1], s.getStartTime(), s.getEndTime()});
             }
@@ -397,6 +397,7 @@ public class GMWorkScheduleWindow extends JFrame {
                     });
                 }
             }
+            tableWorkers.setRowSelectionInterval(0, 0);
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error loading employees: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -438,7 +439,7 @@ public class GMWorkScheduleWindow extends JFrame {
         if (lblSelectedWorkerId == null) {
         	lblSelectedWorkerId = new JLabel("Selected Worker ID:");
         	lblSelectedWorkerId.setLabelFor(getTxtWorkerId());
-        	lblSelectedWorkerId.setBounds(393, 54, 108, 14);
+        	lblSelectedWorkerId.setBounds(392, 70, 108, 14);
         }
         return lblSelectedWorkerId;
     }

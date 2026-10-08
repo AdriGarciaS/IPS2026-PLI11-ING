@@ -23,17 +23,21 @@ import javax.swing.border.MatteBorder;
 
 import com.ips2026.pl11.controller.reservation.FacilityReservationController;
 import com.ips2026.pl11.controller.store.StoreSalesController;
+import com.ips2026.pl11.controller.team.TeamCreationController;
 import com.ips2026.pl11.data.reservation.FacilityDAO;
 import com.ips2026.pl11.data.reservation.ReservationDAO;
 import com.ips2026.pl11.data.reservation.TeamUseDAO;
 import com.ips2026.pl11.data.store.MerchandiseDAO;
 import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
+import com.ips2026.pl11.data.team.SportsEmployeeDAO;
+import com.ips2026.pl11.data.team.TeamDAO;
 import com.ips2026.pl11.view.GMWorkScheduleWindow;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.store.StoreSalesWindow;
+import com.ips2026.pl11.view.team.TeamCreationWindow;
 
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
@@ -193,9 +197,23 @@ public class MainWindow extends JFrame {
 		if (btnOption6 == null) {
 			btnOption6 = new MenuCardButton("Sports Teams","Add sports teams to manage them");
 			btnOption6.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+			btnOption6.addActionListener(event -> openTeamCreation());
 		}
 		return btnOption6;
 	}
+
+    private void openTeamCreation() {
+        TeamCreationController controller = new TeamCreationController(new SportsEmployeeDAO(), new TeamDAO());
+        try {
+            controller.load();
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this,
+                    "The sports employees could not be loaded:" + System.lineSeparator() + exception.getMessage(),
+                    "Sports Teams", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        new TeamCreationWindow(controller, this).setVisible(true);
+    }
 
     private void openFacilityReservations() {
         FacilityReservationController controller = new FacilityReservationController(

@@ -188,6 +188,9 @@ data/team/TeamDAO.java
 
 ## Notas para el equipo
 
+- **Equipos deportivos** (`model/team`, `view/team`, `controller/team`, `data/team`): las edades de cada categoría están en `model/team/TeamCategory.java` y el mínimo de 7 jugadores en `model/team/TeamRules.java`. La edad se cuenta **por año** (año actual − año de nacimiento). Tablas: `TEAM` (con los dos entrenadores obligatorios) y `TEAM_MEMBER` (jugadores y otro personal técnico con su tarea); un jugador solo puede estar en un equipo.
+- **Género de los empleados**: la tabla `employees` tiene una columna nueva y opcional `gender` (`MALE` / `FEMALE`), necesaria para comprobar los jugadores de equipos masculinos o femeninos. El formulario de alta de empleados todavía **no la rellena**: un jugador sin género solo puede entrar en equipos mixtos. Hay que añadir el campo al formulario de empleados.
+
 - El paquete base de todo el código Java es `com.ips2026.pl11`. Las clases nuevas van en la capa MVC que les corresponda (`model`, `view`, `controller`, `data`) y dentro, en la subcarpeta de su funcionalidad (ver "Dónde poner los archivos nuevos"), siguiendo la convención estándar de nombres de paquete en minúsculas.
 - Las ventanas Swing se escriben con la generación de código **lazy** de Eclipse WindowBuilder (un atributo privado por componente y un getter `getXxx()` que lo crea la primera vez), para poder seguir editándolas desde la pestaña *Design*.
 - Los tests van en `src/test/java`, en el mismo subpaquete que la clase que prueban.

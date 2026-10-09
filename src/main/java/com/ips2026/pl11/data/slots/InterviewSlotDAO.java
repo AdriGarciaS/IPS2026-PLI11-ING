@@ -6,8 +6,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.ips2026.pl11.data.ConexionBD;
+import com.ips2026.pl11.model.slots.InterviewSlotRecord;
 
 public class InterviewSlotDAO {
 
@@ -105,5 +108,35 @@ public class InterviewSlotDAO {
             ps.setString(5, end.toString());
             ps.executeUpdate();
         }
+    }
+    
+    public List<InterviewSlotRecord> getSlotsByPlayer(int playerId) throws SQLException {
+        List<InterviewSlotRecord> list = new ArrayList<>();
+        String sql = "SELECT s.id, e.first_name || ' ' || e.last_name AS player_name, " +
+                     "s.slot_date, s.start_time, s.end_time, s.status " +
+                     "FROM interview_slots s " +
+                     "JOIN employees e ON s.player_id = e.id " +
+                     (playerId > 0 ? "WHERE s.player_id = ? " : "") +
+                     "ORDER BY s.slot_date DESC, s.start_time ASC";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (playerId > 0) {
+                ps.setInt(1, playerId);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new InterviewSlotRecord(
+                            rs.getInt("id"),
+                            rs.getString("player_name"),
+                            rs.getString("slot_date"),
+                            rs.getString("start_time"),
+                            rs.getString("end_time"),
+                            rs.getString("status")
+                    ));
+                }
+            }
+        }
+        return list;
     }
 }

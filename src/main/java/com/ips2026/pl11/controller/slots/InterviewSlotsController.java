@@ -1,9 +1,12 @@
 package com.ips2026.pl11.controller.slots;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 import com.ips2026.pl11.data.slots.InterviewSlotDAO;
+import com.ips2026.pl11.model.slots.InterviewSlotRecord;
 
 public class InterviewSlotsController {
 
@@ -41,5 +44,9 @@ public class InterviewSlotsController {
         // 5. Persist
         slotDAO.createSlot(playerId, coachId, date, start, end);
     }
+	
+	public List<InterviewSlotRecord> getSlotsByPlayer(int playerId) throws SQLException {
+	    return slotDAO.getSlotsByPlayer(playerId);
+	}
 }
 

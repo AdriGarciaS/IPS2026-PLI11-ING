@@ -122,3 +122,23 @@ CREATE TABLE IF NOT EXISTS interviews (
     FOREIGN KEY (slot_id) REFERENCES interview_slots(id),
     FOREIGN KEY (player_id) REFERENCES employees(id)
 );
+
+CREATE TABLE IF NOT EXISTS matches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id INTEGER,               -- Can be player_id or team reference
+    match_date TEXT NOT NULL,        -- YYYY-MM-DD
+    start_time TEXT NOT NULL,        -- HH:MM
+    end_time TEXT NOT NULL,          -- HH:MM
+    rival TEXT,
+    FOREIGN KEY (player_id) REFERENCES employees(id)
+);
+
+-- Scheduled training sessions
+CREATE TABLE IF NOT EXISTS trainings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id INTEGER,
+    training_date TEXT NOT NULL,     -- YYYY-MM-DD
+    start_time TEXT NOT NULL,        -- HH:MM
+    end_time TEXT NOT NULL,          -- HH:MM
+    FOREIGN KEY (player_id) REFERENCES employees(id)
+);

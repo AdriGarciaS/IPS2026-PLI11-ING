@@ -60,12 +60,14 @@ public class WorkScheduleWindow extends JFrame {
     private MainWindow mw;
     private GMWorkScheduleWindow gmWorkScheduleWindow = new GMWorkScheduleWindow(this);
     private ManagerWorkScheduleWindow managerWorkScheduleWindow = new ManagerWorkScheduleWindow(this);
+    private NSEWorkScheduleWindow nseWorkScheduleWindow = new NSEWorkScheduleWindow(this);
     
     private JPanel pnBody;
     private JPanel pnPositions;
-    private MenuCardButton btnOption1;
-    private MenuCardButton btnOption2;
+    private MenuCardButton btnGeneralManager;
+    private MenuCardButton btnManager;
     private JButton btnReturn;
+    private MenuCardButton btnNonSportingEmp;
 
     public WorkScheduleWindow(MainWindow mw) {
         setResizable(false);
@@ -157,43 +159,44 @@ public class WorkScheduleWindow extends JFrame {
     private JPanel getPnButtons_1() {
         if (pnPositions == null) {
         	pnPositions = new JPanel();
-        	pnPositions.setBounds(10, 11, 608, 252);
+        	pnPositions.setBounds(10, 0, 608, 296);
         	pnPositions.setOpaque(false);
         	pnPositions.setBorder(new EmptyBorder(24, 24, 16, 24));
         	pnPositions.setLayout(new GridLayout(0, 1, 0, 0));
         	pnPositions.add(getBtnOption1_1());
         	pnPositions.add(getBtnOption2_1());
+        	pnPositions.add(getBtnOption2_1_1());
         }
         return pnPositions;
     }
     private MenuCardButton getBtnOption1_1() {
-        if (btnOption1 == null) {
-        	btnOption1 = new MenuCardButton("General Manager\r\n", "Add recurring schedules to non sporting employees");
-        	btnOption1.addActionListener(new ActionListener() {
+        if (btnGeneralManager == null) {
+        	btnGeneralManager = new MenuCardButton("General Manager\r\n", "Add recurring schedules to non sporting employees");
+        	btnGeneralManager.addActionListener(new ActionListener() {
         	    @Override
                 public void actionPerformed(ActionEvent e) {
         	        managerWorkScheduleWindow.refreshShiftsTable();
         	        gmWorkScheduleWindow.setVisible(true);
         	    }
         	});
-        	btnOption1.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        	btnGeneralManager.setFont(new Font("Tahoma", Font.PLAIN, 16));
         }
-        return btnOption1;
+        return btnGeneralManager;
     }
     private MenuCardButton getBtnOption2_1() {
-        if (btnOption2 == null) {
-        	btnOption2 = new MenuCardButton("Manager", "Add specific day schedules to non sporting employees");
-        	btnOption2.addActionListener(new ActionListener() {
+        if (btnManager == null) {
+        	btnManager = new MenuCardButton("Manager", "Add specific day schedules to non sporting employees");
+        	btnManager.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     managerWorkScheduleWindow.refreshShiftsTable();
         	        managerWorkScheduleWindow.setVisible(true);
         	    }
         	});
-        	btnOption2.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        	btnOption2.setEnabled(true);
+        	btnManager.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        	btnManager.setEnabled(true);
         }
-        return btnOption2;
+        return btnManager;
     }
     private JButton getBtnReturn() {
         if (btnReturn == null) {
@@ -208,5 +211,20 @@ public class WorkScheduleWindow extends JFrame {
         	btnReturn.setBounds(529, 302, 89, 23);
         }
         return btnReturn;
+    }
+    private MenuCardButton getBtnOption2_1_1() {
+        if (btnNonSportingEmp == null) {
+        	btnNonSportingEmp = new MenuCardButton("Non-sporting Employee", "Consult any of your weekly schedules");
+        	btnNonSportingEmp.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    nseWorkScheduleWindow.refreshShiftsTable();
+                    nseWorkScheduleWindow.setVisible(true);
+                }
+            });
+        	btnNonSportingEmp.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        	btnNonSportingEmp.setEnabled(true);
+        }
+        return btnNonSportingEmp;
     }
 }

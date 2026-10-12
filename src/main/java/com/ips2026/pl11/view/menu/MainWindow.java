@@ -34,12 +34,12 @@ import com.ips2026.pl11.data.slots.InterviewSlotDAO;
 import com.ips2026.pl11.data.store.MerchandiseDAO;
 import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
 import com.ips2026.pl11.model.employee.Employee;
-import com.ips2026.pl11.view.GMWorkScheduleWindow;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.slots.CreateInterviewSlotDialog;
+import com.ips2026.pl11.view.schedule.WorkScheduleWindow;
 import com.ips2026.pl11.view.store.StoreSalesWindow;
 
 /**
@@ -76,7 +76,7 @@ public class MainWindow extends JFrame {
     private MenuCardButton btnOption5;
     private MenuCardButton btnOption6;
     
-    private GMWorkScheduleWindow gmWorkScheduleWindow = new GMWorkScheduleWindow(this);
+    private WorkScheduleWindow workScheduleWindow = new WorkScheduleWindow(this);
 
     public MainWindow() {
         setTitle("Football Club Management");
@@ -151,12 +151,12 @@ public class MainWindow extends JFrame {
 
     private MenuCardButton getBtnOption2() {
         if (btnOption2 == null) {
-            btnOption2 = new MenuCardButton("Schedule Management", "create schedules for non sporting employees");
+            btnOption2 = new MenuCardButton("Schedule Management", "Everything related to non sporting employees' schedules");
             btnOption2.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     
-                    gmWorkScheduleWindow.setVisible(true);
+                    workScheduleWindow.setVisible(true);
                 }
             });
             btnOption2.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));

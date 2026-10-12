@@ -1,11 +1,11 @@
-package com.ips2026.pl11.controller;
+package com.ips2026.pl11.controller.schedule;
 
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.List;
 
 import com.ips2026.pl11.data.schedule.WorkScheduleDAO;
-import com.ips2026.pl11.model.WorkSchedule;
+import com.ips2026.pl11.model.schedule.WorkSchedule;
 
 public class WorkScheduleController {
 
@@ -24,6 +24,10 @@ public class WorkScheduleController {
     
     public List<WorkSchedule> getWorkSchedulesByEmployee(long employeeId) throws SQLException {
         return workScheduleDAO.getSchedulesByEmployee(employeeId);
+    }
+    
+    public WorkSchedule getWorkScheduleById(long id) throws SQLException {
+        return workScheduleDAO.getScheduleById(id);
     }
 
     public void addShift(WorkSchedule newShift) throws SQLException {
@@ -49,8 +53,9 @@ public class WorkScheduleController {
                 dayTotal = dayTotal.plus(ws.duration());
 
                 // If the shift overlaps with another one then it cannot be added.
-                boolean shiftOverlaps = newShift.getStartTime().isBefore(ws.getEndTime())
-                    && ws.getStartTime().isBefore(ws.getEndTime());
+                boolean shiftOverlaps =
+                    newShift.getStartTime().isBefore(ws.getEndTime())
+                    && ws.getStartTime().isBefore(newShift.getEndTime());
                 if (shiftOverlaps) {
                     throw new IllegalArgumentException("New shift overlaps with an existing one.");
                 }
@@ -58,10 +63,10 @@ public class WorkScheduleController {
         }
 
         // Validate weekly and daily hours
-        if (dayTotal.compareTo(MAX_DAILY) >= 0) {
+        if (dayTotal.compareTo(MAX_DAILY) > 0) {
             throw new IllegalArgumentException("Worker cannot exceed 8 hours a day");
         }
-        if (weekTotal.compareTo(MAX_WEEKLY) >= 0) {
+        if (weekTotal.compareTo(MAX_WEEKLY) > 0) {
             throw new IllegalArgumentException("Worker cannot exceed 40 hours a week");
         }
         

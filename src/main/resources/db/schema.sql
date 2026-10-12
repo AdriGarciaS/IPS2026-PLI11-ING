@@ -93,6 +93,7 @@ create table if not exists work_schedule(
 	week_day 	integer not null,
 	start_time	text not null,
 	end_time	text not null,
+	
 	foreign key (employee_id) references employees(id)
 	
 );
@@ -141,4 +142,15 @@ CREATE TABLE IF NOT EXISTS trainings (
     start_time TEXT NOT NULL,        -- HH:MM
     end_time TEXT NOT NULL,          -- HH:MM
     FOREIGN KEY (player_id) REFERENCES employees(id)
+);
+
+create table if not exists day_schedule(
+    id              	integer primary key autoincrement,
+    work_schedule_id 	integer not null,
+    date           		text not null,
+    start_time      	text not null,
+    end_time        	text not null,
+
+	unique(work_schedule_id, date, start_time, end_time)
+    foreign key (work_schedule_id) references work_schedule(id)
 );

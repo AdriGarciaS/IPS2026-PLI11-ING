@@ -37,6 +37,7 @@ import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
+import com.ips2026.pl11.view.interview.InterviewHubDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.slots.CreateInterviewSlotDialog;
 import com.ips2026.pl11.view.schedule.WorkScheduleWindow;
@@ -185,13 +186,13 @@ public class MainWindow extends JFrame {
     }
     
     private MenuCardButton getBtnOption5() {
-		if (btnOption5 == null) {
-			btnOption5 = new MenuCardButton("Handle slots for interviews","Create interviews for players");
-			btnOption5.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
-			btnOption5.addActionListener(e -> openInterviewSlots());
-		}
-		return btnOption5;
-	}
+        if (btnOption5 == null) {
+            btnOption5 = new MenuCardButton("Interview Management", "Manage availability slots and book press interviews");
+            btnOption5.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnOption5.addActionListener(e -> openInterviewSlots());
+        }
+        return btnOption5;
+    }
 
 	private MenuCardButton getBtnOption6() {
 		if (btnOption6 == null) {
@@ -235,8 +236,8 @@ public class MainWindow extends JFrame {
             InterviewSlotsController interviewCtrl = new InterviewSlotsController(new InterviewSlotDAO());
             EmployeeController empCtrl = new EmployeeController(new EmployeeDAO());
 
-            // 2. Identify the active coach (use logged-in session ID if available, default/mock ID otherwise)
-            int coachId = 4; // TODO: Replace with SessionManager.getCurrentUser().getId() when authentication is wired
+            // 2. Identify the active coach (session placeholder)
+            int coachId = 4;
 
             // 3. Retrieve and filter all professional players eligible for interview slots
             List<Employee> allEmployees = empCtrl.getEmployees();
@@ -254,19 +255,14 @@ public class MainWindow extends JFrame {
                 return;
             }
 
-            // 4. Instantiate and display the slot creation modal dialog
-            CreateInterviewSlotDialog dialog = new CreateInterviewSlotDialog(
-                    this,            // Parent window (MainWindow)
-                    interviewCtrl,   // Interview management controller
-                    coachId,         // Current coach identifier
-                    players          // List of team players for selection
-            );
-            dialog.setVisible(true);
+            // 4. Open the intermediate Hub dialog
+            InterviewHubDialog hub = new InterviewHubDialog(this, interviewCtrl, coachId, players);
+            hub.setVisible(true);
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Error opening interview slot creation: " + ex.getMessage(),
+                    "Error opening interview management: " + ex.getMessage(),
                     "System Error",
                     JOptionPane.ERROR_MESSAGE
             );

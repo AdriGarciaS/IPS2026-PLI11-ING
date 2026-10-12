@@ -103,11 +103,13 @@ CREATE TABLE IF NOT EXISTS interview_slots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     player_id INTEGER NOT NULL,
     coach_id INTEGER NOT NULL,
-    slot_date TEXT NOT NULL,         -- Format: YYYY-MM-DD
-    start_time TEXT NOT NULL,        -- Format: HH:MM
-    end_time TEXT NOT NULL,          -- Format: HH:MM
-    status TEXT NOT NULL DEFAULT 'AVAILABLE', -- 'AVAILABLE', 'BOOKED', 'CANCELLED'
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    slot_date TEXT NOT NULL,
+    start_time TEXT NOT NULL,
+    end_time TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'AVAILABLE',
+    media_name TEXT,
+    media_contact TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (player_id) REFERENCES employees(id),
     FOREIGN KEY (coach_id) REFERENCES employees(id)
 );

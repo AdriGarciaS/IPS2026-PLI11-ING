@@ -1,7 +1,14 @@
 package com.ips2026.pl11.view.employee;
 
-import com.ips2026.pl11.controller.employee.EmployeeController;
-import com.ips2026.pl11.data.employee.EmployeeDAO;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -15,16 +22,11 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.border.MatteBorder;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
+
+import com.ips2026.pl11.controller.employee.EmployeeController;
+import com.ips2026.pl11.data.employee.EmployeeDAO;
+import com.ips2026.pl11.view.common.Branding;
+import com.ips2026.pl11.view.common.HeaderPanel;
 
 public class AddEmployeeView extends JDialog {
 
@@ -39,7 +41,8 @@ public class AddEmployeeView extends JDialog {
     };
 
     private JPanel contentPane;
-    private JPanel pnHeader;
+    private HeaderPanel pnHeader;
+    private JPanel pnBody;
     private JPanel pnForm;
     private JPanel pnFooter;
 
@@ -56,38 +59,36 @@ public class AddEmployeeView extends JDialog {
 
     public AddEmployeeView(JFrame parent) {
         super(parent, "Employee Registration", true);
-        setSize(520, 620);
+        setSize(520, 640);
         setLocationRelativeTo(parent);
         setResizable(false);
 
+        // Aplica iconos y fondo de ventana segun Branding
+        Branding.applyTo(this);
+
         contentPane = new JPanel();
-        contentPane.setBackground(new Color(248, 250, 252));
-        contentPane.setBorder(new EmptyBorder(20, 25, 20, 25));
-        contentPane.setLayout(new BorderLayout(0, 15));
+        contentPane.setBackground(Branding.BACKGROUND);
+        contentPane.setLayout(new BorderLayout(0, 0));
         setContentPane(contentPane);
 
         contentPane.add(getPnHeader(), BorderLayout.NORTH);
-        contentPane.add(getPnForm(), BorderLayout.CENTER);
-        contentPane.add(getPnFooter(), BorderLayout.SOUTH);
+
+        // Panel intermedio con margenes internos para formulario y boton
+        pnBody = new JPanel(new BorderLayout(0, 16));
+        pnBody.setOpaque(false);
+        pnBody.setBorder(new EmptyBorder(20, 28, 20, 28));
+        pnBody.add(getPnForm(), BorderLayout.CENTER);
+        pnBody.add(getPnFooter(), BorderLayout.SOUTH);
+
+        contentPane.add(pnBody, BorderLayout.CENTER);
     }
 
-    private JPanel getPnHeader() {
+    private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
-            pnHeader = new JPanel();
-            pnHeader.setBackground(new Color(248, 250, 252));
-            pnHeader.setLayout(new BorderLayout(0, 4));
-            pnHeader.setBorder(new MatteBorder(0, 0, 1, 0, new Color(203, 213, 225)));
-
-            JLabel lblTitle = new JLabel("New Employee");
-            lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
-            lblTitle.setForeground(new Color(30, 41, 59));
-
-            JLabel lblSubtitle = new JLabel("Enter personal and contractual information below");
-            lblSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            lblSubtitle.setForeground(new Color(100, 116, 139));
-
-            pnHeader.add(lblTitle, BorderLayout.NORTH);
-            pnHeader.add(lblSubtitle, BorderLayout.SOUTH);
+            pnHeader = new HeaderPanel(
+                    "New Employee",
+                    "Enter personal and contractual information below"
+            );
         }
         return pnHeader;
     }
@@ -95,9 +96,8 @@ public class AddEmployeeView extends JDialog {
     private JPanel getPnForm() {
         if (pnForm == null) {
             pnForm = new JPanel();
-            pnForm.setBackground(new Color(248, 250, 252));
+            pnForm.setOpaque(false);
             pnForm.setLayout(new GridLayout(8, 2, 12, 14));
-            pnForm.setBorder(new EmptyBorder(10, 5, 10, 5));
 
             pnForm.add(crearLabel("First Name:"));
             pnForm.add(getTxtFirstName());
@@ -129,9 +129,9 @@ public class AddEmployeeView extends JDialog {
     private JPanel getPnFooter() {
         if (pnFooter == null) {
             pnFooter = new JPanel();
-            pnFooter.setBackground(new Color(248, 250, 252));
+            pnFooter.setOpaque(false);
             pnFooter.setLayout(new BorderLayout());
-            pnFooter.setBorder(new EmptyBorder(10, 0, 0, 0));
+            pnFooter.setBorder(new EmptyBorder(8, 0, 0, 0));
             pnFooter.add(getBtnSubmit(), BorderLayout.CENTER);
         }
         return pnFooter;
@@ -183,10 +183,10 @@ public class AddEmployeeView extends JDialog {
     private JComboBox<String> getCbCategory() {
         if (cbCategory == null) {
             cbCategory = new JComboBox<>(new String[]{"SPORTS", "NON_SPORTS"});
-            cbCategory.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            cbCategory.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
             cbCategory.setBackground(Color.WHITE);
-            cbCategory.setForeground(Color.BLACK);
-            cbCategory.setBorder(new LineBorder(new Color(203, 213, 225), 1, true));
+            cbCategory.setForeground(Branding.NAVY);
+            cbCategory.setBorder(new LineBorder(Branding.BORDER, 1, true));
             cbCategory.addActionListener(e -> actualizarPuestos());
         }
         return cbCategory;
@@ -195,10 +195,10 @@ public class AddEmployeeView extends JDialog {
     private JComboBox<String> getCbPosition() {
         if (cbPosition == null) {
             cbPosition = new JComboBox<>(sportsPositions);
-            cbPosition.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            cbPosition.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
             cbPosition.setBackground(Color.WHITE);
-            cbPosition.setForeground(Color.BLACK);
-            cbPosition.setBorder(new LineBorder(new Color(203, 213, 225), 1, true));
+            cbPosition.setForeground(Branding.NAVY);
+            cbPosition.setBorder(new LineBorder(Branding.BORDER, 1, true));
         }
         return cbPosition;
     }
@@ -206,24 +206,35 @@ public class AddEmployeeView extends JDialog {
     private JButton getBtnSubmit() {
         if (btnSubmit == null) {
             btnSubmit = new JButton("Save Employee");
-            btnSubmit.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 15));
+            btnSubmit.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 14));
             btnSubmit.setFocusPainted(false);
             btnSubmit.setContentAreaFilled(false);
             btnSubmit.setOpaque(true);
             btnSubmit.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            btnSubmit.setBackground(new Color(24, 76, 120));
+            btnSubmit.setBackground(Branding.NAVY);
             btnSubmit.setForeground(Color.WHITE);
-            btnSubmit.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+            btnSubmit.setBorder(BorderFactory.createCompoundBorder(
+                    new LineBorder(Branding.NAVY, 1, true),
+                    BorderFactory.createEmptyBorder(12, 20, 12, 20)
+            ));
 
             btnSubmit.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseEntered(MouseEvent e) {
-                    btnSubmit.setBackground(new Color(32, 101, 160));
+                    btnSubmit.setBackground(new Color(0x1F, 0x4E, 0x8C)); // Tono azul medio en hover
+                    btnSubmit.setBorder(BorderFactory.createCompoundBorder(
+                            new LineBorder(Branding.GOLD, 1, true),
+                            BorderFactory.createEmptyBorder(12, 20, 12, 20)
+                    ));
                 }
 
                 @Override
                 public void mouseExited(MouseEvent e) {
-                    btnSubmit.setBackground(new Color(24, 76, 120));
+                    btnSubmit.setBackground(Branding.NAVY);
+                    btnSubmit.setBorder(BorderFactory.createCompoundBorder(
+                            new LineBorder(Branding.NAVY, 1, true),
+                            BorderFactory.createEmptyBorder(12, 20, 12, 20)
+                    ));
                 }
             });
 
@@ -234,19 +245,19 @@ public class AddEmployeeView extends JDialog {
 
     private JLabel crearLabel(String texto) {
         JLabel label = new JLabel(texto);
-        label.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 13));
-        label.setForeground(new Color(51, 65, 85));
+        label.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 12));
+        label.setForeground(Branding.NAVY);
         label.setVerticalAlignment(SwingConstants.CENTER);
         return label;
     }
 
     private JTextField crearTextField() {
         JTextField tf = new JTextField();
-        tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tf.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
         tf.setBackground(Color.WHITE);
         tf.setForeground(Color.BLACK);
         tf.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(new Color(203, 213, 225), 1, true),
+                new LineBorder(Branding.BORDER, 1, true),
                 BorderFactory.createEmptyBorder(6, 8, 6, 8)
         ));
 
@@ -254,7 +265,7 @@ public class AddEmployeeView extends JDialog {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
                 tf.setBorder(BorderFactory.createCompoundBorder(
-                        new LineBorder(new Color(140, 185, 235), 2, true),
+                        new LineBorder(Branding.GOLD, 2, true),
                         BorderFactory.createEmptyBorder(5, 7, 5, 7)
                 ));
             }
@@ -262,7 +273,7 @@ public class AddEmployeeView extends JDialog {
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
                 tf.setBorder(BorderFactory.createCompoundBorder(
-                        new LineBorder(new Color(203, 213, 225), 1, true),
+                        new LineBorder(Branding.BORDER, 1, true),
                         BorderFactory.createEmptyBorder(6, 8, 6, 8)
                 ));
             }

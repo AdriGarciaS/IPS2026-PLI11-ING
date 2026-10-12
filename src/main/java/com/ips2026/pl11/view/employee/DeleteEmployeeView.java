@@ -1,7 +1,6 @@
 package com.ips2026.pl11.view.employee;
 
 import java.awt.BorderLayout;
-
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
@@ -10,8 +9,6 @@ import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -29,25 +26,27 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.border.MatteBorder;
 import javax.swing.table.DefaultTableModel;
 
 import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.model.employee.Employee;
+import com.ips2026.pl11.view.common.Branding;
+import com.ips2026.pl11.view.common.HeaderPanel;
 
-public class DeleteEmployeeView extends JDialog{
+public class DeleteEmployeeView extends JDialog {
 
-	private static final long serialVersionUID = 1L;
-	
-	private final EmployeeController controller = new EmployeeController(new EmployeeDAO());
-	private List<Employee> employeeList;
+    private static final long serialVersionUID = 1L;
+
+    private final EmployeeController controller = new EmployeeController(new EmployeeDAO());
+    private List<Employee> employeeList;
     private Employee selectedEmployee;
-    
+
     private JPanel contentPane;
-    private JPanel pnHeader;
+    private HeaderPanel pnHeader;
+    private JPanel pnBody;
     private JSplitPane splitPane;
-    
+
     private JPanel pnTableContainer;
     private JScrollPane spTable;
     private JTable tblEmployees;
@@ -69,39 +68,36 @@ public class DeleteEmployeeView extends JDialog{
     private JButton btnClose;
 
     public DeleteEmployeeView(JDialog parent) {
-        super(parent, "Modify Employee", true);
-        setSize(950, 620);
+        super(parent, "Delete Employee", true);
+        setSize(950, 640);
         setLocationRelativeTo(parent);
 
-        contentPane = new JPanel(new BorderLayout(0, 12));
-        contentPane.setBackground(new Color(248, 250, 252));
-        contentPane.setBorder(new EmptyBorder(15, 20, 15, 20));
+        // Aplica iconos del club y fondo corporativo
+        Branding.applyTo(this);
+
+        contentPane = new JPanel(new BorderLayout(0, 0));
+        contentPane.setBackground(Branding.BACKGROUND);
         setContentPane(contentPane);
 
         contentPane.add(getPnHeader(), BorderLayout.NORTH);
-        contentPane.add(getSplitPane(), BorderLayout.CENTER);
-        contentPane.add(getPnActions(), BorderLayout.SOUTH);
+
+        pnBody = new JPanel(new BorderLayout(0, 12));
+        pnBody.setOpaque(false);
+        pnBody.setBorder(new EmptyBorder(16, 20, 16, 20));
+        pnBody.add(getSplitPane(), BorderLayout.CENTER);
+        pnBody.add(getPnActions(), BorderLayout.SOUTH);
+
+        contentPane.add(pnBody, BorderLayout.CENTER);
 
         loadEmployees();
     }
 
-    private JPanel getPnHeader() {
+    private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
-            pnHeader = new JPanel(new BorderLayout(0, 4));
-            pnHeader.setOpaque(false);
-            pnHeader.setBorder(new MatteBorder(0, 0, 1, 0, new Color(226, 232, 240)));
-
-            JLabel lblTitle = new JLabel("Delete Employee");
-            lblTitle.setFont(new Font("Segoe UI Semibold", Font.BOLD, 20));
-            lblTitle.setForeground(new Color(30, 41, 59));
-
-            JLabel lblSubtitle = new JLabel("Select an employee from the table to delete from the system.");
-            lblSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            lblSubtitle.setForeground(new Color(100, 116, 139));
-            lblSubtitle.setBorder(new EmptyBorder(0, 0, 8, 0));
-
-            pnHeader.add(lblTitle, BorderLayout.NORTH);
-            pnHeader.add(lblSubtitle, BorderLayout.SOUTH);
+            pnHeader = new HeaderPanel(
+                    "Delete Employee",
+                    "Select an employee from the table to delete from the system."
+            );
         }
         return pnHeader;
     }
@@ -123,8 +119,8 @@ public class DeleteEmployeeView extends JDialog{
             pnTableContainer.setOpaque(false);
 
             JLabel lblTableTitle = new JLabel("Employees List");
-            lblTableTitle.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 14));
-            lblTableTitle.setForeground(new Color(51, 65, 85));
+            lblTableTitle.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 14));
+            lblTableTitle.setForeground(Branding.NAVY);
 
             pnTableContainer.add(lblTableTitle, BorderLayout.NORTH);
             pnTableContainer.add(getSpTable(), BorderLayout.CENTER);
@@ -135,7 +131,7 @@ public class DeleteEmployeeView extends JDialog{
     private JScrollPane getSpTable() {
         if (spTable == null) {
             spTable = new JScrollPane(getTblEmployees());
-            spTable.setBorder(new LineBorder(new Color(226, 232, 240), 1, true));
+            spTable.setBorder(new LineBorder(Branding.BORDER, 1, true));
         }
         return spTable;
     }
@@ -152,8 +148,8 @@ public class DeleteEmployeeView extends JDialog{
             tblEmployees = new JTable(tableModel);
             tblEmployees.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             tblEmployees.setRowHeight(26);
-            tblEmployees.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-            tblEmployees.getTableHeader().setFont(new Font("Segoe UI Semibold", Font.PLAIN, 13));
+            tblEmployees.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
+            tblEmployees.getTableHeader().setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 13));
             tblEmployees.getTableHeader().setBackground(new Color(241, 245, 249));
            
             tblEmployees.getSelectionModel().addListSelectionListener(e -> {
@@ -175,8 +171,8 @@ public class DeleteEmployeeView extends JDialog{
             pnFormContainer.setBorder(new EmptyBorder(0, 12, 0, 0));
 
             JLabel lblFormTitle = new JLabel("Employee Details");
-            lblFormTitle.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 14));
-            lblFormTitle.setForeground(new Color(51, 65, 85));
+            lblFormTitle.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 14));
+            lblFormTitle.setForeground(Branding.NAVY);
 
             pnFormContainer.add(lblFormTitle, BorderLayout.NORTH);
             pnFormContainer.add(getPnFields(), BorderLayout.CENTER);
@@ -257,7 +253,7 @@ public class DeleteEmployeeView extends JDialog{
             txtPosition.setEditable(false);
             txtPosition.setEnabled(false); 
             txtPosition.setBackground(new Color(241, 245, 249));
-            txtPosition.setForeground(new Color(100, 116, 139));
+            txtPosition.setForeground(Branding.TEXT_MUTED);
         }
         return txtPosition;
     }
@@ -272,15 +268,15 @@ public class DeleteEmployeeView extends JDialog{
     private JComboBox<String> getCbCategory() {
         if (cbCategory == null) {
             cbCategory = new JComboBox<>(new String[]{"SPORTS", "NON_SPORTS"});
-            cbCategory.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            cbCategory.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
             cbCategory.setBackground(Color.WHITE);
-            cbCategory.setForeground(Color.BLACK);
+            cbCategory.setForeground(Branding.NAVY);
+            cbCategory.setBorder(new LineBorder(Branding.BORDER, 1, true));
             cbCategory.setEnabled(false);
         }
         return cbCategory;
     }
 
-    // --- ACCIONES Y BOTONES ---
     private JPanel getPnActions() {
         if (pnActions == null) {
             pnActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
@@ -294,15 +290,36 @@ public class DeleteEmployeeView extends JDialog{
     private JButton getBtnClose() {
         if (btnClose == null) {
             btnClose = new JButton("Close");
-            btnClose.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 13));
+            btnClose.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 13));
             btnClose.setFocusPainted(false);
             btnClose.setCursor(new Cursor(Cursor.HAND_CURSOR));
             btnClose.setBackground(Color.WHITE);
-            btnClose.setForeground(new Color(51, 65, 85));
+            btnClose.setForeground(Branding.NAVY);
             btnClose.setBorder(BorderFactory.createCompoundBorder(
-                    new LineBorder(new Color(203, 213, 225), 1, true),
+                    new LineBorder(Branding.BORDER, 1, true),
                     BorderFactory.createEmptyBorder(8, 16, 8, 16)
             ));
+
+            btnClose.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    btnClose.setBackground(new Color(241, 245, 249));
+                    btnClose.setBorder(BorderFactory.createCompoundBorder(
+                            new LineBorder(Branding.GOLD, 1, true),
+                            BorderFactory.createEmptyBorder(8, 16, 8, 16)
+                    ));
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    btnClose.setBackground(Color.WHITE);
+                    btnClose.setBorder(BorderFactory.createCompoundBorder(
+                            new LineBorder(Branding.BORDER, 1, true),
+                            BorderFactory.createEmptyBorder(8, 16, 8, 16)
+                    ));
+                }
+            });
+
             btnClose.addActionListener(e -> dispose());
         }
         return btnClose;
@@ -311,26 +328,29 @@ public class DeleteEmployeeView extends JDialog{
     private JButton getBtnDelete() {
         if (btnDelete == null) {
             btnDelete = new JButton("Delete Employee");
-            btnDelete.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 13));
+            btnDelete.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 13));
             btnDelete.setFocusPainted(false);
             btnDelete.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            btnDelete.setBackground(Color.red);
-            btnDelete.setForeground(Color.BLACK);
-            btnDelete.setBorder(BorderFactory.createEmptyBorder(8, 18, 8, 18));
-            btnDelete.setEnabled(false); // Deshabilitado hasta que seleccionen un empleado
+            btnDelete.setBackground(Branding.ERROR);
+            btnDelete.setForeground(Color.WHITE);
+            btnDelete.setBorder(BorderFactory.createCompoundBorder(
+                    new LineBorder(Branding.ERROR, 1, true),
+                    BorderFactory.createEmptyBorder(8, 18, 8, 18)
+            ));
+            btnDelete.setEnabled(false);
 
             btnDelete.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseEntered(MouseEvent e) {
                     if (btnDelete.isEnabled()) {
-                    	btnDelete.setBackground(Color.RED);
+                        btnDelete.setBackground(new Color(0xDC, 0x26, 0x26)); // Rojo mas intenso en hover
                     }
                 }
 
                 @Override
                 public void mouseExited(MouseEvent e) {
                     if (btnDelete.isEnabled()) {
-                    	btnDelete.setBackground(Color.white);
+                        btnDelete.setBackground(Branding.ERROR);
                     }
                 }
             });
@@ -342,20 +362,20 @@ public class DeleteEmployeeView extends JDialog{
 
     private JLabel createLabel(String texto) {
         JLabel label = new JLabel(texto);
-        label.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 12));
-        label.setForeground(new Color(51, 65, 85));
+        label.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 12));
+        label.setForeground(Branding.NAVY);
         label.setVerticalAlignment(SwingConstants.CENTER);
         return label;
     }
 
     private JTextField createTextField() {
         JTextField tf = new JTextField();
-        tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tf.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
         tf.setBackground(Color.WHITE);
         tf.setForeground(Color.BLACK);
         tf.setEnabled(false); 
         tf.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(new Color(203, 213, 225), 1, true),
+                new LineBorder(Branding.BORDER, 1, true),
                 BorderFactory.createEmptyBorder(5, 7, 5, 7)
         ));
         return tf;
@@ -391,14 +411,6 @@ public class DeleteEmployeeView extends JDialog{
         getTxtPosition().setText(emp.getPosition());
         getTxtSalary().setText(String.valueOf(emp.getGrossAnnualSalary()));
 
-        getTxtFirstName().setEnabled(false);
-        getTxtLastName().setEnabled(false);
-        getTxtNationalId().setEnabled(false);
-        getTxtBirthDate().setEnabled(false);
-        getTxtPhone().setEnabled(false);
-        getCbCategory().setEnabled(false);
-        getTxtSalary().setEnabled(false);
-
         getBtnDelete().setEnabled(true);
     }
 
@@ -406,32 +418,32 @@ public class DeleteEmployeeView extends JDialog{
         int selectedRow = tblEmployees.getSelectedRow();
         
         if (selectedRow == -1) {
-          JOptionPane.showMessageDialog(this, "Please select an employee from the table to delete.", "Selection Required", JOptionPane.WARNING_MESSAGE);
-          return;
-      }
-    	
-    	if (selectedEmployee == null) {
-        	return;
+            JOptionPane.showMessageDialog(this, "Please select an employee from the table to delete.", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            return;
         }
     	
-      Employee selected = employeeList.get(selectedRow);
+        if (selectedEmployee == null) {
+            return;
+        }
+    	
+        Employee selected = employeeList.get(selectedRow);
 
-      int confirm = JOptionPane.showConfirmDialog(
-              this,
-              "Are you sure you want to terminate and delete employee #" + selected.getId() + " (" + selected.getFirstName() + " " + selected.getLastName() + ")?",
-              "Confirm Termination",
-              JOptionPane.YES_NO_OPTION,
-              JOptionPane.WARNING_MESSAGE
-      );
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to terminate and delete employee #" + selected.getId() + " (" + selected.getFirstName() + " " + selected.getLastName() + ")?",
+                "Confirm Termination",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
 
-      if (confirm == JOptionPane.YES_OPTION) {
-          try {
-              controller.deleteEmployee(selected.getId());
-              JOptionPane.showMessageDialog(this, "Employee successfully deleted.", "Success", JOptionPane.INFORMATION_MESSAGE);
-              loadEmployees(); // Refresca la tabla tras el borrado
-          } catch (SQLException ex) {
-              JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-          }
-      }
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                controller.deleteEmployee(selected.getId());
+                JOptionPane.showMessageDialog(this, "Employee successfully deleted.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadEmployees();
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 }

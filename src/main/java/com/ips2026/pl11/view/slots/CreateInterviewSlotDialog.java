@@ -29,13 +29,13 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.border.MatteBorder;
 import javax.swing.table.DefaultTableModel;
 
 import com.ips2026.pl11.controller.slots.InterviewSlotsController;
 import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.slots.InterviewSlotRecord;
-
+import com.ips2026.pl11.view.common.Branding;
+import com.ips2026.pl11.view.common.HeaderPanel;
 
 public class CreateInterviewSlotDialog extends JDialog {
 
@@ -46,16 +46,17 @@ public class CreateInterviewSlotDialog extends JDialog {
     private final List<Employee> teamPlayers;
 
     private JPanel contentPane;
-    private JPanel pnHeader;
+    private HeaderPanel pnHeader;
+    private JPanel pnBody;
     private JPanel pnCenter;
 
-    // Left Panel: Players Table
+    // Panel izquierdo
     private JPanel pnPlayersContainer;
     private JScrollPane spPlayers;
     private JTable tblPlayers;
     private DefaultTableModel playersModel;
 
-    // Center Panel: Slot Form
+    // Panel central
     private JPanel pnFormContainer;
     private JTextField txtSelectedPlayer;
     private JTextField txtDate;
@@ -63,13 +64,13 @@ public class CreateInterviewSlotDialog extends JDialog {
     private JTextField txtEndTime;
     private JButton btnSave;
 
-    // Right Panel: Slots Table
+    // Panel derecho
     private JPanel pnSlotsContainer;
     private JScrollPane spSlots;
     private JTable tblSlots;
     private DefaultTableModel slotsModel;
 
-    // Footer
+    // Pie
     private JPanel pnFooter;
     private JButton btnClose;
 
@@ -81,39 +82,36 @@ public class CreateInterviewSlotDialog extends JDialog {
         this.coachId = coachId;
         this.teamPlayers = players;
 
-        setSize(1150, 580);
+        // Branding
+        Branding.applyTo(this);
+
+        setSize(1150, 600);
         setLocationRelativeTo(parent);
         setResizable(true);
 
-        contentPane = new JPanel(new BorderLayout(0, 12));
-        contentPane.setBackground(new Color(248, 250, 252));
-        contentPane.setBorder(new EmptyBorder(16, 20, 16, 20));
+        contentPane = new JPanel(new BorderLayout(0, 0));
+        contentPane.setBackground(Branding.BACKGROUND);
         setContentPane(contentPane);
 
         contentPane.add(getPnHeader(), BorderLayout.NORTH);
-        contentPane.add(getPnCenter(), BorderLayout.CENTER);
-        contentPane.add(getPnFooter(), BorderLayout.SOUTH);
+
+        pnBody = new JPanel(new BorderLayout(0, 12));
+        pnBody.setOpaque(false);
+        pnBody.setBorder(new EmptyBorder(16, 20, 16, 20));
+        pnBody.add(getPnCenter(), BorderLayout.CENTER);
+        pnBody.add(getPnFooter(), BorderLayout.SOUTH);
+
+        contentPane.add(pnBody, BorderLayout.CENTER);
 
         loadPlayersTable();
     }
 
-    private JPanel getPnHeader() {
+    private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
-            pnHeader = new JPanel(new BorderLayout(0, 4));
-            pnHeader.setOpaque(false);
-            pnHeader.setBorder(new MatteBorder(0, 0, 1, 0, new Color(226, 232, 240)));
-
-            JLabel lblTitle = new JLabel("Interview Availability Management");
-            lblTitle.setFont(new Font("Segoe UI Semibold", Font.BOLD, 20));
-            lblTitle.setForeground(new Color(30, 41, 59));
-
-            JLabel lblSubtitle = new JLabel("Select a player from the left, define time slot details, and review scheduled slots");
-            lblSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            lblSubtitle.setForeground(new Color(100, 116, 139));
-            lblSubtitle.setBorder(new EmptyBorder(0, 0, 8, 0));
-
-            pnHeader.add(lblTitle, BorderLayout.NORTH);
-            pnHeader.add(lblSubtitle, BorderLayout.SOUTH);
+            pnHeader = new HeaderPanel(
+                    "Interview Availability Management",
+                    "Select a player from the left, define time slot details, and review scheduled slots"
+            );
         }
         return pnHeader;
     }
@@ -137,8 +135,8 @@ public class CreateInterviewSlotDialog extends JDialog {
             pnPlayersContainer.setOpaque(false);
 
             JLabel lbl = new JLabel("Team Players");
-            lbl.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 14));
-            lbl.setForeground(new Color(51, 65, 85));
+            lbl.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 14));
+            lbl.setForeground(Branding.NAVY);
 
             pnPlayersContainer.add(lbl, BorderLayout.NORTH);
             pnPlayersContainer.add(getSpPlayers(), BorderLayout.CENTER);
@@ -149,7 +147,7 @@ public class CreateInterviewSlotDialog extends JDialog {
     private JScrollPane getSpPlayers() {
         if (spPlayers == null) {
             spPlayers = new JScrollPane(getTblPlayers());
-            spPlayers.setBorder(new LineBorder(new Color(226, 232, 240), 1, true));
+            spPlayers.setBorder(new LineBorder(Branding.BORDER, 1, true));
         }
         return spPlayers;
     }
@@ -166,8 +164,8 @@ public class CreateInterviewSlotDialog extends JDialog {
             tblPlayers = new JTable(playersModel);
             tblPlayers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             tblPlayers.setRowHeight(25);
-            tblPlayers.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            tblPlayers.getTableHeader().setFont(new Font("Segoe UI Semibold", Font.PLAIN, 12));
+            tblPlayers.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 12));
+            tblPlayers.getTableHeader().setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 12));
             tblPlayers.getTableHeader().setBackground(new Color(241, 245, 249));
 
             tblPlayers.getColumnModel().getColumn(0).setPreferredWidth(35);
@@ -194,13 +192,13 @@ public class CreateInterviewSlotDialog extends JDialog {
             pnFormContainer = new JPanel(new BorderLayout(0, 10));
             pnFormContainer.setOpaque(false);
             pnFormContainer.setBorder(BorderFactory.createCompoundBorder(
-                    new LineBorder(new Color(226, 232, 240), 1, true),
+                    new LineBorder(Branding.BORDER, 1, true),
                     new EmptyBorder(14, 14, 14, 14)
             ));
 
             JLabel lblFormTitle = new JLabel("Create Availability Slot");
-            lblFormTitle.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 14));
-            lblFormTitle.setForeground(new Color(51, 65, 85));
+            lblFormTitle.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 14));
+            lblFormTitle.setForeground(Branding.NAVY);
 
             JPanel pnInputs = new JPanel(new GridLayout(4, 2, 8, 12));
             pnInputs.setOpaque(false);
@@ -233,6 +231,7 @@ public class CreateInterviewSlotDialog extends JDialog {
             txtSelectedPlayer = crearTextField("Select a player from left");
             txtSelectedPlayer.setEditable(false);
             txtSelectedPlayer.setBackground(new Color(241, 245, 249));
+            txtSelectedPlayer.setForeground(Branding.TEXT_MUTED);
         }
         return txtSelectedPlayer;
     }
@@ -261,22 +260,37 @@ public class CreateInterviewSlotDialog extends JDialog {
     private JButton getBtnSave() {
         if (btnSave == null) {
             btnSave = new JButton("Create Slot");
-            btnSave.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 13));
+            btnSave.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 13));
             btnSave.setFocusPainted(false);
-            btnSave.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            btnSave.setBackground(new Color(24, 76, 120));
+            btnSave.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            btnSave.setBackground(Branding.NAVY);
             btnSave.setForeground(Color.WHITE);
-            btnSave.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+            btnSave.setBorder(BorderFactory.createCompoundBorder(
+                    new LineBorder(Branding.NAVY, 1, true),
+                    BorderFactory.createEmptyBorder(8, 20, 8, 20)
+            ));
             btnSave.setEnabled(false);
 
             btnSave.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseEntered(MouseEvent e) {
-                    if (btnSave.isEnabled()) btnSave.setBackground(new Color(32, 101, 160));
+                    if (btnSave.isEnabled()) {
+                        btnSave.setBackground(new Color(0x1F, 0x4E, 0x8C));
+                        btnSave.setBorder(BorderFactory.createCompoundBorder(
+                                new LineBorder(Branding.GOLD, 1, true),
+                                BorderFactory.createEmptyBorder(8, 20, 8, 20)
+                        ));
+                    }
                 }
                 @Override
                 public void mouseExited(MouseEvent e) {
-                    if (btnSave.isEnabled()) btnSave.setBackground(new Color(24, 76, 120));
+                    if (btnSave.isEnabled()) {
+                        btnSave.setBackground(Branding.NAVY);
+                        btnSave.setBorder(BorderFactory.createCompoundBorder(
+                                new LineBorder(Branding.NAVY, 1, true),
+                                BorderFactory.createEmptyBorder(8, 20, 8, 20)
+                        ));
+                    }
                 }
             });
 
@@ -292,8 +306,8 @@ public class CreateInterviewSlotDialog extends JDialog {
             pnSlotsContainer.setOpaque(false);
 
             JLabel lblTableTitle = new JLabel("Existing Interview Slots");
-            lblTableTitle.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 14));
-            lblTableTitle.setForeground(new Color(51, 65, 85));
+            lblTableTitle.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 14));
+            lblTableTitle.setForeground(Branding.NAVY);
 
             pnSlotsContainer.add(lblTableTitle, BorderLayout.NORTH);
             pnSlotsContainer.add(getSpSlots(), BorderLayout.CENTER);
@@ -304,13 +318,13 @@ public class CreateInterviewSlotDialog extends JDialog {
     private JScrollPane getSpSlots() {
         if (spSlots == null) {
             spSlots = new JScrollPane(getTblSlots());
-            spSlots.setBorder(new LineBorder(new Color(226, 232, 240), 1, true));
+            spSlots.setBorder(new LineBorder(Branding.BORDER, 1, true));
         }
         return spSlots;
     }
 
     private JTable getTblSlots() {
-    	if (tblSlots == null) {
+        if (tblSlots == null) {
             String[] columns = {"Player", "Date", "Start", "End", "Status"};
             slotsModel = new DefaultTableModel(columns, 0) {
                 @Override
@@ -321,8 +335,8 @@ public class CreateInterviewSlotDialog extends JDialog {
             tblSlots = new JTable(slotsModel);
             tblSlots.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             tblSlots.setRowHeight(25);
-            tblSlots.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            tblSlots.getTableHeader().setFont(new Font("Segoe UI Semibold", Font.PLAIN, 12));
+            tblSlots.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 12));
+            tblSlots.getTableHeader().setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 12));
             tblSlots.getTableHeader().setBackground(new Color(241, 245, 249));
 
             tblSlots.getColumnModel().getColumn(0).setPreferredWidth(140);
@@ -346,15 +360,36 @@ public class CreateInterviewSlotDialog extends JDialog {
     private JButton getBtnClose() {
         if (btnClose == null) {
             btnClose = new JButton("Close");
-            btnClose.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 13));
+            btnClose.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 13));
             btnClose.setFocusPainted(false);
-            btnClose.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            btnClose.setBackground(Color.RED);
-            btnClose.setForeground(new Color(51, 65, 85));
+            btnClose.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            btnClose.setBackground(Color.WHITE);
+            btnClose.setForeground(Branding.NAVY);
             btnClose.setBorder(BorderFactory.createCompoundBorder(
-                    new LineBorder(new Color(203, 213, 225), 1, true),
+                    new LineBorder(Branding.BORDER, 1, true),
                     BorderFactory.createEmptyBorder(8, 16, 8, 16)
             ));
+
+            btnClose.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    btnClose.setBackground(new Color(241, 245, 249));
+                    btnClose.setBorder(BorderFactory.createCompoundBorder(
+                            new LineBorder(Branding.GOLD, 1, true),
+                            BorderFactory.createEmptyBorder(8, 16, 8, 16)
+                    ));
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    btnClose.setBackground(Color.WHITE);
+                    btnClose.setBorder(BorderFactory.createCompoundBorder(
+                            new LineBorder(Branding.BORDER, 1, true),
+                            BorderFactory.createEmptyBorder(8, 16, 8, 16)
+                    ));
+                }
+            });
+
             btnClose.addActionListener(e -> dispose());
         }
         return btnClose;
@@ -362,19 +397,19 @@ public class CreateInterviewSlotDialog extends JDialog {
 
     private JLabel crearLabel(String texto) {
         JLabel label = new JLabel(texto);
-        label.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 12));
-        label.setForeground(new Color(51, 65, 85));
+        label.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 12));
+        label.setForeground(Branding.NAVY);
         label.setVerticalAlignment(SwingConstants.CENTER);
         return label;
     }
 
     private JTextField crearTextField(String defaultText) {
         JTextField tf = new JTextField(defaultText);
-        tf.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        tf.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 12));
         tf.setBackground(Color.WHITE);
         tf.setForeground(Color.BLACK);
         tf.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(new Color(203, 213, 225), 1, true),
+                new LineBorder(Branding.BORDER, 1, true),
                 BorderFactory.createEmptyBorder(5, 7, 5, 7)
         ));
         return tf;
@@ -393,7 +428,7 @@ public class CreateInterviewSlotDialog extends JDialog {
     }
 
     private void loadSlotsTable(int playerId) {
-    	slotsModel.setRowCount(0);
+        slotsModel.setRowCount(0);
         try {
             List<InterviewSlotRecord> slots = controller.getAllSlots();
             for (InterviewSlotRecord s : slots) {

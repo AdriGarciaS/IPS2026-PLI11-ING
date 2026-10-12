@@ -16,11 +16,14 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 
 import com.ips2026.pl11.controller.slots.InterviewSlotsController;
 import com.ips2026.pl11.model.employee.Employee;
+import com.ips2026.pl11.view.common.Branding;
+import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.slots.CreateInterviewSlotDialog;
-
 
 public class InterviewHubDialog extends JDialog {
 
@@ -31,6 +34,13 @@ public class InterviewHubDialog extends JDialog {
     private final int coachId;
     private final List<Employee> players;
 
+    private JPanel contentPane;
+    private HeaderPanel pnHeader;
+    private JPanel pnBody;
+    private JPanel pnCards;
+    private JPanel pnFooter;
+    private JButton btnClose;
+
     public InterviewHubDialog(JFrame parent, InterviewSlotsController controller, int coachId, List<Employee> players) {
         super(parent, "Interview Management - Selection Hub", true);
         this.parentFrame = parent;
@@ -38,111 +48,137 @@ public class InterviewHubDialog extends JDialog {
         this.coachId = coachId;
         this.players = players;
 
+        // Configuración oficial de iconos y fondo
+        Branding.applyTo(this);
+
         initComponents();
-        setSize(560, 360);
+        setSize(580, 410);
         setLocationRelativeTo(parent);
         setResizable(false);
     }
 
     private void initComponents() {
-        getContentPane().setLayout(new BorderLayout());
+        contentPane = new JPanel(new BorderLayout(0, 0));
+        contentPane.setBackground(Branding.BACKGROUND);
+        setContentPane(contentPane);
 
-        // Header panel
-        JPanel pnHeader = new JPanel(new BorderLayout(5, 5));
-        pnHeader.setBackground(new Color(248, 250, 252));
-        pnHeader.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(226, 232, 240)),
-                BorderFactory.createEmptyBorder(18, 24, 18, 24)
-        ));
+        contentPane.add(getPnHeader(), BorderLayout.NORTH);
 
-        JLabel lblTitle = new JLabel("Interview Management Hub");
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTitle.setForeground(new Color(15, 23, 42));
+        // Panel interior con márgenes corporativos
+        pnBody = new JPanel(new BorderLayout(0, 16));
+        pnBody.setOpaque(false);
+        pnBody.setBorder(new EmptyBorder(24, 24, 18, 24));
+        pnBody.add(getPnCards(), BorderLayout.CENTER);
+        pnBody.add(getPnFooter(), BorderLayout.SOUTH);
 
-        JLabel lblSubtitle = new JLabel("Choose whether to define player availability slots or book interviews for media outlets.");
-        lblSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblSubtitle.setForeground(new Color(100, 116, 139));
+        contentPane.add(pnBody, BorderLayout.CENTER);
+    }
 
-        pnHeader.add(lblTitle, BorderLayout.NORTH);
-        pnHeader.add(lblSubtitle, BorderLayout.SOUTH);
-        getContentPane().add(pnHeader, BorderLayout.NORTH);
+    private HeaderPanel getPnHeader() {
+        if (pnHeader == null) {
+            pnHeader = new HeaderPanel(
+                    "Interview Management Hub",
+                    "Choose whether to define availability slots or book interviews for media outlets"
+            );
+        }
+        return pnHeader;
+    }
 
-        // Center action cards
-        JPanel pnCards = new JPanel(new GridLayout(1, 2, 16, 0));
-        pnCards.setBackground(Color.WHITE);
-        pnCards.setBorder(BorderFactory.createEmptyBorder(24, 24, 20, 24));
+    private JPanel getPnCards() {
+        if (pnCards == null) {
+            pnCards = new JPanel(new GridLayout(1, 2, 16, 0));
+            pnCards.setOpaque(false);
 
-        JPanel cardCreate = createHubOptionCard(
-                "Create Slots",
-                "Coach / Staff",
-                "Define interview availability time slots for professional team players.",
-                new Color(37, 99, 235),
-                () -> openCreateSlotsDialog()
-        );
+            JPanel cardCreate = createHubOptionCard(
+                    "Create Slots",
+                    "Coach / Staff",
+                    "Define interview availability time slots for professional team players.",
+                    Branding.NAVY,
+                    () -> openCreateSlotsDialog()
+            );
 
-        JPanel cardBook = createHubOptionCard(
-                "Book Interview",
-                "Communications Dir.",
-                "Select an available slot, enter media details, and finalize interview booking.",
-                new Color(13, 148, 136),
-                () -> openBookInterviewDialog()
-        );
+            JPanel cardBook = createHubOptionCard(
+                    "Book Interview",
+                    "Communications Dir.",
+                    "Select an available slot, enter media details, and finalize interview booking.",
+                    new Color(0x1F, 0x4E, 0x8C),
+                    () -> openBookInterviewDialog()
+            );
 
-        pnCards.add(cardCreate);
-        pnCards.add(cardBook);
-        getContentPane().add(pnCards, BorderLayout.CENTER);
+            pnCards.add(cardCreate);
+            pnCards.add(cardBook);
+        }
+        return pnCards;
+    }
 
-        // Footer panel
-        JPanel pnFooter = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 12));
-        pnFooter.setBackground(new Color(248, 250, 252));
-        pnFooter.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(226, 232, 240)));
+    private JPanel getPnFooter() {
+        if (pnFooter == null) {
+            pnFooter = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+            pnFooter.setOpaque(false);
+            pnFooter.add(getBtnClose());
+        }
+        return pnFooter;
+    }
 
-        JButton btnClose = new JButton("Close");
-        btnClose.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        btnClose.setFocusPainted(false);
-        btnClose.setPreferredSize(new Dimension(85, 30));
-        btnClose.addActionListener(e -> dispose());
+    private JButton getBtnClose() {
+        if (btnClose == null) {
+            btnClose = new JButton("Close");
+            btnClose.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 13));
+            btnClose.setFocusPainted(false);
+            btnClose.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            btnClose.setBackground(Color.WHITE);
+            btnClose.setForeground(Branding.NAVY);
+            btnClose.setPreferredSize(new Dimension(90, 32));
+            btnClose.setBorder(BorderFactory.createCompoundBorder(
+                    new LineBorder(Branding.BORDER, 1, true),
+                    BorderFactory.createEmptyBorder(6, 14, 6, 14)
+            ));
 
-        pnFooter.add(btnClose);
-        getContentPane().add(pnFooter, BorderLayout.SOUTH);
+            btnClose.addActionListener(e -> dispose());
+        }
+        return btnClose;
     }
 
     private JPanel createHubOptionCard(String actionTitle, String roleBadgeText, String descriptionText, Color accentColor, Runnable onAction) {
-        JPanel card = new JPanel(new BorderLayout(8, 10));
+        JPanel card = new JPanel(new BorderLayout(8, 12));
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(226, 232, 240), 1),
-                BorderFactory.createEmptyBorder(16, 14, 16, 14)
+                new LineBorder(Branding.BORDER, 1, true),
+                BorderFactory.createEmptyBorder(18, 16, 18, 16)
         ));
 
         JPanel cardTop = new JPanel(new BorderLayout(4, 4));
         cardTop.setOpaque(false);
 
         JLabel lblBadge = new JLabel(roleBadgeText.toUpperCase());
-        lblBadge.setFont(new Font("Segoe UI", Font.BOLD, 10));
-        lblBadge.setForeground(accentColor);
+        lblBadge.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 10));
+        lblBadge.setForeground(Branding.GOLD);
 
         JLabel lblAction = new JLabel(actionTitle);
-        lblAction.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lblAction.setForeground(new Color(30, 41, 59));
+        lblAction.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 16));
+        lblAction.setForeground(Branding.NAVY);
 
         cardTop.add(lblBadge, BorderLayout.NORTH);
         cardTop.add(lblAction, BorderLayout.SOUTH);
         card.add(cardTop, BorderLayout.NORTH);
 
         JLabel lblDesc = new JLabel("<html><body style='width: 170px;'>" + descriptionText + "</body></html>");
-        lblDesc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblDesc.setForeground(new Color(100, 116, 139));
+        lblDesc.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 12));
+        lblDesc.setForeground(Branding.TEXT_MUTED);
         lblDesc.setVerticalAlignment(SwingConstants.TOP);
         card.add(lblDesc, BorderLayout.CENTER);
 
         JButton btnSelect = new JButton("Open " + actionTitle);
-        btnSelect.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnSelect.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 12));
         btnSelect.setForeground(Color.WHITE);
         btnSelect.setBackground(accentColor);
         btnSelect.setFocusPainted(false);
         btnSelect.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnSelect.setPreferredSize(new Dimension(180, 36));
+        btnSelect.setPreferredSize(new Dimension(190, 36));
+        btnSelect.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(accentColor, 1, true),
+                BorderFactory.createEmptyBorder(6, 12, 6, 12)
+        ));
         btnSelect.addActionListener(e -> onAction.run());
 
         JPanel btnWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
@@ -154,14 +190,14 @@ public class InterviewHubDialog extends JDialog {
     }
 
     private void openCreateSlotsDialog() {
-    	this.setVisible(false);
+        this.setVisible(false);
         CreateInterviewSlotDialog dialog = new CreateInterviewSlotDialog(parentFrame, controller, coachId, players);
         dialog.setVisible(true);
         this.setVisible(true);
     }
 
     private void openBookInterviewDialog() {
-    	this.setVisible(false);
+        this.setVisible(false);
         BookInterviewDialog dialog = new BookInterviewDialog(parentFrame);
         dialog.setVisible(true);
         this.setVisible(true);

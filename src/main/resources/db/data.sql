@@ -14,6 +14,7 @@ INSERT INTO personas (nombre, email) VALUES
 
 INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary) VALUES
     ('Lamine', 'Yamal', '12345678A', '2007-07-13', '+34600112233', 'SPORTS', 'Player', 1500000.0),
+    ('Pedri', 'González', '12345678P', '2002-11-25', '+34600111222', 'SPORTS', 'Player', 900000.0),
     ('Pep', 'Guardiola', '87654321B', '1971-01-18', '+34611223344', 'SPORTS', 'Coach', 12000000.0),
     ('Sarah', 'Jenkins', '99887766C', '1985-04-12', '+34622334455', 'NON_SPORTS', 'General Manager', 95000.0),
     ('Jackie', 'Taylor', '62671892R', '1978-11-09', '+34669571133', 'NON_SPORTS', 'Manager', 70000.0);
@@ -66,4 +67,10 @@ insert into work_schedule (employee_id, week_day, start_time, end_time) VALUES
 	(4, 4, '09:00', '17:00'),
 	(4, 5, '09:00', '10:00'),
 	(4, 6, '09:00', '16:00');
+	
+INSERT INTO trainings (id, player_id, training_date, start_time, end_time)
+	VALUES (1, 1, '2026-10-15', '09:00', '11:00');
+
+INSERT INTO matches (id, player_id, match_date, start_time, end_time, rival)
+	VALUES (1, 1, '2026-10-16', '18:00', '20:00', 'Real Madrid');
 

@@ -98,6 +98,52 @@ create table if not exists work_schedule(
 	
 );
 
+-- Table: interview_slots
+CREATE TABLE IF NOT EXISTS interview_slots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id INTEGER NOT NULL,
+    coach_id INTEGER NOT NULL,
+    slot_date TEXT NOT NULL,         -- Format: YYYY-MM-DD
+    start_time TEXT NOT NULL,        -- Format: HH:MM
+    end_time TEXT NOT NULL,          -- Format: HH:MM
+    status TEXT NOT NULL DEFAULT 'AVAILABLE', -- 'AVAILABLE', 'BOOKED', 'CANCELLED'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (player_id) REFERENCES employees(id),
+    FOREIGN KEY (coach_id) REFERENCES employees(id)
+);
+
+-- Table: interviews (Assigned / Booked sessions)
+CREATE TABLE IF NOT EXISTS interviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slot_id INTEGER NOT NULL UNIQUE,
+    player_id INTEGER NOT NULL,
+    interviewer_name TEXT NOT NULL,
+    media_outlet TEXT,
+    status TEXT NOT NULL DEFAULT 'CONFIRMED', -- 'CONFIRMED', 'COMPLETED', 'CANCELLED'
+    FOREIGN KEY (slot_id) REFERENCES interview_slots(id),
+    FOREIGN KEY (player_id) REFERENCES employees(id)
+);
+
+CREATE TABLE IF NOT EXISTS matches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id INTEGER,               -- Can be player_id or team reference
+    match_date TEXT NOT NULL,        -- YYYY-MM-DD
+    start_time TEXT NOT NULL,        -- HH:MM
+    end_time TEXT NOT NULL,          -- HH:MM
+    rival TEXT,
+    FOREIGN KEY (player_id) REFERENCES employees(id)
+);
+
+-- Scheduled training sessions
+CREATE TABLE IF NOT EXISTS trainings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id INTEGER,
+    training_date TEXT NOT NULL,     -- YYYY-MM-DD
+    start_time TEXT NOT NULL,        -- HH:MM
+    end_time TEXT NOT NULL,          -- HH:MM
+    FOREIGN KEY (player_id) REFERENCES employees(id)
+);
+
 create table if not exists day_schedule(
     id              	integer primary key autoincrement,
     work_schedule_id 	integer not null,

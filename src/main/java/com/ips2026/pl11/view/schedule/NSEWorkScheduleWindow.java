@@ -122,6 +122,7 @@ public class NSEWorkScheduleWindow extends JFrame {
      * Create the frame.
      */
     public NSEWorkScheduleWindow(WorkScheduleWindow workScheduleWindow) {
+        setResizable(false);
         setTitle("Football Club Management");
         this.wsw = workScheduleWindow;
 
@@ -301,6 +302,8 @@ public class NSEWorkScheduleWindow extends JFrame {
         	tableShifts = new JTable();
         	tableShifts.setModel(shiftsModel);
         	customizeHeader(tableShifts);
+        	
+
         }
         return tableShifts;
     }
@@ -401,6 +404,7 @@ public class NSEWorkScheduleWindow extends JFrame {
         }
     }
     
+    
     private boolean scheduleBelongsToSelectedWeek(DaySchedule ds, WeekFields wf) {
         LocalDate date = LocalDate.of((Integer)cbYear.getSelectedItem(),
             obtainMonthNumber((String) cbMonth.getSelectedItem()), (Integer)cbDay.getSelectedItem());
@@ -455,6 +459,11 @@ public class NSEWorkScheduleWindow extends JFrame {
             JOptionPane.showMessageDialog(this, "Error loading employees: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
         
+    }
+    
+    public void refreshWorkersTable() {
+        workersModel.setRowCount(0);
+        initializeWorkersTable();
     }
     
     private void customizeHeader(JTable table) {

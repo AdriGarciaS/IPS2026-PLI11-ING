@@ -175,7 +175,8 @@ public class WorkScheduleWindow extends JFrame {
         	btnGeneralManager.addActionListener(new ActionListener() {
         	    @Override
                 public void actionPerformed(ActionEvent e) {
-        	        managerWorkScheduleWindow.refreshShiftsTable();
+        	        gmWorkScheduleWindow.refreshShiftsTable();
+        	        gmWorkScheduleWindow.refreshWorkersTable();
         	        gmWorkScheduleWindow.setVisible(true);
         	    }
         	});
@@ -190,6 +191,7 @@ public class WorkScheduleWindow extends JFrame {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     managerWorkScheduleWindow.refreshShiftsTable();
+                    managerWorkScheduleWindow.refreshWorkersTable();
         	        managerWorkScheduleWindow.setVisible(true);
         	    }
         	});
@@ -219,6 +221,7 @@ public class WorkScheduleWindow extends JFrame {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     nseWorkScheduleWindow.refreshShiftsTable();
+                    nseWorkScheduleWindow.refreshWorkersTable();
                     nseWorkScheduleWindow.setVisible(true);
                 }
             });

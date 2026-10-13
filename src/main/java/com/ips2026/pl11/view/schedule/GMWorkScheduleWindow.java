@@ -107,6 +107,7 @@ public class GMWorkScheduleWindow extends JFrame {
      * Create the frame.
      */
     public GMWorkScheduleWindow(WorkScheduleWindow workScheduleWindow) {
+        setResizable(false);
         setTitle("Football Club Management");
         this.wsw = workScheduleWindow;
 
@@ -402,6 +403,11 @@ public class GMWorkScheduleWindow extends JFrame {
             JOptionPane.showMessageDialog(this, "Error loading employees: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
         
+    }
+    
+    public void refreshWorkersTable() {
+        workersModel.setRowCount(0);
+        initializeWorkersTable();
     }
     
     private void customizeHeader(JTable table) {

@@ -10,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -21,17 +22,24 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
+import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.controller.reservation.FacilityReservationController;
+import com.ips2026.pl11.controller.slots.InterviewSlotsController;
 import com.ips2026.pl11.controller.store.StoreSalesController;
+import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.data.reservation.FacilityDAO;
 import com.ips2026.pl11.data.reservation.ReservationDAO;
 import com.ips2026.pl11.data.reservation.TeamUseDAO;
+import com.ips2026.pl11.data.slots.InterviewSlotDAO;
 import com.ips2026.pl11.data.store.MerchandiseDAO;
 import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
+import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
+import com.ips2026.pl11.view.interview.InterviewHubDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
+import com.ips2026.pl11.view.slots.CreateInterviewSlotDialog;
 import com.ips2026.pl11.view.schedule.WorkScheduleWindow;
 import com.ips2026.pl11.view.store.StoreSalesWindow;
 
@@ -178,17 +186,14 @@ public class MainWindow extends JFrame {
     }
     
     private MenuCardButton getBtnOption5() {
-		if (btnOption5 == null) {
-			btnOption5 = new MenuCardButton("Handle slots for interviews","Create interviews for players");
-			btnOption5.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
-			btnOption5.addActionListener(new ActionListener() {
-				@Override
-                public void actionPerformed(ActionEvent e) {
-				}
-			});
-		}
-		return btnOption5;
-	}
+        if (btnOption5 == null) {
+            btnOption5 = new MenuCardButton("Interview Management", "Manage availability slots and book press interviews");
+            btnOption5.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnOption5.addActionListener(e -> openInterviewSlots());
+        }
+        return btnOption5;
+    }
+
 	private MenuCardButton getBtnOption6() {
 		if (btnOption6 == null) {
 			btnOption6 = new MenuCardButton("Sports Teams","Add sports teams to manage them");
@@ -223,6 +228,46 @@ public class MainWindow extends JFrame {
         }
         new StoreSalesWindow(controller, this).setVisible(true);
     }
+    
+    private void openInterviewSlots() {
+		// TODO Auto-generated method stub
+    	try {
+            // 1. Initialize required controllers and DAOs
+            InterviewSlotsController interviewCtrl = new InterviewSlotsController(new InterviewSlotDAO());
+            EmployeeController empCtrl = new EmployeeController(new EmployeeDAO());
+
+            // 2. Identify the active coach (session placeholder)
+            int coachId = 4;
+
+            // 3. Retrieve and filter all professional players eligible for interview slots
+            List<Employee> allEmployees = empCtrl.getEmployees();
+            List<Employee> players = allEmployees.stream()
+                    .filter(emp -> "Player".equalsIgnoreCase(emp.getPosition()))
+                    .toList();
+
+            if (players.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "No players found for the professional team.",
+                        "No Players Available",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+
+            // 4. Open the intermediate Hub dialog
+            InterviewHubDialog hub = new InterviewHubDialog(this, interviewCtrl, coachId, players);
+            hub.setVisible(true);
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Error opening interview management: " + ex.getMessage(),
+                    "System Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
+    } 
 
     private JPanel getPnFooter() {
         if (pnFooter == null) {

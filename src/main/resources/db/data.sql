@@ -12,10 +12,12 @@ INSERT INTO personas (nombre, email) VALUES
     ('Grace Hopper', 'grace@example.com');
 
 
-INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender) VALUES
-    ('Lamine', 'Yamal', '12345678A', '2007-07-13', '+34600112233', 'SPORTS', 'Player', 1500000.0, 'MALE'),
-    ('Pep', 'Guardiola', '87654321B', '1971-01-18', '+34611223344', 'SPORTS', 'Coach', 12000000.0, NULL),
-    ('Sarah', 'Jenkins', '99887766C', '1985-04-12', '+34622334455', 'NON_SPORTS', 'General Manager', 95000.0, 'FEMALE');
+INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary) VALUES
+    ('Lamine', 'Yamal', '12345678A', '2007-07-13', '+34600112233', 'SPORTS', 'Player', 1500000.0),
+    ('Pedri', 'González', '12345678P', '2002-11-25', '+34600111222', 'SPORTS', 'Player', 900000.0),
+    ('Pep', 'Guardiola', '87654321B', '1971-01-18', '+34611223344', 'SPORTS', 'Coach', 12000000.0),
+    ('Sarah', 'Jenkins', '99887766C', '1985-04-12', '+34622334455', 'NON_SPORTS', 'General Manager', 95000.0),
+    ('Jackie', 'Taylor', '62671892R', '1978-11-09', '+34669571133', 'NON_SPORTS', 'Manager', 70000.0);
 
 INSERT INTO MERCHANDISING (name, type, available_units, price) VALUES
     ('Home Shirt 26/27', 'Clothing', 25, 59.99),
@@ -57,8 +59,20 @@ SELECT 1, 'First Team (match)', date('now', 'localtime', '+' || n || ' days'), '
 INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reservation_date, start_time, end_time, hours, total_price, created_at) VALUES
     (2, 'Laura Perez', '**** **** **** 1111', date('now', 'localtime', '+1 day'), '14:00', '16:00', 2, 100.0, datetime('now', 'localtime'));
     
-insert into work_schedule (id, employee_id, week_day, start_time, end_time) VALUES
-	(0, 1, 2, '12:30', '14:30');
+-- Dummy work schedule to test the Recurring Work Schedules user story and the Specific Schedules user story.
+insert into work_schedule (employee_id, week_day, start_time, end_time) VALUES
+	(3, 1, '09:00', '17:00'),
+	(3, 2, '09:00', '17:00'),
+	(3, 3, '09:00', '17:00'),
+	(4, 4, '09:00', '17:00'),
+	(4, 5, '09:00', '10:00'),
+	(4, 6, '09:00', '16:00');
+
+INSERT INTO trainings (id, player_id, training_date, start_time, end_time)
+	VALUES (1, 1, '2026-10-15', '09:00', '11:00');
+
+INSERT INTO matches (id, player_id, match_date, start_time, end_time, rival)
+	VALUES (1, 1, '2026-10-16', '18:00', '20:00', 'Real Madrid');
 
 -- Sample sports employees for the sports teams. The birth dates are relative
 -- to the current year (age is counted by year), so every category always has

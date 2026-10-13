@@ -98,6 +98,65 @@ create table if not exists work_schedule(
 	
 );
 
+-- Table: interview_slots
+CREATE TABLE IF NOT EXISTS interview_slots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id INTEGER NOT NULL,
+    coach_id INTEGER NOT NULL,
+    slot_date TEXT NOT NULL,
+    start_time TEXT NOT NULL,
+    end_time TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'AVAILABLE',
+    media_name TEXT,
+    media_contact TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (player_id) REFERENCES employees(id),
+    FOREIGN KEY (coach_id) REFERENCES employees(id)
+);
+
+-- Table: interviews (Assigned / Booked sessions)
+CREATE TABLE IF NOT EXISTS interviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slot_id INTEGER NOT NULL UNIQUE,
+    player_id INTEGER NOT NULL,
+    interviewer_name TEXT NOT NULL,
+    media_outlet TEXT,
+    status TEXT NOT NULL DEFAULT 'CONFIRMED', -- 'CONFIRMED', 'COMPLETED', 'CANCELLED'
+    FOREIGN KEY (slot_id) REFERENCES interview_slots(id),
+    FOREIGN KEY (player_id) REFERENCES employees(id)
+);
+
+CREATE TABLE IF NOT EXISTS matches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id INTEGER,               -- Can be player_id or team reference
+    match_date TEXT NOT NULL,        -- YYYY-MM-DD
+    start_time TEXT NOT NULL,        -- HH:MM
+    end_time TEXT NOT NULL,          -- HH:MM
+    rival TEXT,
+    FOREIGN KEY (player_id) REFERENCES employees(id)
+);
+
+-- Scheduled training sessions
+CREATE TABLE IF NOT EXISTS trainings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id INTEGER,
+    training_date TEXT NOT NULL,     -- YYYY-MM-DD
+    start_time TEXT NOT NULL,        -- HH:MM
+    end_time TEXT NOT NULL,          -- HH:MM
+    FOREIGN KEY (player_id) REFERENCES employees(id)
+);
+
+create table if not exists day_schedule(
+    id              	integer primary key autoincrement,
+    work_schedule_id 	integer not null,
+    date           		text not null,
+    start_time      	text not null,
+    end_time        	text not null,
+
+	unique(work_schedule_id, date, start_time, end_time)
+    foreign key (work_schedule_id) references work_schedule(id)
+);
+
 -- ---------------------------------------------------------------------------
 -- Sports teams (US: general manager adds sports teams).
 -- ---------------------------------------------------------------------------

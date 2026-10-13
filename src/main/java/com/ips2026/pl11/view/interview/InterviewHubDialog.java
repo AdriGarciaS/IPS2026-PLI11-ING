@@ -31,8 +31,6 @@ public class InterviewHubDialog extends JDialog {
 
     private final JFrame parentFrame;
     private final InterviewSlotsController controller;
-    private final int coachId;
-    private final List<Employee> players;
 
     private JPanel contentPane;
     private HeaderPanel pnHeader;
@@ -41,20 +39,29 @@ public class InterviewHubDialog extends JDialog {
     private JPanel pnFooter;
     private JButton btnClose;
 
-    public InterviewHubDialog(JFrame parent, InterviewSlotsController controller, int coachId, List<Employee> players) {
+    /**
+     * Main constructor: only requires parent frame and the controller.
+     * Coaches and players are loaded dynamically inside CreateInterviewSlotDialog.
+     */
+    public InterviewHubDialog(JFrame parent, InterviewSlotsController controller) {
         super(parent, "Interview Management - Selection Hub", true);
         this.parentFrame = parent;
-        this.controller = controller;
-        this.coachId = coachId;
-        this.players = players;
+        this.controller = (controller != null) ? controller : new InterviewSlotsController();
 
-        // Configuración oficial de iconos y fondo
+        // Corporate styling and club window icons
         Branding.applyTo(this);
 
         initComponents();
         setSize(580, 410);
         setLocationRelativeTo(parent);
         setResizable(false);
+    }
+
+    /**
+     * Overloaded constructor for backwards compatibility.
+     */
+    public InterviewHubDialog(JFrame parent, InterviewSlotsController controller, int coachId, List<Employee> players) {
+        this(parent, controller);
     }
 
     private void initComponents() {
@@ -64,7 +71,6 @@ public class InterviewHubDialog extends JDialog {
 
         contentPane.add(getPnHeader(), BorderLayout.NORTH);
 
-        // Panel interior con márgenes corporativos
         pnBody = new JPanel(new BorderLayout(0, 16));
         pnBody.setOpaque(false);
         pnBody.setBorder(new EmptyBorder(24, 24, 18, 24));
@@ -191,7 +197,7 @@ public class InterviewHubDialog extends JDialog {
 
     private void openCreateSlotsDialog() {
         this.setVisible(false);
-        CreateInterviewSlotDialog dialog = new CreateInterviewSlotDialog(parentFrame, controller, coachId, players);
+        CreateInterviewSlotDialog dialog = new CreateInterviewSlotDialog(parentFrame, controller);
         dialog.setVisible(true);
         this.setVisible(true);
     }

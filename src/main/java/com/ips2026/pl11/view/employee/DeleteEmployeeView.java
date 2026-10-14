@@ -9,6 +9,8 @@ import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -33,6 +35,7 @@ import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.toedter.calendar.JDateChooser;
 
 public class DeleteEmployeeView extends JDialog {
 
@@ -57,7 +60,7 @@ public class DeleteEmployeeView extends JDialog {
     private JTextField txtFirstName;
     private JTextField txtLastName;
     private JTextField txtNationalId;
-    private JTextField txtBirthDate;
+    private JDateChooser dateBirth;
     private JTextField txtPhone;
     private JTextField txtPosition; 
     private JTextField txtSalary;
@@ -72,7 +75,6 @@ public class DeleteEmployeeView extends JDialog {
         setSize(950, 640);
         setLocationRelativeTo(parent);
 
-        // Aplica iconos del club y fondo corporativo
         Branding.applyTo(this);
 
         contentPane = new JPanel(new BorderLayout(0, 0));
@@ -194,8 +196,8 @@ public class DeleteEmployeeView extends JDialog {
             pnFields.add(createLabel("National ID / Passport:"));
             pnFields.add(getTxtNationalId());
 
-            pnFields.add(createLabel("Birth Date (YYYY-MM-DD):"));
-            pnFields.add(getTxtBirthDate());
+            pnFields.add(createLabel("Birth Date:"));
+            pnFields.add(getDateBirth());
 
             pnFields.add(createLabel("Phone Number:"));
             pnFields.add(getTxtPhone());
@@ -233,11 +235,18 @@ public class DeleteEmployeeView extends JDialog {
         return txtNationalId;
     }
 
-    private JTextField getTxtBirthDate() {
-        if (txtBirthDate == null) {
-            txtBirthDate = createTextField();
+    private JDateChooser getDateBirth() {
+        if (dateBirth == null) {
+            dateBirth = new JDateChooser();
+            dateBirth.setDateFormatString("yyyy-MM-dd");
+            dateBirth.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
+            dateBirth.setEnabled(false); // Siempre de solo lectura en la vista de borrado
+            dateBirth.setBorder(BorderFactory.createCompoundBorder(
+                    new LineBorder(Branding.BORDER, 1, true),
+                    BorderFactory.createEmptyBorder(2, 2, 2, 2)
+            ));
         }
-        return txtBirthDate;
+        return dateBirth;
     }
 
     private JTextField getTxtPhone() {
@@ -305,7 +314,7 @@ public class DeleteEmployeeView extends JDialog {
                 public void mouseEntered(MouseEvent e) {
                     btnClose.setBackground(new Color(241, 245, 249));
                     btnClose.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.GOLD, 1, true),
+                            new LineBorder(Branding.NAVY_DARKER, 1, true),
                             BorderFactory.createEmptyBorder(8, 16, 8, 16)
                     ));
                 }
@@ -343,7 +352,7 @@ public class DeleteEmployeeView extends JDialog {
                 @Override
                 public void mouseEntered(MouseEvent e) {
                     if (btnDelete.isEnabled()) {
-                        btnDelete.setBackground(new Color(0xDC, 0x26, 0x26)); // Rojo mas intenso en hover
+                        btnDelete.setBackground(new Color(0xDC, 0x26, 0x26));
                     }
                 }
 
@@ -405,7 +414,14 @@ public class DeleteEmployeeView extends JDialog {
         getTxtFirstName().setText(emp.getFirstName());
         getTxtLastName().setText(emp.getLastName());
         getTxtNationalId().setText(emp.getNationalId());
-        getTxtBirthDate().setText(emp.getBirthDate().toString());
+        
+        if (emp.getBirthDate() != null) {
+            Date date = Date.from(emp.getBirthDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            getDateBirth().setDate(date);
+        } else {
+            getDateBirth().setDate(null);
+        }
+
         getTxtPhone().setText(emp.getPhoneNumber());
         getCbCategory().setSelectedItem(emp.getCategory());
         getTxtPosition().setText(emp.getPosition());

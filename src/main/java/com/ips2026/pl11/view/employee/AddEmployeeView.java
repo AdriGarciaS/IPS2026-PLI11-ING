@@ -8,7 +8,8 @@ import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
+import java.time.ZoneId;
+import java.util.Date;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -27,6 +28,7 @@ import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.toedter.calendar.JDateChooser;
 
 public class AddEmployeeView extends JDialog {
 
@@ -49,7 +51,7 @@ public class AddEmployeeView extends JDialog {
     private JTextField txtFirstName;
     private JTextField txtLastName;
     private JTextField txtNationalId;
-    private JTextField txtBirthDate;
+    private JDateChooser dateBirth;
     private JTextField txtPhone;
     private JTextField txtSalary;
 
@@ -63,7 +65,7 @@ public class AddEmployeeView extends JDialog {
         setLocationRelativeTo(parent);
         setResizable(false);
 
-        // Aplica iconos y fondo de ventana segun Branding
+        // Aplica el estilo base e iconos de ventana de la aplicacion
         Branding.applyTo(this);
 
         contentPane = new JPanel();
@@ -73,7 +75,6 @@ public class AddEmployeeView extends JDialog {
 
         contentPane.add(getPnHeader(), BorderLayout.NORTH);
 
-        // Panel intermedio con margenes internos para formulario y boton
         pnBody = new JPanel(new BorderLayout(0, 16));
         pnBody.setOpaque(false);
         pnBody.setBorder(new EmptyBorder(20, 28, 20, 28));
@@ -108,8 +109,8 @@ public class AddEmployeeView extends JDialog {
             pnForm.add(crearLabel("National ID / Passport:"));
             pnForm.add(getTxtNationalId());
 
-            pnForm.add(crearLabel("Birth Date (YYYY-MM-DD):"));
-            pnForm.add(getTxtBirthDate());
+            pnForm.add(crearLabel("Birth Date:"));
+            pnForm.add(getDateBirth());
 
             pnForm.add(crearLabel("Phone Number:"));
             pnForm.add(getTxtPhone());
@@ -158,12 +159,18 @@ public class AddEmployeeView extends JDialog {
         return txtNationalId;
     }
 
-    private JTextField getTxtBirthDate() {
-        if (txtBirthDate == null) {
-            txtBirthDate = crearTextField();
-            txtBirthDate.setToolTipText("Format: YYYY-MM-DD");
+    private JDateChooser getDateBirth() {
+        if (dateBirth == null) {
+            dateBirth = new JDateChooser();
+            dateBirth.setDateFormatString("yyyy-MM-dd");
+            dateBirth.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
+            dateBirth.setBackground(Color.WHITE);
+            dateBirth.setBorder(BorderFactory.createCompoundBorder(
+                    new LineBorder(Branding.BORDER, 1, true),
+                    BorderFactory.createEmptyBorder(2, 2, 2, 2)
+            ));
         }
-        return txtBirthDate;
+        return dateBirth;
     }
 
     private JTextField getTxtPhone() {
@@ -221,9 +228,9 @@ public class AddEmployeeView extends JDialog {
             btnSubmit.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseEntered(MouseEvent e) {
-                    btnSubmit.setBackground(new Color(0x1F, 0x4E, 0x8C)); // Tono azul medio en hover
+                    btnSubmit.setBackground(new Color(0x1F, 0x4E, 0x8C));
                     btnSubmit.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.GOLD, 1, true),
+                            new LineBorder(Branding.NAVY_DARKER, 1, true),
                             BorderFactory.createEmptyBorder(12, 20, 12, 20)
                     ));
                 }
@@ -265,7 +272,7 @@ public class AddEmployeeView extends JDialog {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
                 tf.setBorder(BorderFactory.createCompoundBorder(
-                        new LineBorder(Branding.GOLD, 2, true),
+                        new LineBorder(Branding.NAVY_DARKER, 2, true),
                         BorderFactory.createEmptyBorder(5, 7, 5, 7)
                 ));
             }
@@ -295,7 +302,13 @@ public class AddEmployeeView extends JDialog {
 
     private void saveEmployee() {
         try {
-            LocalDate birthDate = LocalDate.parse(getTxtBirthDate().getText().trim());
+            Date selectedDate = getDateBirth().getDate();
+            if (selectedDate == null) {
+                JOptionPane.showMessageDialog(this, "Please select a valid birth date.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            LocalDate birthDate = selectedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
             double salary = Double.parseDouble(getTxtSalary().getText().trim());
 
             controller.registerEmployee(
@@ -312,8 +325,6 @@ public class AddEmployeeView extends JDialog {
             JOptionPane.showMessageDialog(this, "Employee successfully registered!", "Success", JOptionPane.INFORMATION_MESSAGE);
             dispose();
 
-        } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(this, "Invalid date format. Please use YYYY-MM-DD (e.g. 2005-08-20).", "Date Error", JOptionPane.ERROR_MESSAGE);
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Annual gross salary must be a valid number.", "Format Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {

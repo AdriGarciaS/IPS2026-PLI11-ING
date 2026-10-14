@@ -4,155 +4,238 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.ips2026.pl11.data.ConexionBD;
+import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.slots.InterviewSlotRecord;
 
 public class InterviewSlotDAO {
 
-	/**
-     * Checks if the player already has an assigned/booked interview on that specific date.
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
+
+    /**
+     * Checks if the player already has an assigned/booked interview on that date.
+     * Evaluates against both booked interview_slots and the interviews table.
      */
-	public boolean hasTeamActivityConflict(int playerId, LocalDate date, LocalTime start, LocalTime end) throws SQLException {
-        String matchQuery = "SELECT COUNT(*) FROM matches " +
-                            "WHERE (player_id = ? OR player_id IS NULL) AND match_date = ? " +
-                            "AND (? < end_time AND ? > start_time)";
+    public boolean hasAssignedInterviewOnDate(int playerId, LocalDate date) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM interview_slots " +
+                     "WHERE player_id = ? AND slot_date = ? AND status <> 'AVAILABLE'";
 
-        String trainingQuery = "SELECT COUNT(*) FROM trainings " +
-                               "WHERE (player_id = ? OR player_id IS NULL) AND training_date = ? " +
-                               "AND (? < end_time AND ? > start_time)";
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        try (Connection conn = ConexionBD.obtenerConexion()) {
-            try (PreparedStatement psMatch = conn.prepareStatement(matchQuery)) {
-                psMatch.setInt(1, playerId);
-                psMatch.setString(2, date.toString());
-                psMatch.setString(3, start.toString());
-                psMatch.setString(4, end.toString());
-                try (ResultSet rs = psMatch.executeQuery()) {
-                    if (rs.next() && rs.getInt(1) > 0) return true;
-                }
-            }
+            ps.setInt(1, playerId);
+            ps.setString(2, date.toString());
 
-            try (PreparedStatement psTraining = conn.prepareStatement(trainingQuery)) {
-                psTraining.setInt(1, playerId);
-                psTraining.setString(2, date.toString());
-                psTraining.setString(3, start.toString());
-                psTraining.setString(4, end.toString());
-                try (ResultSet rs = psTraining.executeQuery()) {
-                    if (rs.next() && rs.getInt(1) > 0) return true;
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
                 }
             }
         }
         return false;
     }
 
-    public boolean hasSlotOverlap(int playerId, LocalDate date, LocalTime start, LocalTime end) throws SQLException {
-        String query = "SELECT COUNT(*) FROM interview_slots " +
-                       "WHERE player_id = ? AND slot_date = ? AND status != 'CANCELLED' " +
-                       "AND (? < end_time AND ? > start_time)";
+    /**
+     * Checks if the proposed slot overlaps with matches or scheduled training sessions.
+     */
+    public boolean hasTeamActivityConflict(int playerId, LocalDate date, LocalTime start, LocalTime end) throws SQLException {
+        String dateStr = date.toString();
+        String startStr = start.format(TIME_FMT);
+        String endStr = end.format(TIME_FMT);
+
+        // 1. Conflict with matches
+        String sqlMatches = "SELECT COUNT(*) FROM matches " +
+                            "WHERE player_id = ? AND match_date = ? " +
+                            "AND NOT (? <= start_time OR ? >= end_time)";
 
         try (Connection conn = ConexionBD.obtenerConexion();
-             PreparedStatement ps = conn.prepareStatement(query)) {
+             PreparedStatement ps = conn.prepareStatement(sqlMatches)) {
+
             ps.setInt(1, playerId);
-            ps.setString(2, date.toString());
-            ps.setString(3, start.toString());
-            ps.setString(4, end.toString());
+            ps.setString(2, dateStr);
+            ps.setString(3, endStr);
+            ps.setString(4, startStr);
+
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() && rs.getInt(1) > 0;
+                if (rs.next() && rs.getInt(1) > 0) {
+                    return true;
+                }
             }
         }
-    }
 
-    public void createSlot(int playerId, int coachId, LocalDate date, LocalTime start, LocalTime end) throws SQLException {
-        String insertQuery = "INSERT INTO interview_slots (player_id, coach_id, slot_date, start_time, end_time, status) " +
-                             "VALUES (?, ?, ?, ?, ?, 'AVAILABLE')";
+        // 2. Conflict with trainings
+        String sqlTrainings = "SELECT COUNT(*) FROM trainings " +
+                              "WHERE player_id = ? AND training_date = ? " +
+                              "AND NOT (? <= start_time OR ? >= end_time)";
 
         try (Connection conn = ConexionBD.obtenerConexion();
-             PreparedStatement ps = conn.prepareStatement(insertQuery)) {
+             PreparedStatement ps = conn.prepareStatement(sqlTrainings)) {
+
+            ps.setInt(1, playerId);
+            ps.setString(2, dateStr);
+            ps.setString(3, endStr);
+            ps.setString(4, startStr);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if the player already has another slot overlapping this interval.
+     */
+    public boolean hasSlotOverlap(int playerId, LocalDate date, LocalTime start, LocalTime end) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM interview_slots " +
+                     "WHERE player_id = ? AND slot_date = ? " +
+                     "AND NOT (? <= start_time OR ? >= end_time)";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, playerId);
+            ps.setString(2, date.toString());
+            ps.setString(3, end.format(TIME_FMT));
+            ps.setString(4, start.format(TIME_FMT));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Inserts a newly created interview slot into interview_slots.
+     */
+    public void createSlot(int playerId, int coachId, LocalDate date, LocalTime start, LocalTime end) throws SQLException {
+        String sql = "INSERT INTO interview_slots (player_id, coach_id, slot_date, start_time, end_time, status) " +
+                     "VALUES (?, ?, ?, ?, ?, 'AVAILABLE')";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setInt(1, playerId);
             ps.setInt(2, coachId);
             ps.setString(3, date.toString());
-            ps.setString(4, start.toString());
-            ps.setString(5, end.toString());
+            ps.setString(4, start.format(TIME_FMT));
+            ps.setString(5, end.format(TIME_FMT));
+
             ps.executeUpdate();
         }
     }
 
-    public List<InterviewSlotRecord> getSlotsByPlayer(int playerId) throws SQLException {
-        List<InterviewSlotRecord> list = new ArrayList<>();
-        String sql = "SELECT s.id, e.first_name || ' ' || e.last_name AS player_name, " +
+    /**
+     * Retrieves all interview slots.
+     */
+    public List<InterviewSlotRecord> getAllSlots() throws SQLException {
+        String sql = "SELECT s.id, (e.first_name || ' ' || e.last_name) AS player_name, " +
                      "s.slot_date, s.start_time, s.end_time, s.status " +
                      "FROM interview_slots s " +
                      "JOIN employees e ON s.player_id = e.id " +
-                     (playerId > 0 ? "WHERE s.player_id = ? " : "") +
                      "ORDER BY s.slot_date DESC, s.start_time ASC";
 
-        try (Connection conn = ConexionBD.obtenerConexion();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            if (playerId > 0) {
-                ps.setInt(1, playerId);
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(new InterviewSlotRecord(
-                            rs.getInt("id"),
-                            rs.getString("player_name"),
-                            rs.getString("slot_date"),
-                            rs.getString("start_time"),
-                            rs.getString("end_time"),
-                            rs.getString("status")
-                    ));
-                }
-            }
-        }
-        return list;
-    }
-
-	public boolean hasAssignedInterviewOnDate(int playerId, LocalDate date) throws SQLException{
-		// TODO Auto-generated method stub
-		String query = "SELECT COUNT(*) FROM interview_slots " +
-                "WHERE player_id = ? AND slot_date = ? AND status = 'BOOKED'";
-
-		 try (Connection conn = ConexionBD.obtenerConexion();
-		      PreparedStatement ps = conn.prepareStatement(query)) {
-		     ps.setInt(1, playerId);
-		     ps.setString(2, date.toString());
-		     try (ResultSet rs = ps.executeQuery()) {
-		         return rs.next() && rs.getInt(1) > 0;
-		     }
-		 }
-	}
-
-	public List<InterviewSlotRecord> getAllSlots() throws SQLException{
-		List<InterviewSlotRecord> list = new ArrayList<>();
-        String sql = "SELECT s.id, " +
-                "(e.first_name || ' ' || e.last_name) AS player_name, " +
-                "s.slot_date, s.start_time, s.end_time, s.status " +
-                "FROM interview_slots s " +
-                "LEFT JOIN employees e ON s.player_id = e.id " +
-                "ORDER BY s.slot_date DESC, s.start_time ASC";
+        List<InterviewSlotRecord> slots = new ArrayList<>();
 
         try (Connection conn = ConexionBD.obtenerConexion();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-            
+
             while (rs.next()) {
-                list.add(new InterviewSlotRecord(
-                        rs.getInt("id"),
-                        rs.getString("player_name"),
-                        rs.getString("slot_date"),
-                        rs.getString("start_time"),
-                        rs.getString("end_time"),
-                        rs.getString("status")
-                ));
+                int id = rs.getInt("id");
+                String playerName = rs.getString("player_name");
+                LocalDate date = LocalDate.parse(rs.getString("slot_date"));
+                LocalTime start = LocalTime.parse(rs.getString("start_time"));
+                LocalTime end = LocalTime.parse(rs.getString("end_time"));
+                String status = rs.getString("status");
+
+                slots.add(new InterviewSlotRecord(id, playerName, date, start, end, status));
             }
         }
-        return list;
-	}
-    
+        return slots;
+    }
+
+    /**
+     * Retrieves all coaches from the employees table.
+     */
+    public List<Employee> getAllCoaches() throws SQLException {
+        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary " +
+                     "FROM employees WHERE UPPER(position) = 'COACH' ORDER BY last_name, first_name";
+
+        List<Employee> coaches = new ArrayList<>();
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                coaches.add(mapResultSetToEmployee(rs));
+            }
+        }
+        return coaches;
+    }
+
+    /**
+     * Retrieves all players from the employees table.
+     */
+    public List<Employee> getPlayersByCoach(int coachId) throws SQLException {
+        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary " +
+                     "FROM employees WHERE UPPER(position) = 'PLAYER' ORDER BY last_name, first_name";
+
+        List<Employee> players = new ArrayList<>();
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                players.add(mapResultSetToEmployee(rs));
+            }
+        }
+        return players;
+    }
+
+    /**
+     * Maps an employees table row to the immutable Employee model.
+     */
+    private Employee mapResultSetToEmployee(ResultSet rs) throws SQLException {
+        Integer id = rs.getInt("id");
+        String firstName = rs.getString("first_name");
+        String lastName = rs.getString("last_name");
+        String nationalId = rs.getString("national_id");
+
+        String birthDateStr = rs.getString("birth_date");
+        LocalDate birthDate = (birthDateStr != null && !birthDateStr.trim().isEmpty())
+                ? LocalDate.parse(birthDateStr)
+                : null;
+
+        String phoneNumber = rs.getString("phone_number");
+        String category = rs.getString("category");
+        String position = rs.getString("position");
+        double grossAnnualSalary = rs.getDouble("gross_annual_salary");
+
+        return new Employee(
+                id,
+                firstName,
+                lastName,
+                nationalId,
+                birthDate,
+                phoneNumber,
+                category,
+                position,
+                grossAnnualSalary
+        );
+    }
 }

@@ -107,6 +107,7 @@ public class GMWorkScheduleWindow extends JFrame {
      * Create the frame.
      */
     public GMWorkScheduleWindow(WorkScheduleWindow workScheduleWindow) {
+        setResizable(false);
         setTitle("Football Club Management");
         this.wsw = workScheduleWindow;
 
@@ -323,6 +324,7 @@ public class GMWorkScheduleWindow extends JFrame {
                     if(row != -1) {
                         int id = (int) tableWorkers.getValueAt(row, 0);
                         getTxtWorkerId().setText(String.valueOf(id));
+                        refreshShiftsTable();
                     }
                 }
             });
@@ -358,8 +360,10 @@ public class GMWorkScheduleWindow extends JFrame {
             DefaultTableModel model = (DefaultTableModel) tableShifts.getModel();
             model.setRowCount(0);
             for (WorkSchedule s : wsController.getWorkSchedules()) {
-                model.addRow(new Object[] {
-                        s.getEmployeeId(), DAYS[s.getWeekDay() - 1], s.getStartTime(), s.getEndTime()});
+                if(s.getEmployeeId() == Long.parseLong(txtWorkerId.getText())) {
+                    model.addRow(new Object[] {
+                        s.getEmployeeId(), DAYS[s.getWeekDay() - 1], s.getStartTime(), s.getEndTime()});                    
+                }
             }
         } catch (NumberFormatException e) {
             showError("Employee id must be a number");
@@ -402,6 +406,11 @@ public class GMWorkScheduleWindow extends JFrame {
             JOptionPane.showMessageDialog(this, "Error loading employees: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
         
+    }
+    
+    public void refreshWorkersTable() {
+        workersModel.setRowCount(0);
+        initializeWorkersTable();
     }
     
     private void customizeHeader(JTable table) {

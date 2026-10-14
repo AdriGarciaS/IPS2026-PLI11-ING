@@ -47,7 +47,7 @@ public class HeaderPanel extends JPanel {
 
         setBackground(Branding.NAVY);
         setBorder(BorderFactory.createCompoundBorder(
-                new MatteBorder(0, 0, 4, 0, Branding.NAVY_DARKER),
+                new MatteBorder(0, 0, 4, 0, Branding.IPSWICH_RED),
                 new EmptyBorder(padding, 20, padding, 20)));
         setLayout(new BorderLayout(large ? 18 : 14, 0));
 

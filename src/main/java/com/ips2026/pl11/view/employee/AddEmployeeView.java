@@ -230,7 +230,7 @@ public class AddEmployeeView extends JDialog {
                 public void mouseEntered(MouseEvent e) {
                     btnSubmit.setBackground(new Color(0x1F, 0x4E, 0x8C));
                     btnSubmit.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.GOLD, 1, true),
+                            new LineBorder(Branding.NAVY_DARKER, 1, true),
                             BorderFactory.createEmptyBorder(12, 20, 12, 20)
                     ));
                 }
@@ -272,7 +272,7 @@ public class AddEmployeeView extends JDialog {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
                 tf.setBorder(BorderFactory.createCompoundBorder(
-                        new LineBorder(Branding.GOLD, 2, true),
+                        new LineBorder(Branding.NAVY_DARKER, 2, true),
                         BorderFactory.createEmptyBorder(5, 7, 5, 7)
                 ));
             }

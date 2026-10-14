@@ -12,7 +12,9 @@ import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeParseException;
+import java.time.ZoneId;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -23,9 +25,12 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SpinnerDateModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -36,56 +41,65 @@ import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.slots.InterviewSlotRecord;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.toedter.calendar.JDateChooser;
 
 public class CreateInterviewSlotDialog extends JDialog {
 
     private static final long serialVersionUID = 1L;
 
     private final InterviewSlotsController controller;
-    private final int coachId;
-    private final List<Employee> teamPlayers;
+    private List<Employee> coachesList;
+    private List<Employee> currentPlayersList;
+
+    private Employee selectedCoach;
+    private Employee selectedPlayer;
 
     private JPanel contentPane;
     private HeaderPanel pnHeader;
     private JPanel pnBody;
-    private JPanel pnCenter;
+    private JPanel pnMainContent;
 
-    // Panel izquierdo
+    // Left Container: Coaches and Players Split
+    private JPanel pnSelectionContainer;
+    private JSplitPane splitCoachesPlayers;
+
+    private JPanel pnCoachesContainer;
+    private JScrollPane spCoaches;
+    private JTable tblCoaches;
+    private DefaultTableModel coachesModel;
+
     private JPanel pnPlayersContainer;
     private JScrollPane spPlayers;
     private JTable tblPlayers;
     private DefaultTableModel playersModel;
 
-    // Panel central
+    // Center Panel: Slot Creation Form with JDateChooser & Time Spinners
     private JPanel pnFormContainer;
+    private JTextField txtSelectedCoach;
     private JTextField txtSelectedPlayer;
-    private JTextField txtDate;
-    private JTextField txtStartTime;
-    private JTextField txtEndTime;
+    private JDateChooser dateChooser;
+    private JSpinner spStartTime;
+    private JSpinner spEndTime;
     private JButton btnSave;
 
-    // Panel derecho
+    // Right Panel: Slots Table
     private JPanel pnSlotsContainer;
     private JScrollPane spSlots;
     private JTable tblSlots;
     private DefaultTableModel slotsModel;
 
-    // Pie
+    // Footer Panel
     private JPanel pnFooter;
     private JButton btnClose;
 
-    private Employee selectedPlayer;
-
-    public CreateInterviewSlotDialog(JFrame parent, InterviewSlotsController controller, int coachId, List<Employee> players) {
+    public CreateInterviewSlotDialog(JFrame parent, InterviewSlotsController controller) {
         super(parent, "Manage Interview Availability", true);
         this.controller = controller;
-        this.coachId = coachId;
-        this.teamPlayers = players;
 
-        // Branding
+        // Apply corporate window styling and icons
         Branding.applyTo(this);
 
-        setSize(1150, 600);
+        setSize(1220, 680);
         setLocationRelativeTo(parent);
         setResizable(true);
 
@@ -98,44 +112,117 @@ public class CreateInterviewSlotDialog extends JDialog {
         pnBody = new JPanel(new BorderLayout(0, 12));
         pnBody.setOpaque(false);
         pnBody.setBorder(new EmptyBorder(16, 20, 16, 20));
-        pnBody.add(getPnCenter(), BorderLayout.CENTER);
+        pnBody.add(getPnMainContent(), BorderLayout.CENTER);
         pnBody.add(getPnFooter(), BorderLayout.SOUTH);
 
         contentPane.add(pnBody, BorderLayout.CENTER);
 
-        loadPlayersTable();
+        loadCoachesTable();
     }
 
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
             pnHeader = new HeaderPanel(
                     "Interview Availability Management",
-                    "Select a player from the left, define time slot details, and review scheduled slots"
+                    "Select a coach, pick an assigned player, define availability date and times, and inspect scheduled slots"
             );
         }
         return pnHeader;
     }
 
-    private JPanel getPnCenter() {
-        if (pnCenter == null) {
-            pnCenter = new JPanel(new BorderLayout(14, 0));
-            pnCenter.setOpaque(false);
+    private JPanel getPnMainContent() {
+        if (pnMainContent == null) {
+            pnMainContent = new JPanel(new BorderLayout(14, 0));
+            pnMainContent.setOpaque(false);
 
-            pnCenter.add(getPnPlayersContainer(), BorderLayout.WEST);
-            pnCenter.add(getPnFormContainer(), BorderLayout.CENTER);
-            pnCenter.add(getPnSlotsContainer(), BorderLayout.EAST);
+            pnMainContent.add(getPnSelectionContainer(), BorderLayout.WEST);
+            pnMainContent.add(getPnFormContainer(), BorderLayout.CENTER);
+            pnMainContent.add(getPnSlotsContainer(), BorderLayout.EAST);
         }
-        return pnCenter;
+        return pnMainContent;
     }
-    
+
+    // --- LEFT CONTAINER: COACHES & PLAYERS ---
+    private JPanel getPnSelectionContainer() {
+        if (pnSelectionContainer == null) {
+            pnSelectionContainer = new JPanel(new BorderLayout());
+            pnSelectionContainer.setPreferredSize(new Dimension(360, 0));
+            pnSelectionContainer.setOpaque(false);
+
+            splitCoachesPlayers = new JSplitPane(JSplitPane.VERTICAL_SPLIT, getPnCoachesContainer(), getPnPlayersContainer());
+            splitCoachesPlayers.setResizeWeight(0.45);
+            splitCoachesPlayers.setDividerSize(6);
+            splitCoachesPlayers.setOpaque(false);
+            splitCoachesPlayers.setBorder(null);
+
+            pnSelectionContainer.add(splitCoachesPlayers, BorderLayout.CENTER);
+        }
+        return pnSelectionContainer;
+    }
+
+    private JPanel getPnCoachesContainer() {
+        if (pnCoachesContainer == null) {
+            pnCoachesContainer = new JPanel(new BorderLayout(0, 6));
+            pnCoachesContainer.setOpaque(false);
+
+            JLabel lbl = new JLabel("1. Select Coach");
+            lbl.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 13));
+            lbl.setForeground(Branding.NAVY);
+
+            pnCoachesContainer.add(lbl, BorderLayout.NORTH);
+            pnCoachesContainer.add(getSpCoaches(), BorderLayout.CENTER);
+        }
+        return pnCoachesContainer;
+    }
+
+    private JScrollPane getSpCoaches() {
+        if (spCoaches == null) {
+            spCoaches = new JScrollPane(getTblCoaches());
+            spCoaches.setBorder(new LineBorder(Branding.BORDER, 1, true));
+        }
+        return spCoaches;
+    }
+
+    private JTable getTblCoaches() {
+        if (tblCoaches == null) {
+            String[] cols = {"ID", "Coach Name"};
+            coachesModel = new DefaultTableModel(cols, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
+            tblCoaches = new JTable(coachesModel);
+            tblCoaches.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            tblCoaches.setRowHeight(24);
+            tblCoaches.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 12));
+            tblCoaches.getTableHeader().setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 12));
+            tblCoaches.getTableHeader().setBackground(new Color(241, 245, 249));
+
+            tblCoaches.getColumnModel().getColumn(0).setPreferredWidth(45);
+            tblCoaches.getColumnModel().getColumn(1).setPreferredWidth(260);
+
+            tblCoaches.getSelectionModel().addListSelectionListener(e -> {
+                if (!e.getValueIsAdjusting()) {
+                    int row = tblCoaches.getSelectedRow();
+                    if (row != -1 && coachesList != null && row < coachesList.size()) {
+                        selectedCoach = coachesList.get(row);
+                        getTxtSelectedCoach().setText(selectedCoach.getFirstName() + " " + selectedCoach.getLastName());
+                        loadPlayersForCoach(selectedCoach.getId());
+                    }
+                }
+            });
+        }
+        return tblCoaches;
+    }
+
     private JPanel getPnPlayersContainer() {
         if (pnPlayersContainer == null) {
-            pnPlayersContainer = new JPanel(new BorderLayout(0, 8));
-            pnPlayersContainer.setPreferredSize(new Dimension(320, 0));
+            pnPlayersContainer = new JPanel(new BorderLayout(0, 6));
             pnPlayersContainer.setOpaque(false);
 
-            JLabel lbl = new JLabel("Team Players");
-            lbl.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 14));
+            JLabel lbl = new JLabel("2. Select Assigned Player");
+            lbl.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 13));
             lbl.setForeground(Branding.NAVY);
 
             pnPlayersContainer.add(lbl, BorderLayout.NORTH);
@@ -154,7 +241,7 @@ public class CreateInterviewSlotDialog extends JDialog {
 
     private JTable getTblPlayers() {
         if (tblPlayers == null) {
-            String[] cols = {"ID", "Name", "Position"};
+            String[] cols = {"ID", "Player Name", "Position"};
             playersModel = new DefaultTableModel(cols, 0) {
                 @Override
                 public boolean isCellEditable(int row, int column) {
@@ -163,23 +250,27 @@ public class CreateInterviewSlotDialog extends JDialog {
             };
             tblPlayers = new JTable(playersModel);
             tblPlayers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-            tblPlayers.setRowHeight(25);
+            tblPlayers.setRowHeight(24);
             tblPlayers.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 12));
             tblPlayers.getTableHeader().setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 12));
             tblPlayers.getTableHeader().setBackground(new Color(241, 245, 249));
 
             tblPlayers.getColumnModel().getColumn(0).setPreferredWidth(35);
-            tblPlayers.getColumnModel().getColumn(1).setPreferredWidth(180);
-            tblPlayers.getColumnModel().getColumn(2).setPreferredWidth(85);
+            tblPlayers.getColumnModel().getColumn(1).setPreferredWidth(170);
+            tblPlayers.getColumnModel().getColumn(2).setPreferredWidth(95);
 
             tblPlayers.getSelectionModel().addListSelectionListener(e -> {
                 if (!e.getValueIsAdjusting()) {
                     int row = tblPlayers.getSelectedRow();
-                    if (row != -1 && row < teamPlayers.size()) {
-                        selectedPlayer = teamPlayers.get(row);
+                    if (row != -1 && currentPlayersList != null && row < currentPlayersList.size()) {
+                        selectedPlayer = currentPlayersList.get(row);
                         getTxtSelectedPlayer().setText(selectedPlayer.getFirstName() + " " + selectedPlayer.getLastName());
                         getBtnSave().setEnabled(true);
                         loadSlotsTable(selectedPlayer.getId());
+                    } else {
+                        selectedPlayer = null;
+                        getTxtSelectedPlayer().setText("Select a player above");
+                        getBtnSave().setEnabled(false);
                     }
                 }
             });
@@ -187,6 +278,7 @@ public class CreateInterviewSlotDialog extends JDialog {
         return tblPlayers;
     }
 
+    // --- CENTER CONTAINER: FORM WITH JDATECHOOSER AND TIME SPINNERS ---
     private JPanel getPnFormContainer() {
         if (pnFormContainer == null) {
             pnFormContainer = new JPanel(new BorderLayout(0, 10));
@@ -200,20 +292,23 @@ public class CreateInterviewSlotDialog extends JDialog {
             lblFormTitle.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 14));
             lblFormTitle.setForeground(Branding.NAVY);
 
-            JPanel pnInputs = new JPanel(new GridLayout(4, 2, 8, 12));
+            JPanel pnInputs = new JPanel(new GridLayout(5, 2, 8, 12));
             pnInputs.setOpaque(false);
 
-            pnInputs.add(crearLabel("Selected:"));
+            pnInputs.add(createLabel("Coach:"));
+            pnInputs.add(getTxtSelectedCoach());
+
+            pnInputs.add(createLabel("Player:"));
             pnInputs.add(getTxtSelectedPlayer());
 
-            pnInputs.add(crearLabel("Date (YYYY-MM-DD):"));
-            pnInputs.add(getTxtDate());
+            pnInputs.add(createLabel("Slot Date:"));
+            pnInputs.add(getDateChooser());
 
-            pnInputs.add(crearLabel("Start (HH:MM):"));
-            pnInputs.add(getTxtStartTime());
+            pnInputs.add(createLabel("Start Time:"));
+            pnInputs.add(getSpStartTime());
 
-            pnInputs.add(crearLabel("End (HH:MM):"));
-            pnInputs.add(getTxtEndTime());
+            pnInputs.add(createLabel("End Time:"));
+            pnInputs.add(getSpEndTime());
 
             pnFormContainer.add(lblFormTitle, BorderLayout.NORTH);
             pnFormContainer.add(pnInputs, BorderLayout.CENTER);
@@ -226,9 +321,19 @@ public class CreateInterviewSlotDialog extends JDialog {
         return pnFormContainer;
     }
 
+    private JTextField getTxtSelectedCoach() {
+        if (txtSelectedCoach == null) {
+            txtSelectedCoach = createTextField("Select a coach first");
+            txtSelectedCoach.setEditable(false);
+            txtSelectedCoach.setBackground(new Color(241, 245, 249));
+            txtSelectedCoach.setForeground(Branding.TEXT_MUTED);
+        }
+        return txtSelectedCoach;
+    }
+
     private JTextField getTxtSelectedPlayer() {
         if (txtSelectedPlayer == null) {
-            txtSelectedPlayer = crearTextField("Select a player from left");
+            txtSelectedPlayer = createTextField("Select a player");
             txtSelectedPlayer.setEditable(false);
             txtSelectedPlayer.setBackground(new Color(241, 245, 249));
             txtSelectedPlayer.setForeground(Branding.TEXT_MUTED);
@@ -236,25 +341,61 @@ public class CreateInterviewSlotDialog extends JDialog {
         return txtSelectedPlayer;
     }
 
-    private JTextField getTxtDate() {
-        if (txtDate == null) {
-            txtDate = crearTextField(LocalDate.now().toString());
+    private JDateChooser getDateChooser() {
+        if (dateChooser == null) {
+            dateChooser = new JDateChooser();
+            dateChooser.setDateFormatString("yyyy-MM-dd");
+            dateChooser.setDate(new Date()); // Default to today's date
+            dateChooser.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 12));
+            dateChooser.setBackground(Color.WHITE);
+            dateChooser.setBorder(BorderFactory.createCompoundBorder(
+                    new LineBorder(Branding.BORDER, 1, true),
+                    BorderFactory.createEmptyBorder(2, 2, 2, 2)
+            ));
         }
-        return txtDate;
+        return dateChooser;
     }
 
-    private JTextField getTxtStartTime() {
-        if (txtStartTime == null) {
-            txtStartTime = crearTextField("10:00");
+    private JSpinner getSpStartTime() {
+        if (spStartTime == null) {
+            spStartTime = createTimeSpinner(10, 0);
         }
-        return txtStartTime;
+        return spStartTime;
     }
 
-    private JTextField getTxtEndTime() {
-        if (txtEndTime == null) {
-            txtEndTime = crearTextField("10:30");
+    private JSpinner getSpEndTime() {
+        if (spEndTime == null) {
+            spEndTime = createTimeSpinner(10, 30);
         }
-        return txtEndTime;
+        return spEndTime;
+    }
+
+    /**
+     * Builds and styles a JSpinner for time selection (HH:mm) that advances minute by minute.
+     */
+    private JSpinner createTimeSpinner(int hour, int minute) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, hour);
+        cal.set(Calendar.MINUTE, minute);
+        cal.set(Calendar.SECOND, 0);
+
+        SpinnerDateModel model = new SpinnerDateModel(cal.getTime(), null, null, Calendar.MINUTE);
+        JSpinner spinner = new JSpinner(model);
+        JSpinner.DateEditor editor = new JSpinner.DateEditor(spinner, "HH:mm");
+        spinner.setEditor(editor);
+
+        model.setCalendarField(Calendar.MINUTE);
+
+        editor.getTextField().setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 12));
+        editor.getTextField().setBackground(Color.WHITE);
+        editor.getTextField().setForeground(Color.BLACK);
+
+        spinner.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(Branding.BORDER, 1, true),
+                BorderFactory.createEmptyBorder(2, 4, 2, 4)
+        ));
+
+        return spinner;
     }
 
     private JButton getBtnSave() {
@@ -277,7 +418,7 @@ public class CreateInterviewSlotDialog extends JDialog {
                     if (btnSave.isEnabled()) {
                         btnSave.setBackground(new Color(0x1F, 0x4E, 0x8C));
                         btnSave.setBorder(BorderFactory.createCompoundBorder(
-                                new LineBorder(Branding.GOLD, 1, true),
+                                new LineBorder(Branding.NAVY_DARKER, 1, true),
                                 BorderFactory.createEmptyBorder(8, 20, 8, 20)
                         ));
                     }
@@ -299,10 +440,11 @@ public class CreateInterviewSlotDialog extends JDialog {
         return btnSave;
     }
 
+    // --- RIGHT CONTAINER: EXISTING SLOTS ---
     private JPanel getPnSlotsContainer() {
         if (pnSlotsContainer == null) {
             pnSlotsContainer = new JPanel(new BorderLayout(0, 8));
-            pnSlotsContainer.setPreferredSize(new Dimension(440, 0));
+            pnSlotsContainer.setPreferredSize(new Dimension(420, 0));
             pnSlotsContainer.setOpaque(false);
 
             JLabel lblTableTitle = new JLabel("Existing Interview Slots");
@@ -334,16 +476,16 @@ public class CreateInterviewSlotDialog extends JDialog {
             };
             tblSlots = new JTable(slotsModel);
             tblSlots.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-            tblSlots.setRowHeight(25);
+            tblSlots.setRowHeight(24);
             tblSlots.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 12));
             tblSlots.getTableHeader().setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 12));
             tblSlots.getTableHeader().setBackground(new Color(241, 245, 249));
 
-            tblSlots.getColumnModel().getColumn(0).setPreferredWidth(140);
-            tblSlots.getColumnModel().getColumn(1).setPreferredWidth(90);  
-            tblSlots.getColumnModel().getColumn(2).setPreferredWidth(60);  
-            tblSlots.getColumnModel().getColumn(3).setPreferredWidth(60); 
-            tblSlots.getColumnModel().getColumn(4).setPreferredWidth(85);  
+            tblSlots.getColumnModel().getColumn(0).setPreferredWidth(130);
+            tblSlots.getColumnModel().getColumn(1).setPreferredWidth(85);  
+            tblSlots.getColumnModel().getColumn(2).setPreferredWidth(55);  
+            tblSlots.getColumnModel().getColumn(3).setPreferredWidth(55); 
+            tblSlots.getColumnModel().getColumn(4).setPreferredWidth(80);  
         }
         return tblSlots;
     }
@@ -375,7 +517,7 @@ public class CreateInterviewSlotDialog extends JDialog {
                 public void mouseEntered(MouseEvent e) {
                     btnClose.setBackground(new Color(241, 245, 249));
                     btnClose.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.GOLD, 1, true),
+                            new LineBorder(Branding.NAVY_DARKER, 1, true),
                             BorderFactory.createEmptyBorder(8, 16, 8, 16)
                     ));
                 }
@@ -395,15 +537,15 @@ public class CreateInterviewSlotDialog extends JDialog {
         return btnClose;
     }
 
-    private JLabel crearLabel(String texto) {
-        JLabel label = new JLabel(texto);
+    private JLabel createLabel(String text) {
+        JLabel label = new JLabel(text);
         label.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 12));
         label.setForeground(Branding.NAVY);
         label.setVerticalAlignment(SwingConstants.CENTER);
         return label;
     }
 
-    private JTextField crearTextField(String defaultText) {
+    private JTextField createTextField(String defaultText) {
         JTextField tf = new JTextField(defaultText);
         tf.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 12));
         tf.setBackground(Color.WHITE);
@@ -415,15 +557,36 @@ public class CreateInterviewSlotDialog extends JDialog {
         return tf;
     }
 
-    private void loadPlayersTable() {
+    // --- DATA LOADING LOGIC ---
+    private void loadCoachesTable() {
+        coachesModel.setRowCount(0);
+        try {
+            coachesList = controller.getAllCoaches();
+            if (coachesList != null) {
+                for (Employee c : coachesList) {
+                    coachesModel.addRow(new Object[]{c.getId(), c.getFirstName() + " " + c.getLastName()});
+                }
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error loading coaches: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadPlayersForCoach(int coachId) {
         playersModel.setRowCount(0);
-        if (teamPlayers != null) {
-            for (Employee p : teamPlayers) {
-                playersModel.addRow(new Object[]{p.getId(), p.getFirstName() + " " + p.getLastName(), p.getPosition()});
+        selectedPlayer = null;
+        getTxtSelectedPlayer().setText("Select a player");
+        getBtnSave().setEnabled(false);
+
+        try {
+            currentPlayersList = controller.getPlayersByCoach(coachId);
+            if (currentPlayersList != null) {
+                for (Employee p : currentPlayersList) {
+                    playersModel.addRow(new Object[]{p.getId(), p.getFirstName() + " " + p.getLastName(), p.getPosition()});
+                }
             }
-            if (!teamPlayers.isEmpty()) {
-                getTblPlayers().setRowSelectionInterval(0, 0);
-            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error loading players for coach: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -441,31 +604,48 @@ public class CreateInterviewSlotDialog extends JDialog {
                 });
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error loading interview slots: " + ex.getMessage(),
-                    "Database Error",
-                    JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error loading interview slots: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void saveSlot() {
+        if (selectedCoach == null) {
+            JOptionPane.showMessageDialog(this, "Please select a coach first.", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         if (selectedPlayer == null) {
-            JOptionPane.showMessageDialog(this, "Please select a player from the table on the left.", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select an assigned player.", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Date pickedDate = getDateChooser().getDate();
+        if (pickedDate == null) {
+            JOptionPane.showMessageDialog(this, "Please select a valid date from the calendar.", "Validation Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         try {
-            LocalDate date = LocalDate.parse(getTxtDate().getText().trim());
-            LocalTime start = LocalTime.parse(getTxtStartTime().getText().trim());
-            LocalTime end = LocalTime.parse(getTxtEndTime().getText().trim());
+            // Convert Date to LocalDate
+            LocalDate date = pickedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-            controller.createInterviewSlot(selectedPlayer.getId(), coachId, date, start, end);
+            // Extract times from spinners
+            Date startDate = (Date) getSpStartTime().getValue();
+            Date endDate = (Date) getSpEndTime().getValue();
+
+            LocalTime start = startDate.toInstant().atZone(ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0);
+            LocalTime end = endDate.toInstant().atZone(ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0);
+
+            if (!end.isAfter(start)) {
+                JOptionPane.showMessageDialog(this, "End time must be strictly after start time.", "Validation Warning", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            controller.createInterviewSlot(selectedPlayer.getId(), selectedCoach.getId(), date, start, end);
 
             JOptionPane.showMessageDialog(this, "Interview slot registered successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             loadSlotsTable(selectedPlayer.getId());
 
-        } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(this, "Invalid date/time format. Please use YYYY-MM-DD and HH:MM.", "Format Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Constraint Violation", JOptionPane.ERROR_MESSAGE);
         }

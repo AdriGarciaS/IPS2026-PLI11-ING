@@ -315,7 +315,7 @@ public class NSEWorkScheduleWindow extends JFrame {
     private JScrollPane getSpnShifts() {
         if (spnShifts == null) {
             spnShifts = new JScrollPane();
-            spnShifts.setBounds(505, 11, 530, 413);
+            spnShifts.setBounds(487, 11, 530, 413);
             spnShifts.setViewportView(getTableShifts());
         }
         return spnShifts;
@@ -373,7 +373,7 @@ public class NSEWorkScheduleWindow extends JFrame {
             spnHours = new JScrollPane();
             spnHours.setFocusable(false);
             spnHours.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-            spnHours.setBounds(420, 11, 75, 413);
+            spnHours.setBounds(402, 11, 75, 413);
             spnHours.setViewportView(getTableHours());
         }
         return spnHours;

@@ -10,7 +10,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -35,6 +36,7 @@ import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.toedter.calendar.JDateChooser;
 
 public class ModifyEmployeeView extends JDialog {
 
@@ -59,7 +61,7 @@ public class ModifyEmployeeView extends JDialog {
     private JTextField txtFirstName;
     private JTextField txtLastName;
     private JTextField txtNationalId;
-    private JTextField txtBirthDate;
+    private JDateChooser dateBirth;
     private JTextField txtPhone;
     private JTextField txtPosition; 
     private JTextField txtSalary;
@@ -74,7 +76,6 @@ public class ModifyEmployeeView extends JDialog {
         setSize(950, 640);
         setLocationRelativeTo(parent);
 
-        // Aplica iconos del club y configuracion de ventana
         Branding.applyTo(this);
 
         contentPane = new JPanel(new BorderLayout(0, 0));
@@ -83,7 +84,6 @@ public class ModifyEmployeeView extends JDialog {
 
         contentPane.add(getPnHeader(), BorderLayout.NORTH);
 
-        // Panel contenedor interior para mantener el espacio de los controles
         pnBody = new JPanel(new BorderLayout(0, 12));
         pnBody.setOpaque(false);
         pnBody.setBorder(new EmptyBorder(16, 20, 16, 20));
@@ -197,8 +197,8 @@ public class ModifyEmployeeView extends JDialog {
             pnFields.add(createLabel("National ID / Passport:"));
             pnFields.add(getTxtNationalId());
 
-            pnFields.add(createLabel("Birth Date (YYYY-MM-DD):"));
-            pnFields.add(getTxtBirthDate());
+            pnFields.add(createLabel("Birth Date:"));
+            pnFields.add(getDateBirth());
 
             pnFields.add(createLabel("Phone Number:"));
             pnFields.add(getTxtPhone());
@@ -236,11 +236,18 @@ public class ModifyEmployeeView extends JDialog {
         return txtNationalId;
     }
 
-    private JTextField getTxtBirthDate() {
-        if (txtBirthDate == null) {
-            txtBirthDate = createTextField();
+    private JDateChooser getDateBirth() {
+        if (dateBirth == null) {
+            dateBirth = new JDateChooser();
+            dateBirth.setDateFormatString("yyyy-MM-dd");
+            dateBirth.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
+            dateBirth.setEnabled(false);
+            dateBirth.setBorder(BorderFactory.createCompoundBorder(
+                    new LineBorder(Branding.BORDER, 1, true),
+                    BorderFactory.createEmptyBorder(2, 2, 2, 2)
+            ));
         }
-        return txtBirthDate;
+        return dateBirth;
     }
 
     private JTextField getTxtPhone() {
@@ -437,7 +444,14 @@ public class ModifyEmployeeView extends JDialog {
         getTxtFirstName().setText(emp.getFirstName());
         getTxtLastName().setText(emp.getLastName());
         getTxtNationalId().setText(emp.getNationalId());
-        getTxtBirthDate().setText(emp.getBirthDate().toString());
+        
+        if (emp.getBirthDate() != null) {
+            Date date = Date.from(emp.getBirthDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            getDateBirth().setDate(date);
+        } else {
+            getDateBirth().setDate(null);
+        }
+
         getTxtPhone().setText(emp.getPhoneNumber());
         getCbCategory().setSelectedItem(emp.getCategory());
         getTxtPosition().setText(emp.getPosition());
@@ -446,7 +460,7 @@ public class ModifyEmployeeView extends JDialog {
         getTxtFirstName().setEnabled(true);
         getTxtLastName().setEnabled(true);
         getTxtNationalId().setEnabled(true);
-        getTxtBirthDate().setEnabled(true);
+        getDateBirth().setEnabled(true);
         getTxtPhone().setEnabled(true);
         getCbCategory().setEnabled(false);
         getTxtSalary().setEnabled(true);
@@ -460,7 +474,13 @@ public class ModifyEmployeeView extends JDialog {
         }
 
         try {
-            LocalDate birthDate = LocalDate.parse(getTxtBirthDate().getText().trim());
+            Date selectedDate = getDateBirth().getDate();
+            if (selectedDate == null) {
+                JOptionPane.showMessageDialog(this, "Please select a valid birth date.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            LocalDate birthDate = selectedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
             double salary = Double.parseDouble(getTxtSalary().getText().trim());
 
             controller.updateEmployee(
@@ -476,11 +496,8 @@ public class ModifyEmployeeView extends JDialog {
             );
 
             JOptionPane.showMessageDialog(this, "Employee updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                      
             loadEmployees();
 
-        } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(this, "Invalid date format. Please use YYYY-MM-DD (e.g. 1998-05-15).", "Date Error", JOptionPane.ERROR_MESSAGE);
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Gross annual salary must be a valid number.", "Format Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {

@@ -13,7 +13,8 @@ import javax.swing.table.DefaultTableCellRenderer;
  */
 public final class MoneyFormat {
 
-    private static final Locale LOCALE_EURO = Locale.of("es", "ES");
+	// Line 16:
+	private static final Locale LOCALE_EURO = new Locale("es", "ES");
 
     private MoneyFormat() {
         // Utility class: not instantiated.

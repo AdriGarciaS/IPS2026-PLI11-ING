@@ -14,7 +14,7 @@ INSERT INTO personas (nombre, email) VALUES
 
 INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary) VALUES
     ('Lamine', 'Yamal', '12345678A', '2007-07-13', '+34600112233', 'SPORTS', 'Player', 1500000.0),
-    ('Joan', 'García', '65437890W', '2002-04-22', '+34600412444', 'SPORTS', 'Player', 1100000.0),)
+    ('Joan', 'García', '65437890W', '2002-04-22', '+34600412444', 'SPORTS', 'Player', 1100000.0),
     ('Pedri', 'González', '12345678P', '2002-11-25', '+34600111222', 'SPORTS', 'Player', 900000.0),
     ('Pep', 'Guardiola', '87654321B', '1971-01-18', '+34611223344', 'SPORTS', 'Coach', 12000000.0),
     ('Sarah', 'Jenkins', '99887766C', '1985-04-12', '+34622334455', 'NON_SPORTS', 'General Manager', 95000.0),

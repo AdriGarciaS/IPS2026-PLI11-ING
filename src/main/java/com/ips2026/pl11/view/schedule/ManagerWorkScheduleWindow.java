@@ -364,6 +364,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
                     if(row != -1) {
                         int id = (int) tableWorkers.getValueAt(row, 0);
                         getTxtWorkerId().setText(String.valueOf(id));
+                        refreshShiftsTable();
                     }
                 }
             });
@@ -416,15 +417,20 @@ public class ManagerWorkScheduleWindow extends JFrame {
             DefaultTableModel model = (DefaultTableModel) tableShifts.getModel();
             model.setRowCount(0);
             for (WorkSchedule s : wsController.getWorkSchedules()) {
-                model.addRow(new Object[] {
-                        s.getEmployeeId(), RECURRING, DAYS[s.getWeekDay() - 1], s.getStartTime(), s.getEndTime()
-                });
+                if(s.getEmployeeId() == Long.parseLong(txtWorkerId.getText())) {
+                    model.addRow(new Object[] {
+                            s.getEmployeeId(), RECURRING, DAYS[s.getWeekDay() - 1], s.getStartTime(), s.getEndTime()
+                    });
+                }
             }
             for (DaySchedule ds : dsController.getAllSchedules()) {
-                model.addRow(new Object[] {
-                    wsController.getWorkScheduleById(ds.getWorkScheduleId()).getEmployeeId(),
+                if(wsController.getWorkScheduleById(ds.getWorkScheduleId()).getEmployeeId() 
+                        == Long.parseLong(txtWorkerId.getText())) {
+                    model.addRow(new Object[] {
+                        wsController.getWorkScheduleById(ds.getWorkScheduleId()).getEmployeeId(),
                         ds.getDate(), DAYS[ds.getDate().getDayOfWeek().getValue()-1], ds.getStartTime(), ds.getEndTime()
-                });
+                    });                    
+                }
             }
             
         } catch (NumberFormatException e) {

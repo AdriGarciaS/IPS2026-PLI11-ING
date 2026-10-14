@@ -37,7 +37,7 @@ public final class Branding {
      * Vibrant highlight blue (#2563EB) replacing gold for active outlines and focus.
      * Retained as GOLD for full backwards compatibility across existing views.
      */
-    public static final Color GOLD = new Color(0x25, 0x63, 0xEB);
+    public static final Color NAVY_DARKER = new Color(0x00, 0x2C, 0x6E);
 
     /** Pure white used for cards, text contrast, and accents. */
     public static final Color WHITE = Color.WHITE;

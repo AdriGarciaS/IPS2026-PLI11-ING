@@ -314,7 +314,7 @@ public class DeleteEmployeeView extends JDialog {
                 public void mouseEntered(MouseEvent e) {
                     btnClose.setBackground(new Color(241, 245, 249));
                     btnClose.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.GOLD, 1, true),
+                            new LineBorder(Branding.NAVY_DARKER, 1, true),
                             BorderFactory.createEmptyBorder(8, 16, 8, 16)
                     ));
                 }

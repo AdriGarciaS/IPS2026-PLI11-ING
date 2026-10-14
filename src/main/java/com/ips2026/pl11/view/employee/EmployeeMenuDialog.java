@@ -93,7 +93,7 @@ public class EmployeeMenuDialog extends JDialog {
                 public void mouseEntered(MouseEvent e) {
                     btnAdd.setBackground(new Color(241, 245, 249));
                     btnAdd.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.GOLD, 1, true),
+                            new LineBorder(Branding.NAVY_DARKER, 1, true),
                             BorderFactory.createEmptyBorder(12, 15, 12, 15)
                     ));
                 }
@@ -136,7 +136,7 @@ public class EmployeeMenuDialog extends JDialog {
                 public void mouseEntered(MouseEvent e) {
                     btnModify.setBackground(new Color(241, 245, 249));
                     btnModify.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.GOLD, 1, true),
+                            new LineBorder(Branding.NAVY_DARKER, 1, true),
                             BorderFactory.createEmptyBorder(12, 15, 12, 15)
                     ));
                 }

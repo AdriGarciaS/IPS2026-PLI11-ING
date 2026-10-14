@@ -158,7 +158,7 @@ public class InterviewHubDialog extends JDialog {
 
         JLabel lblBadge = new JLabel(roleBadgeText.toUpperCase());
         lblBadge.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 10));
-        lblBadge.setForeground(Branding.GOLD);
+        lblBadge.setForeground(Branding.NAVY_DARKER);
 
         JLabel lblAction = new JLabel(actionTitle);
         lblAction.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 16));

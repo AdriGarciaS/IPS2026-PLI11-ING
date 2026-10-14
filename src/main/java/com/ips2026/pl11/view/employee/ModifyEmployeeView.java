@@ -315,7 +315,7 @@ public class ModifyEmployeeView extends JDialog {
                 public void mouseEntered(MouseEvent e) {
                     btnClose.setBackground(new Color(241, 245, 249));
                     btnClose.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.GOLD, 1, true),
+                            new LineBorder(Branding.NAVY_DARKER, 1, true),
                             BorderFactory.createEmptyBorder(8, 16, 8, 16)
                     ));
                 }
@@ -355,7 +355,7 @@ public class ModifyEmployeeView extends JDialog {
                     if (btnSave.isEnabled()) {
                         btnSave.setBackground(new Color(0x1F, 0x4E, 0x8C));
                         btnSave.setBorder(BorderFactory.createCompoundBorder(
-                                new LineBorder(Branding.GOLD, 1, true),
+                                new LineBorder(Branding.NAVY_DARKER, 1, true),
                                 BorderFactory.createEmptyBorder(8, 18, 8, 18)
                         ));
                     }
@@ -402,7 +402,7 @@ public class ModifyEmployeeView extends JDialog {
             public void focusGained(java.awt.event.FocusEvent e) {
                 if (tf.isEnabled()) {
                     tf.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.GOLD, 2, true),
+                            new LineBorder(Branding.NAVY_DARKER, 2, true),
                             BorderFactory.createEmptyBorder(4, 6, 4, 6)
                     ));
                 }

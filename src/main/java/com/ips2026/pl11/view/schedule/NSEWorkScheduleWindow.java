@@ -453,7 +453,11 @@ public class NSEWorkScheduleWindow extends JFrame {
 
                     for (int i = entryHour; i <= exitHour; i++) {
                         if (i == entryHour) {
-                            model.setValueAt(ds.getStartTime(), i, dayOfWeek);
+                            if (entryHour == exitHour) {
+                                model.setValueAt(ds.getStartTime() + "/" + exitMinute, i, dayOfWeek);
+                            } else {
+                                model.setValueAt(ds.getStartTime(), i, dayOfWeek);
+                            }
                             occupiedShiftCells.add(i + "," + dayOfWeek);
                         } else if (i == exitHour) {
                             model.setValueAt(ds.getEndTime(), i, dayOfWeek);
@@ -479,7 +483,11 @@ public class NSEWorkScheduleWindow extends JFrame {
 
                     for (int i = entryHour; i <= exitHour; i++) {
                         if (i == entryHour) {
-                            model.setValueAt(s.getStartTime(), i, dayOfWeek);
+                            if (entryHour == exitHour) {
+                                model.setValueAt(s.getStartTime() + "/"  + exitMinute, i, dayOfWeek);
+                            } else {
+                                model.setValueAt(s.getStartTime(), i, dayOfWeek);
+                            }
                             occupiedShiftCells.add(i + "," + dayOfWeek);
 
                         } else if (i == exitHour) {

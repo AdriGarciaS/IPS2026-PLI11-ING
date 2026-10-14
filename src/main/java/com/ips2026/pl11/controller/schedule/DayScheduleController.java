@@ -24,7 +24,7 @@ public class DayScheduleController {
 
     public void addShift(DaySchedule newShift) throws SQLException {
         // Validates the new shift length (must start before it ends)
-        if (newShift.getEndTime().isBefore(newShift.getStartTime())) {
+        if (!newShift.getEndTime().isAfter(newShift.getStartTime())) {
             throw new IllegalArgumentException("End of shift cannot be before its start.");
         }
 

@@ -3,7 +3,7 @@
 > *"Official Management & Operations Platform for Ipswich Town F.C."*
 
 <p align="center">
-  <img src="[https://upload.wikimedia.org/wikipedia/en/4/43/Ipswich_Town_FC_logo.svg](https://upload.wikimedia.org/wikipedia/en/4/43/Ipswich_Town_FC_logo.svg)" alt="Ipswich Town F.C. Crest" width="160">
+  <img src="src/main/resources/images/ipswich.png" alt="Ipswich Town F.C. Crest" width="160">
 </p>
 
 <p align="center">

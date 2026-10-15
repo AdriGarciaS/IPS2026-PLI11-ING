@@ -3,15 +3,15 @@
 > *"Official Management & Operations Platform for Ipswich Town F.C."*
 
 <p align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/en/4/43/Ipswich_Town_FC_logo.svg" alt="Ipswich Town F.C. Crest" width="160">
+  <img src="[https://upload.wikimedia.org/wikipedia/en/4/43/Ipswich_Town_FC_logo.svg](https://upload.wikimedia.org/wikipedia/en/4/43/Ipswich_Town_FC_logo.svg)" alt="Ipswich Town F.C. Crest" width="160">
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Java-21-007396.svg?logo=openjdk&logoColor=white" alt="Java 21">
-  <img src="https://img.shields.io/badge/UI-Java%20Swing%20%2B%20Nimbus-FF7800.svg" alt="Swing Nimbus">
-  <img src="https://img.shields.io/badge/Database-SQLite-003B57.svg?logo=sqlite&logoColor=white" alt="SQLite">
-  <img src="https://img.shields.io/badge/Build-Maven%203.9%2B-C71A36.svg?logo=apachemaven&logoColor=white" alt="Maven">
-  <img src="https://img.shields.io/badge/Course-IPS%202026-0044AA.svg" alt="IPS 2026">
+  <img src="[https://img.shields.io/badge/Java-21-007396.svg?logo=openjdk&logoColor=white](https://img.shields.io/badge/Java-21-007396.svg?logo=openjdk&logoColor=white)" alt="Java 21">
+  <img src="[https://img.shields.io/badge/UI-Java%20Swing%20%2B%20Nimbus-FF7800.svg](https://img.shields.io/badge/UI-Java%20Swing%20%2B%20Nimbus-FF7800.svg)" alt="Swing Nimbus">
+  <img src="[https://img.shields.io/badge/Database-SQLite-003B57.svg?logo=sqlite&logoColor=white](https://img.shields.io/badge/Database-SQLite-003B57.svg?logo=sqlite&logoColor=white)" alt="SQLite">
+  <img src="[https://img.shields.io/badge/Build-Maven%203.9%2B-C71A36.svg?logo=apachemaven&logoColor=white](https://img.shields.io/badge/Build-Maven%203.9%2B-C71A36.svg?logo=apachemaven&logoColor=white)" alt="Maven">
+  <img src="[https://img.shields.io/badge/Course-IPS%202026-0044AA.svg](https://img.shields.io/badge/Course-IPS%202026-0044AA.svg)" alt="IPS 2026">
 </p>
 
 ---
@@ -42,8 +42,8 @@ Proyecto desarrollado para la asignatura Ingeniería del Proceso Software del Gr
 | 👤 Nombre | 📧 Email | 🐱 GitHub |
 | :---: | :---: | :---: |
 | <img src="https://github.com/patriilaago.png" width="55" style="border-radius:50%"><br>**Patricia Lago Martín** | `UO294435@uniovi.es` | [![GitHub](https://img.shields.io/badge/GitHub-patriilaago-brightgreen?logo=github)](https://github.com/patriilaago) |
-| <img src="https://github.com/reyero-txt.png" width="55" style="border-radius:50%"><br>**Daniel Reyero Espinedo** | `UO293963@uniovi.es` | [![GitHub](https://img.shields.io/badge/GitHub-reyero--txt-orange?logo=github)](https://github.com/reyero-txt) |
-| <img src="https://github.com/AdriGarciaS.png" width="55" style="border-radius:50%"><br>**Adrián García** | `UO288675@uniovi.es` | [![GitHub](https://img.shields.io/badge/GitHub-AdriGarciaS-blue?logo=github)](https://github.com/AdriGarciaS) |
+| <img src="[https://github.com/reyero-txt.png](https://github.com/reyero-txt.png)" width="55" style="border-radius:50%"><br>**Daniel Reyero Espinedo** | `UO293963@uniovi.es` | [![GitHub](https://img.shields.io/badge/GitHub-reyero--txt-orange?logo=github)](https://github.com/reyero-txt) |
+| <img src="[https://github.com/AdriGarciaS.png](https://github.com/AdriGarciaS.png)" width="55" style="border-radius:50%"><br>**Adrián García** | `UO288675@uniovi.es` | [![GitHub](https://img.shields.io/badge/GitHub-AdriGarciaS-blue?logo=github)](https://github.com/AdriGarciaS) |
 
 ---
 
@@ -127,28 +127,33 @@ IPS2026-PL11-ING/
         ├── images/ipswich.png                     # Escudo e icono corporativo
         └── db/                                    # schema.sql, data.sql, config.properties
 
+```
+
+---
+
 ## 🎨 Guía de Estilo Visual
 
 Toda la aplicación utiliza la paleta oficial del **Ipswich Town F.C.** integrada mediante el motor Swing Nimbus en `Branding.java`:
 
-- **Royal Blue (`#0044AA`):** Azul base corporativo para títulos, bordes y encabezados.
-- **Crest Crimson Red (`#DE2C37`):** Rojo carmesí para detalles de acento, bordes activos y estados destructivos (`dangerMode`).
-- **Dark Navy (`#002C6E`):** Azul marino oscuro para contrastes y estados de selección (*hover*).
-- **Background (`#F4F6FA`):** Fondo gris claro neutro para máxima legibilidad.
+* **Royal Blue (`#0044AA`):** Azul base corporativo para títulos, bordes y encabezados.
+* **Crest Crimson Red (`#DE2C37`):** Rojo carmesí para detalles de acento, bordes activos y estados destructivos (`dangerMode`).
+* **Dark Navy (`#002C6E`):** Azul marino oscuro para contrastes y estados de selección (*hover*).
+* **Background (`#F4F6FA`):** Fondo gris claro neutro para máxima legibilidad.
 
 ---
 
 ## ⚙️ Instalación y Configuración
 
 ### Requisitos Previos
-- **JDK 21** (Java Development Kit).
-- **Maven 3.9+** (integrado automáticamente en IntelliJ IDEA y Eclipse).
-- **Git** para clonar el repositorio.
 
-### Pasos para Ejecutar
+* **JDK 21** (Java Development Kit).
+* **Maven 3.9+** (integrado automáticamente en IntelliJ IDEA y Eclipse).
+* **Git** para clonar el repositorio.
+
 ### Pasos para Ejecutar
 
 #### Opción A: Desde Terminal con Maven
+
 ```bash
 # 1. Compilar el código
 mvn compile
@@ -162,18 +167,21 @@ mvn package
 # 4. Ejecutar la aplicación
 java -jar target/IPS2026-PL11-ING.jar
 
-Opción B: Desde IntelliJ IDEA
-# 1. Ve a File → Open... y selecciona la carpeta raíz del proyecto (donde está el pom.xml).
+```
 
-# 2. IntelliJ detectará automáticamente que es un proyecto Maven y descargará las dependencias necesarias.
+#### Opción B: Desde IntelliJ IDEA
 
-# 3. Abre src/main/java/com/ips2026/pl11/App.java y haz clic en el botón de ejecución (▶) situado al lado del método main.
+1. Ve a `File` → `Open...` y selecciona la carpeta raíz del proyecto (donde está el `pom.xml`).
+2. IntelliJ detectará automáticamente que es un proyecto Maven y descargará las dependencias necesarias.
+3. Abre `src/main/java/com/ips2026/pl11/App.java` y haz clic en el botón de ejecución (**▶**) situado al lado del método `main`.
 
-Opción C: Desde Eclipse
-# 1. Ve a File → Import... → Maven → Existing Maven Projects.
+#### Opción C: Desde Eclipse
 
-# 2. Selecciona la carpeta raíz del proyecto y haz clic en Finish.
+1. Ve a `File` → `Import...` → `Maven` → `Existing Maven Projects`.
+2. Selecciona la carpeta raíz del proyecto y haz clic en `Finish`.
+3. Eclipse descargará las dependencias automáticamente.
+4. Haz clic derecho sobre `App.java` → `Run As` → `Java Application`.
 
-# 3. Eclipse descargará las dependencias automáticamente.
+```
 
-# 3. Haz clic derecho sobre App.java → Run As → Java Application.
+```

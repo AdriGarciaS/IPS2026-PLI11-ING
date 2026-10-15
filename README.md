@@ -37,10 +37,6 @@ La plataforma centraliza las operaciones del club en un entorno unificado, abarc
 
 Proyecto desarrollado para la asignatura Ingeniería del Proceso Software del Grado en Ingeniería Informática (Universidad de Oviedo):
 
-## 👥 Equipo de Desarrollo
-
-Proyecto desarrollado para la asignatura Ingeniería del Proceso Software del Grado en Ingeniería Informática (Universidad de Oviedo):
-
 | 👤 Nombre | 📧 Email | 🐱 GitHub |
 | :---: | :---: | :---: |
 | <img src="https://avatars.githubusercontent.com/patriilaago" width="55" style="border-radius:50%"><br>**Patricia Lago Martín** | `UO294435@uniovi.es` | [![GitHub](https://img.shields.io/badge/GitHub-patriilaago-brightgreen?logo=github)](https://github.com/patriilaago) |

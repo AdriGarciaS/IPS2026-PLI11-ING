@@ -7,11 +7,9 @@
 </p>
 
 <p align="center">
-  <img src="[https://img.shields.io/badge/Java-21-007396.svg?logo=openjdk&logoColor=white](https://img.shields.io/badge/Java-21-007396.svg?logo=openjdk&logoColor=white)" alt="Java 21">
-  <img src="[https://img.shields.io/badge/UI-Java%20Swing%20%2B%20Nimbus-FF7800.svg](https://img.shields.io/badge/UI-Java%20Swing%20%2B%20Nimbus-FF7800.svg)" alt="Swing Nimbus">
-  <img src="[https://img.shields.io/badge/Database-SQLite-003B57.svg?logo=sqlite&logoColor=white](https://img.shields.io/badge/Database-SQLite-003B57.svg?logo=sqlite&logoColor=white)" alt="SQLite">
-  <img src="[https://img.shields.io/badge/Build-Maven%203.9%2B-C71A36.svg?logo=apachemaven&logoColor=white](https://img.shields.io/badge/Build-Maven%203.9%2B-C71A36.svg?logo=apachemaven&logoColor=white)" alt="Maven">
-  <img src="[https://img.shields.io/badge/Course-IPS%202026-0044AA.svg](https://img.shields.io/badge/Course-IPS%202026-0044AA.svg)" alt="IPS 2026">
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=java,sqlite,maven,git,idea,eclipse" alt="My Skills" />
+  </a>
 </p>
 
 ---

@@ -140,7 +140,6 @@ Toda la aplicación utiliza la paleta oficial del **Ipswich Town F.C.** integrad
 * **Royal Blue (`#0044AA`):** Azul base corporativo para títulos, bordes y encabezados.
 * **Crest Crimson Red (`#DE2C37`):** Rojo carmesí para detalles de acento, bordes activos y estados destructivos (`dangerMode`).
 * **Dark Navy (`#002C6E`):** Azul marino oscuro para contrastes y estados de selección (*hover*).
-* **Background (`#F4F6FA`):** Fondo gris claro neutro para máxima legibilidad.
 
 ---
 
@@ -173,17 +172,18 @@ java -jar target/IPS2026-PL11-ING.jar
 
 #### Opción B: Desde IntelliJ IDEA
 
+```bash
 1. Ve a `File` → `Open...` y selecciona la carpeta raíz del proyecto (donde está el `pom.xml`).
 2. IntelliJ detectará automáticamente que es un proyecto Maven y descargará las dependencias necesarias.
 3. Abre `src/main/java/com/ips2026/pl11/App.java` y haz clic en el botón de ejecución (**▶**) situado al lado del método `main`.
+```
 
 #### Opción C: Desde Eclipse
 
+```bash
 1. Ve a `File` → `Import...` → `Maven` → `Existing Maven Projects`.
 2. Selecciona la carpeta raíz del proyecto y haz clic en `Finish`.
 3. Eclipse descargará las dependencias automáticamente.
 4. Haz clic derecho sobre `App.java` → `Run As` → `Java Application`.
-
-```
 
 ```

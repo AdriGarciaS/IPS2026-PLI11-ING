@@ -41,7 +41,7 @@ Proyecto desarrollado para la asignatura Ingeniería del Proceso Software del Gr
 | :---: | :---: | :---: |
 | <img src="https://github.com/patriilaago.png" width="55" style="border-radius:50%"><br>**Patricia Lago Martín** | `UO294435@uniovi.es` | [![GitHub](https://img.shields.io/badge/GitHub-patriilaago-brightgreen?logo=github)](https://github.com/patriilaago) |
 | <img src="[https://github.com/reyero-txt.png](https://github.com/reyero-txt.png)" width="55" style="border-radius:50%"><br>**Daniel Reyero Espinedo** | `UO293963@uniovi.es` | [![GitHub](https://img.shields.io/badge/GitHub-reyero--txt-orange?logo=github)](https://github.com/reyero-txt) |
-| <img src="[https://github.com/AdriGarciaS.png](https://github.com/AdriGarciaS.png)" width="55" style="border-radius:50%"><br>**Adrián García** | `UO288675@uniovi.es` | [![GitHub](https://img.shields.io/badge/GitHub-AdriGarciaS-blue?logo=github)](https://github.com/AdriGarciaS) |
+| <img src="[https://github.com/AdriGarciaS.png](https://github.com/AdriGarciaS.png)" width="55" style="border-radius:50%"><br>**Adriana García** | `UO288675@uniovi.es` | [![GitHub](https://img.shields.io/badge/GitHub-AdriGarciaS-blue?logo=github)](https://github.com/AdriGarciaS) |
 
 ---
 

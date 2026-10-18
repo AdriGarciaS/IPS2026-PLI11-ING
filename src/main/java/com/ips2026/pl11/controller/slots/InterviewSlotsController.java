@@ -73,4 +73,11 @@ public class InterviewSlotsController {
     public List<InterviewSlotRecord> getAllSlots() throws SQLException {
         return slotDAO.getAllSlots();
     }
+    
+    /**
+     * Retrieves interview slots exclusively for the specified coach's team.
+     */
+    public List<InterviewSlotRecord> getSlotsByCoach(int coachId) throws SQLException {
+        return slotDAO.getSlotsByCoach(coachId);
+    }
 }

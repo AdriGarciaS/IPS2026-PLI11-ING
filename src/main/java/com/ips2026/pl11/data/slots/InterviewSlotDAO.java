@@ -191,18 +191,25 @@ public class InterviewSlotDAO {
      * Retrieves all players from the employees table.
      */
     public List<Employee> getPlayersByCoach(int coachId) throws SQLException {
-        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender " +
-                     "FROM employees WHERE UPPER(position) = 'PLAYER' ORDER BY last_name, first_name";
-
-        List<Employee> players = new ArrayList<>();
+    	List<Employee> players = new ArrayList<>();
+        String sql = "SELECT e.* FROM employees e " +
+                     "JOIN TEAM_MEMBER tm ON e.id = tm.employee_id " +
+                     "JOIN TEAM t ON tm.team_id = t.id " +
+                     "WHERE tm.role = 'PLAYER' " +
+                     "AND (t.first_coach_id = ? OR t.second_coach_id = ?)";
 
         try (Connection conn = ConexionBD.obtenerConexion();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, coachId);
+            pstmt.setInt(2, coachId);
 
+            ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
+                // Adds Employees
                 players.add(mapResultSetToEmployee(rs));
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return players;
     }
@@ -239,5 +246,38 @@ public class InterviewSlotDAO {
                 grossAnnualSalary,
                 gender
         );
+    }
+    
+    public List<InterviewSlotRecord> getSlotsByCoach(int coachId) throws SQLException {
+    	List<InterviewSlotRecord> slots = new ArrayList<>();
+        
+        String sql = "SELECT s.id, e.first_name || ' ' || e.last_name AS player_name, " +
+                     "s.slot_date AS date, s.start_time, s.end_time, s.status " +
+                     "FROM INTERVIEW_SLOTS s " +
+                     "JOIN employees e ON s.player_id = e.id " +
+                     "JOIN TEAM_MEMBER tm ON e.id = tm.employee_id " +
+                     "JOIN TEAM t ON tm.team_id = t.id " +
+                     "WHERE (t.first_coach_id = ? OR t.second_coach_id = ?) " +
+                     "ORDER BY s.slot_date DESC, s.start_time ASC";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, coachId);
+            pstmt.setInt(2, coachId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    slots.add(new InterviewSlotRecord(
+                        rs.getInt("id"),
+                        rs.getString("player_name"),
+                        LocalDate.parse(rs.getString("date")),
+                        LocalTime.parse(rs.getString("start_time")),
+                        LocalTime.parse(rs.getString("end_time")),
+                        rs.getString("status")
+                    ));
+                }
+            }
+        }
+        return slots;
     }
 }

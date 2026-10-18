@@ -49,9 +49,9 @@ class TeamDAOsTest {
             sql.append("(").append(i).append(", 'Player', 'Number").append(i).append("', 'P").append(i)
                     .append("', '2012-05-01', '600', 'SPORTS', 'Player', 0, 'MALE'), ");
         }
-        sql.append("(101, 'Luis', 'Moreno', 'C1', '1978-04-11', '600', 'SPORTS', 'Coach', 1, NULL), ")
-                .append("(102, 'Carlos', 'Vega', 'C2', '1981-04-12', '600', 'SPORTS', 'Coach', 1, NULL), ")
-                .append("(103, 'Ana', 'Torres', 'C3', '1984-04-13', '600', 'SPORTS', 'Coach', 1, NULL), ")
+        sql.append("(101, 'Luis', 'Moreno', 'C1', '1978-04-11', '600', 'SPORTS', 'Coach', 1, 'MALE'), ")
+                .append("(102, 'Carlos', 'Vega', 'C2', '1981-04-12', '600', 'SPORTS', 'Coach', 1, 'MALE'), ")
+                .append("(103, 'Ana', 'Torres', 'C3', '1984-04-13', '600', 'SPORTS', 'Coach', 1, 'FEMALE'), ")
                 .append("(200, 'Sarah', 'Jenkins', 'N1', '1985-04-12', '600', 'NON_SPORTS', 'General Manager', 1, 'FEMALE')");
         TestDatabase.execute(sql.toString());
     }

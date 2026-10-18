@@ -36,7 +36,6 @@ import com.ips2026.pl11.data.store.MerchandiseDAO;
 import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
 import com.ips2026.pl11.data.team.SportsEmployeeDAO;
 import com.ips2026.pl11.data.team.TeamDAO;
-import com.ips2026.pl11.view.GMWorkScheduleWindow;
 import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;

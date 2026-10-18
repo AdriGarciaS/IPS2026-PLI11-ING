@@ -55,11 +55,12 @@ public class AddEmployeeView extends JDialog {
 
     private JComboBox<String> cbCategory;
     private JComboBox<String> cbPosition;
+    private JComboBox<String> cbGender;
     private JButton btnSubmit;
 
     public AddEmployeeView(JFrame parent) {
         super(parent, "Employee Registration", true);
-        setSize(520, 640);
+        setSize(520, 690);
         setLocationRelativeTo(parent);
         setResizable(false);
 
@@ -97,7 +98,7 @@ public class AddEmployeeView extends JDialog {
         if (pnForm == null) {
             pnForm = new JPanel();
             pnForm.setOpaque(false);
-            pnForm.setLayout(new GridLayout(8, 2, 12, 14));
+            pnForm.setLayout(new GridLayout(9, 2, 12, 14));
 
             pnForm.add(crearLabel("First Name:"));
             pnForm.add(getTxtFirstName());
@@ -110,6 +111,9 @@ public class AddEmployeeView extends JDialog {
 
             pnForm.add(crearLabel("Birth Date (YYYY-MM-DD):"));
             pnForm.add(getTxtBirthDate());
+
+            pnForm.add(crearLabel("Gender:"));
+            pnForm.add(getCbGender());
 
             pnForm.add(crearLabel("Phone Number:"));
             pnForm.add(getTxtPhone());
@@ -201,6 +205,17 @@ public class AddEmployeeView extends JDialog {
             cbPosition.setBorder(new LineBorder(Branding.BORDER, 1, true));
         }
         return cbPosition;
+    }
+
+    private JComboBox<String> getCbGender() {
+        if (cbGender == null) {
+            cbGender = new JComboBox<>(new String[]{"MALE", "FEMALE"});
+            cbGender.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
+            cbGender.setBackground(Color.WHITE);
+            cbGender.setForeground(Branding.NAVY);
+            cbGender.setBorder(new LineBorder(Branding.BORDER, 1, true));
+        }
+        return cbGender;
     }
 
     private JButton getBtnSubmit() {
@@ -306,7 +321,8 @@ public class AddEmployeeView extends JDialog {
                     getTxtPhone().getText(),
                     (String) getCbCategory().getSelectedItem(),
                     (String) getCbPosition().getSelectedItem(),
-                    salary
+                    salary,
+                    (String) getCbGender().getSelectedItem()
             );
 
             JOptionPane.showMessageDialog(this, "Employee successfully registered!", "Success", JOptionPane.INFORMATION_MESSAGE);

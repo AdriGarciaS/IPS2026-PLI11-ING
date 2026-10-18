@@ -17,7 +17,7 @@ public class EmployeeController {
 
     public void registerEmployee(String firstName, String lastName, String nationalId,
                                  LocalDate birthDate, String phoneNumber,
-                                 String category, String position, double salary) throws Exception {
+                                 String category, String position, double salary, String gender) throws Exception {
 
         if (firstName == null || firstName.isBlank()
                 || lastName == null || lastName.isBlank()
@@ -30,6 +30,8 @@ public class EmployeeController {
             throw new IllegalArgumentException("Gross annual salary must be greater than or equal to 0.");
         }
 
+        checkGender(gender);
+
         Employee employee = new Employee(
                 null,
                 firstName.trim(),
@@ -39,7 +41,8 @@ public class EmployeeController {
                 phoneNumber.trim(),
                 category,
                 position,
-                salary
+                salary,
+                gender
         );
 
         // Business rule: Underage employees are only permitted for the 'Player' position
@@ -54,7 +57,7 @@ public class EmployeeController {
         return employeeDAO.getAll();
     }
 
-    public void updateEmployee(int id, String firstName, String lastName, String nationalId,LocalDate birthDate, String phoneNumber, String category,String currentPosition, double salary) throws Exception {
+    public void updateEmployee(int id, String firstName, String lastName, String nationalId,LocalDate birthDate, String phoneNumber, String category,String currentPosition, double salary, String gender) throws Exception {
 
         if (firstName == null || firstName.isBlank()|| lastName == null || lastName.isBlank()|| nationalId == null || nationalId.isBlank()|| phoneNumber == null || phoneNumber.isBlank()) {
             throw new IllegalArgumentException("All personal information fields are required.");
@@ -64,13 +67,22 @@ public class EmployeeController {
             throw new IllegalArgumentException("Gross annual salary must be greater than or equal to 0.");
         }
 
-        Employee employee = new Employee(id,firstName.trim(),lastName.trim(),nationalId.trim(),birthDate,phoneNumber.trim(),category,currentPosition,salary);
+        checkGender(gender);
+
+        Employee employee = new Employee(id,firstName.trim(),lastName.trim(),nationalId.trim(),birthDate,phoneNumber.trim(),category,currentPosition,salary,gender);
 
         if (employee.isUnderage() && !currentPosition.equalsIgnoreCase("Player")) {
             throw new IllegalArgumentException("Only players can be under 18 years of age.");
         }
 
         employeeDAO.update(employee);
+    }
+
+    // Gender is required: players can only join teams of their gender
+    private void checkGender(String gender) {
+        if (!"MALE".equals(gender) && !"FEMALE".equals(gender)) {
+            throw new IllegalArgumentException("Choose the gender of the employee.");
+        }
     }
 
     public void deleteEmployee(int employeeId) throws SQLException {

@@ -49,7 +49,7 @@ public final class TeamRules {
         }
         if (gender != null && !gender.accepts(player.getGender())) {
             return Optional.of(player.getGender() == null
-                    ? "Gender not registered (only mixed teams)"
+                    ? "Gender not registered"
                     : genderLabel(player.getGender()) + " player, the team is " + gender.toString().toLowerCase());
         }
         return Optional.empty();

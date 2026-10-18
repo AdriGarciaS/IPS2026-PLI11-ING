@@ -1,13 +1,13 @@
 package com.ips2026.pl11.model.team;
 
 /**
- * Gender of a team. The players of a male or female team must have that
- * gender; a mixed team accepts any player. Coaches and technical staff are
- * not checked.
+ * Gender of a team: male or female (there are no mixed teams). The players
+ * must have the gender of the team; coaches and technical staff are not
+ * checked.
  */
 public enum TeamGender {
 
-    MALE("Male"), FEMALE("Female"), MIXED("Mixed");
+    MALE("Male"), FEMALE("Female");
 
     private final String label;
 
@@ -17,7 +17,7 @@ public enum TeamGender {
 
     /** @param playerGender "MALE", "FEMALE" or null if it is not registered */
     public boolean accepts(String playerGender) {
-        return this == MIXED || name().equals(playerGender);
+        return name().equals(playerGender);
     }
 
     @Override

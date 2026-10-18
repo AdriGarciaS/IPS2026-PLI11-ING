@@ -1,6 +1,7 @@
 package com.ips2026.pl11.data.reservation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
@@ -60,22 +61,55 @@ class ReservationDAOsTest {
     }
 
     @Test
-    @DisplayName("TeamUseDAO returns only the uses of that facility and day, ordered by start time")
+    @DisplayName("TeamUseDAO returns the trainings and home matches of that facility and day, ordered by start time")
     void teamUsesOfFacilityAndDay() throws SQLException {
-        TestDatabase.execute("INSERT INTO FACILITY_TEAM_USE (facility_id, team_name, use_date, start_time, end_time) VALUES "
-                + "(2, 'U19 Team', '2026-10-06', '18:00', '20:00'), "
-                + "(2, 'First Team', '2026-10-06', '10:00', '12:00'), "
-                + "(2, 'First Team', '2026-10-07', '10:00', '12:00'), "  // another day
-                + "(1, 'First Team', '2026-10-06', '17:00', '19:00')");  // another facility
+        TestDatabase.execute("INSERT INTO TEAM (id, name, category, gender, first_coach_id, second_coach_id, created_at) VALUES "
+                + "(1, 'First Team', 'FIRST_TEAM', 'MALE', 101, 102, '2026-10-01 10:00:00'), "
+                + "(2, 'Juvenil A', 'JUVENIL', 'MALE', 101, 102, '2026-10-01 10:00:00')");
+        TestDatabase.execute("INSERT INTO trainings (team_id, training_date, start_time, end_time, facility_id) VALUES "
+                + "(2, '2026-10-06', '18:00', '20:00', 2), "
+                + "(1, '2026-10-06', '10:00', '12:00', 2), "
+                + "(1, '2026-10-07', '10:00', '12:00', 2), "   // another day
+                + "(1, '2026-10-06', '09:00', '10:30', 4)");   // another facility
+        TestDatabase.execute("INSERT INTO matches (team_id, match_date, start_time, end_time, rival, is_home, facility_id) VALUES "
+                + "(1, '2026-10-06', '13:00', '15:00', 'Real Madrid', 1, 2), "
+                + "(2, '2026-10-06', '16:00', '17:30', 'Sevilla FC', 0, NULL)");  // away: does not use our facility
 
         List<TeamUse> uses = new TeamUseDAO().findByFacilityAndDate(PITCH.getId(), DAY);
 
-        assertEquals(2, uses.size());
-        assertEquals("First Team", uses.get(0).getTeamName());
+        assertEquals(3, uses.size());
+        assertEquals("First Team (training)", uses.get(0).getTeamName());
         assertEquals(LocalTime.of(10, 0), uses.get(0).getStart());
         assertEquals(LocalTime.of(12, 0), uses.get(0).getEnd());
         assertEquals(DAY, uses.get(0).getDate());
-        assertEquals("U19 Team", uses.get(1).getTeamName());
+        assertEquals(PITCH.getId(), uses.get(0).getFacilityId());
+        assertEquals("First Team (match vs Real Madrid)", uses.get(1).getTeamName());
+        assertEquals(LocalTime.of(13, 0), uses.get(1).getStart());
+        assertEquals("Juvenil A (training)", uses.get(2).getTeamName());
+    }
+
+    @Test
+    @DisplayName("TeamUseDAO ignores away matches: they are played in the field of the rival")
+    void awayMatchesDoNotUseOurFacilities() throws SQLException {
+        TestDatabase.execute("INSERT INTO TEAM (id, name, category, gender, first_coach_id, second_coach_id, created_at) VALUES "
+                + "(1, 'First Team', 'FIRST_TEAM', 'MALE', 101, 102, '2026-10-01 10:00:00')");
+        TestDatabase.execute("INSERT INTO matches (team_id, match_date, start_time, end_time, rival, is_home, facility_id) VALUES "
+                + "(1, '2026-10-06', '17:00', '19:00', 'Atletico Madrid', 0, NULL)");
+
+        assertTrue(new TeamUseDAO().findByFacilityAndDate(PITCH.getId(), DAY).isEmpty());
+    }
+
+    @Test
+    @DisplayName("the database requires a facility for home matches and none for away matches")
+    void homeMatchesNeedAFacility() {
+        assertThrows(SQLException.class, () -> TestDatabase.execute("INSERT INTO matches "
+                + "(team_id, match_date, start_time, end_time, rival, is_home, facility_id) VALUES "
+                + "(1, '2026-10-06', '17:00', '19:00', 'Real Madrid', 1, NULL)"));
+        assertThrows(SQLException.class, () -> TestDatabase.execute("INSERT INTO matches "
+                + "(team_id, match_date, start_time, end_time, rival, is_home, facility_id) VALUES "
+                + "(1, '2026-10-06', '17:00', '19:00', 'Real Madrid', 0, 2)"));
+        assertThrows(SQLException.class, () -> TestDatabase.execute("INSERT INTO trainings "
+                + "(team_id, training_date, start_time, end_time, facility_id) VALUES (1, '2026-10-06', '10:00', '12:00', NULL)"));
     }
 
     @Test

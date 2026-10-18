@@ -64,6 +64,7 @@ public class ModifyEmployeeView extends JDialog {
     private JTextField txtPosition; 
     private JTextField txtSalary;
     private JComboBox<String> cbCategory;
+    private JComboBox<String> cbGender;
 
     private JPanel pnActions;
     private JButton btnSave;
@@ -71,7 +72,7 @@ public class ModifyEmployeeView extends JDialog {
 
     public ModifyEmployeeView(JDialog parent) {
         super(parent, "Modify Employee", true);
-        setSize(950, 640);
+        setSize(950, 690);
         setLocationRelativeTo(parent);
 
         // Aplica iconos del club y configuracion de ventana
@@ -185,7 +186,7 @@ public class ModifyEmployeeView extends JDialog {
 
     private JPanel getPnFields() {
         if (pnFields == null) {
-            pnFields = new JPanel(new GridLayout(8, 2, 8, 10));
+            pnFields = new JPanel(new GridLayout(9, 2, 8, 10));
             pnFields.setOpaque(false);
 
             pnFields.add(createLabel("First Name:"));
@@ -199,6 +200,9 @@ public class ModifyEmployeeView extends JDialog {
 
             pnFields.add(createLabel("Birth Date (YYYY-MM-DD):"));
             pnFields.add(getTxtBirthDate());
+
+            pnFields.add(createLabel("Gender:"));
+            pnFields.add(getCbGender());
 
             pnFields.add(createLabel("Phone Number:"));
             pnFields.add(getTxtPhone());
@@ -266,6 +270,18 @@ public class ModifyEmployeeView extends JDialog {
             txtSalary = createTextField();
         }
         return txtSalary;
+    }
+
+    private JComboBox<String> getCbGender() {
+        if (cbGender == null) {
+            cbGender = new JComboBox<>(new String[]{"MALE", "FEMALE"});
+            cbGender.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
+            cbGender.setBackground(Color.WHITE);
+            cbGender.setForeground(Branding.NAVY);
+            cbGender.setBorder(new LineBorder(Branding.BORDER, 1, true));
+            cbGender.setEnabled(false);
+        }
+        return cbGender;
     }
 
     private JComboBox<String> getCbCategory() {
@@ -440,6 +456,7 @@ public class ModifyEmployeeView extends JDialog {
         getTxtBirthDate().setText(emp.getBirthDate().toString());
         getTxtPhone().setText(emp.getPhoneNumber());
         getCbCategory().setSelectedItem(emp.getCategory());
+        getCbGender().setSelectedItem(emp.getGender());
         getTxtPosition().setText(emp.getPosition());
         getTxtSalary().setText(String.valueOf(emp.getGrossAnnualSalary()));
 
@@ -449,6 +466,7 @@ public class ModifyEmployeeView extends JDialog {
         getTxtBirthDate().setEnabled(true);
         getTxtPhone().setEnabled(true);
         getCbCategory().setEnabled(false);
+        getCbGender().setEnabled(true);
         getTxtSalary().setEnabled(true);
 
         getBtnSave().setEnabled(true);
@@ -472,7 +490,8 @@ public class ModifyEmployeeView extends JDialog {
                     getTxtPhone().getText(),
                     (String) getCbCategory().getSelectedItem(),
                     selectedEmployee.getPosition(), 
-                    salary
+                    salary,
+                    (String) getCbGender().getSelectedItem()
             );
 
             JOptionPane.showMessageDialog(this, "Employee updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);

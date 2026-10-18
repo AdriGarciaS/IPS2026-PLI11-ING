@@ -15,8 +15,8 @@ import com.ips2026.pl11.model.employee.Employee;
 public class EmployeeDAO {
 
 	public void insert(Employee employee) throws SQLException {
-        String sql = "INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = ConexionBD.obtenerConexion();
              PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -29,13 +29,14 @@ public class EmployeeDAO {
             statement.setString(6, employee.getCategory());
             statement.setString(7, employee.getPosition());
             statement.setDouble(8, employee.getGrossAnnualSalary());
+            statement.setString(9, employee.getGender());
 
             statement.executeUpdate();
         }
     }
 
     public List<Employee> getAll() throws SQLException {
-        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary FROM employees ORDER BY id";
+        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender FROM employees ORDER BY id";
         List<Employee> employees = new ArrayList<>();
 
         try (Connection connection = ConexionBD.obtenerConexion();
@@ -52,7 +53,8 @@ public class EmployeeDAO {
                         resultSet.getString("phone_number"),
                         resultSet.getString("category"),
                         resultSet.getString("position"),
-                        resultSet.getDouble("gross_annual_salary")
+                        resultSet.getDouble("gross_annual_salary"),
+                        resultSet.getString("gender")
                 ));
             }
         }
@@ -62,7 +64,7 @@ public class EmployeeDAO {
     public void update(Employee employee) throws SQLException {
         // No se actualiza 'position' para respetar la regla de negocio
         String sql = "UPDATE employees SET first_name = ?, last_name = ?, national_id = ?, "
-                   + "birth_date = ?, phone_number = ?, category = ?, gross_annual_salary = ? "
+                   + "birth_date = ?, phone_number = ?, category = ?, gross_annual_salary = ?, gender = ? "
                    + "WHERE id = ?";
 
         try (Connection connection = ConexionBD.obtenerConexion();
@@ -75,7 +77,8 @@ public class EmployeeDAO {
             statement.setString(5, employee.getPhoneNumber());
             statement.setString(6, employee.getCategory());
             statement.setDouble(7, employee.getGrossAnnualSalary());
-            statement.setInt(8, employee.getId());
+            statement.setString(8, employee.getGender());
+            statement.setInt(9, employee.getId());
 
             statement.executeUpdate();
         }

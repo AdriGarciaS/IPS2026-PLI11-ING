@@ -20,11 +20,11 @@ public class InterviewSlotDAO {
      */
 	public boolean hasTeamActivityConflict(int playerId, LocalDate date, LocalTime start, LocalTime end) throws SQLException {
         String matchQuery = "SELECT COUNT(*) FROM matches " +
-                            "WHERE (player_id = ? OR player_id IS NULL) AND match_date = ? " +
+                            "WHERE (team_id IN (SELECT team_id FROM TEAM_MEMBER WHERE employee_id = ? AND role = 'PLAYER') OR team_id IS NULL) AND match_date = ? " +
                             "AND (? < end_time AND ? > start_time)";
 
         String trainingQuery = "SELECT COUNT(*) FROM trainings " +
-                               "WHERE (player_id = ? OR player_id IS NULL) AND training_date = ? " +
+                               "WHERE (team_id IN (SELECT team_id FROM TEAM_MEMBER WHERE employee_id = ? AND role = 'PLAYER') OR team_id IS NULL) AND training_date = ? " +
                                "AND (? < end_time AND ? > start_time)";
 
         try (Connection conn = ConexionBD.obtenerConexion()) {

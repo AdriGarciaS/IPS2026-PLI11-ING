@@ -138,7 +138,7 @@ IPS2026-PL11-ING/
     │   │   │   ├── HeaderPanel.java                # Cabecera del club (logo + título)
     │   │   │   └── MoneyFormat.java                # Formato de precios en euros
     │   │   ├── menu/                               # Menú principal
-    │   │   │   ├── VentanaPrincipal.java           # Cabecera + 4 botones + pie
+    │   │   │   ├── MainWindow.java                 # Cabecera + botones de cada funcionalidad + pie
     │   │   │   └── MenuCardButton.java             # Botones tipo tarjeta del menú
     │   │   └── store/                              # Venta de merchandising
     │   │       ├── StoreSalesWindow.java           # Catálogo + carrito
@@ -183,13 +183,14 @@ data/team/TeamDAO.java
 - Nombre de la subcarpeta: una palabra en inglés, en minúsculas y en singular (`store`, `team`, `player`, `ticket`...).
 - Lo que usan **varias** funcionalidades va en `view/common` (o `model/common`, etc.), no se copia en cada carpeta.
 - `data/ConexionBD.java` es común a todos los DAO y se queda en la raíz de `data/`.
-- Las ventanas nuevas se abren desde un botón del menú (`view/menu/VentanaPrincipal.java`).
+- Las ventanas nuevas se abren desde un botón del menú (`view/menu/MainWindow.java`).
 - Los tests van en `src/test/java` con el mismo subpaquete que la clase que prueban (por ejemplo `model/store/CartTest.java`).
 
 ## Notas para el equipo
 
 - **Equipos deportivos** (`model/team`, `view/team`, `controller/team`, `data/team`): las edades de cada categoría están en `model/team/TeamCategory.java` y el mínimo de 7 jugadores en `model/team/TeamRules.java`. La edad se cuenta **por año** (año actual − año de nacimiento). Tablas: `TEAM` (con los dos entrenadores obligatorios) y `TEAM_MEMBER` (jugadores y otro personal técnico con su tarea); un jugador solo puede estar en un equipo.
-- **Género de los empleados**: la tabla `employees` tiene una columna nueva y opcional `gender` (`MALE` / `FEMALE`), necesaria para comprobar los jugadores de equipos masculinos o femeninos. El formulario de alta de empleados todavía **no la rellena**: un jugador sin género solo puede entrar en equipos mixtos. Hay que añadir el campo al formulario de empleados.
+- **Género de los empleados**: la columna `gender` de `employees` es **obligatoria** (`MALE` / `FEMALE`) y se pide en los formularios de alta y modificación de empleados. Los equipos son solo masculinos o femeninos (no hay equipos mixtos) y sus jugadores deben tener el género del equipo.
+- **Entrenamientos y partidos** (`trainings`, `matches`): cada entrenamiento tiene la instalación que usa (`facility_id`, obligatoria). Cada partido indica si se juega en nuestro campo (`is_home` = 1, con `facility_id` obligatoria) o en el del rival (`is_home` = 0, sin instalación). Los entrenamientos y los partidos en casa son los usos de las instalaciones por nuestros equipos: la reserva de instalaciones los bloquea, y también la 1 h 30 posterior. Los partidos fuera no bloquean nada.
 
 - El paquete base de todo el código Java es `com.ips2026.pl11`. Las clases nuevas van en la capa MVC que les corresponda (`model`, `view`, `controller`, `data`) y dentro, en la subcarpeta de su funcionalidad (ver "Dónde poner los archivos nuevos"), siguiendo la convención estándar de nombres de paquete en minúsculas.
 - Las ventanas Swing se escriben con la generación de código **lazy** de Eclipse WindowBuilder (un atributo privado por componente y un getter `getXxx()` que lo crea la primera vez), para poder seguir editándolas desde la pestaña *Design*.

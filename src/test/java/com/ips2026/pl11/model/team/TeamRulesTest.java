@@ -76,21 +76,21 @@ class TeamRulesTest {
     }
 
     @Test
-    @DisplayName("male and female teams only accept players of that gender; mixed teams accept anyone")
+    @DisplayName("male and female teams only accept players of that gender")
     void genderRules() {
         assertTrue(TeamRules.findPlayerProblem(player(14, "FEMALE"), TeamCategory.CADETE, TeamGender.MALE, YEAR).isPresent());
         assertTrue(TeamRules.findPlayerProblem(player(14, "MALE"), TeamCategory.CADETE, TeamGender.FEMALE, YEAR).isPresent());
         assertTrue(TeamRules.findPlayerProblem(player(14, "FEMALE"), TeamCategory.CADETE, TeamGender.FEMALE, YEAR).isEmpty());
-        assertTrue(TeamRules.findPlayerProblem(player(14, "FEMALE"), TeamCategory.CADETE, TeamGender.MIXED, YEAR).isEmpty());
-        assertTrue(TeamRules.findPlayerProblem(player(14, "MALE"), TeamCategory.CADETE, TeamGender.MIXED, YEAR).isEmpty());
+        assertTrue(TeamRules.findPlayerProblem(player(14, "MALE"), TeamCategory.CADETE, TeamGender.MALE, YEAR).isEmpty());
     }
 
     @Test
-    @DisplayName("a player without registered gender can only join mixed teams")
-    void unknownGenderOnlyMixed() {
-        assertEquals("Gender not registered (only mixed teams)",
+    @DisplayName("a player without registered gender can not join any team")
+    void unknownGenderCanNotJoin() {
+        assertEquals("Gender not registered",
                 TeamRules.findPlayerProblem(player(14, null), TeamCategory.CADETE, TeamGender.MALE, YEAR).orElse(""));
-        assertTrue(TeamRules.findPlayerProblem(player(14, null), TeamCategory.CADETE, TeamGender.MIXED, YEAR).isEmpty());
+        assertEquals("Gender not registered",
+                TeamRules.findPlayerProblem(player(14, null), TeamCategory.CADETE, TeamGender.FEMALE, YEAR).orElse(""));
     }
 
     @Test
@@ -107,7 +107,7 @@ class TeamRulesTest {
     void coachIsNotAPlayer() {
         SportsEmployee coach = new SportsEmployee(9, "Ana", "Torres", LocalDate.of(1981, 4, 12), "Coach", null, null);
 
-        assertEquals("Not a player", TeamRules.findPlayerProblem(coach, TeamCategory.FIRST_TEAM, TeamGender.MIXED, YEAR).orElse(""));
+        assertEquals("Not a player", TeamRules.findPlayerProblem(coach, TeamCategory.FIRST_TEAM, TeamGender.FEMALE, YEAR).orElse(""));
     }
 
     @Test

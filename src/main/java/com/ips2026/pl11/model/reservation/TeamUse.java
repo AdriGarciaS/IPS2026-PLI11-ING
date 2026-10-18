@@ -4,8 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 /**
- * A period in which a team of the club uses a facility (table
- * FACILITY_TEAM_USE).
+ * A period in which a team of the club uses a facility: a training or a
+ * home match (tables trainings and matches).
  */
 public final class TeamUse {
 

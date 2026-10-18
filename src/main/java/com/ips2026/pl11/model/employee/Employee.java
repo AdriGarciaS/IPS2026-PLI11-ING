@@ -14,10 +14,11 @@ public class Employee {
     private final String category; // "SPORTS" or "NON_SPORTS"
     private final String position;
     private final double grossAnnualSalary;
+    private final String gender; // "MALE" or "FEMALE"
 
     public Employee(Integer id, String firstName, String lastName, String nationalId,
                     LocalDate birthDate, String phoneNumber, String category,
-                    String position, double grossAnnualSalary) {
+                    String position, double grossAnnualSalary, String gender) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -27,6 +28,7 @@ public class Employee {
         this.category = category;
         this.position = position;
         this.grossAnnualSalary = grossAnnualSalary;
+        this.gender = gender;
     }
 
     public boolean isUnderage() {
@@ -70,5 +72,9 @@ public class Employee {
 
     public double getGrossAnnualSalary() {
         return grossAnnualSalary;
+    }
+
+    public String getGender() {
+        return gender;
     }
 }

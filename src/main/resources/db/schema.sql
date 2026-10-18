@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS employees (
     category             TEXT NOT NULL, -- 'SPORTS' or 'NON_SPORTS'
     position             TEXT NOT NULL,
     gross_annual_salary  REAL NOT NULL,
-    gender               TEXT CHECK (gender IN ('MALE', 'FEMALE')) -- optional, needed for players of male or female teams
+    gender               TEXT NOT NULL CHECK (gender IN ('MALE', 'FEMALE'))
 );
 -- Merchandising products sold in the club store.
 -- available_units: number of units in stock (a sale can never exceed it).
@@ -53,20 +53,6 @@ CREATE TABLE IF NOT EXISTS MERCHANDISING_SALE (
 CREATE TABLE IF NOT EXISTS FACILITY (
     id   INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT    NOT NULL UNIQUE
-);
-
--- Periods in which a team of the club uses a facility (trainings, matches...).
--- For now only sample data; another user story will manage these rows.
--- After each use the facility can not be booked for 1 h 30 min.
--- use_date: YYYY-MM-DD, start_time / end_time: HH:MM.
-CREATE TABLE IF NOT EXISTS FACILITY_TEAM_USE (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    facility_id INTEGER NOT NULL REFERENCES FACILITY (id),
-    team_name   TEXT    NOT NULL,
-    use_date    TEXT    NOT NULL,
-    start_time  TEXT    NOT NULL,
-    end_time    TEXT    NOT NULL,
-    CHECK (end_time > start_time)
 );
 
 -- One row per reservation made by an external person.
@@ -128,22 +114,30 @@ CREATE TABLE IF NOT EXISTS interviews (
 
 CREATE TABLE IF NOT EXISTS matches (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    player_id INTEGER,               -- Can be player_id or team reference
+    team_id INTEGER,               -- Can be team reference
     match_date TEXT NOT NULL,        -- YYYY-MM-DD
     start_time TEXT NOT NULL,        -- HH:MM
     end_time TEXT NOT NULL,          -- HH:MM
     rival TEXT,
-    FOREIGN KEY (player_id) REFERENCES employees(id)
+    is_home INTEGER NOT NULL CHECK (is_home IN (0, 1)), -- 1 = in our field, 0 = in the field of the rival
+    facility_id INTEGER,             -- facility used, only for home matches
+    FOREIGN KEY (team_id) REFERENCES team(id),
+    FOREIGN KEY (facility_id) REFERENCES FACILITY(id),
+    CHECK ((is_home = 1 AND facility_id IS NOT NULL) OR (is_home = 0 AND facility_id IS NULL))
 );
 
--- Scheduled training sessions
+-- Scheduled training sessions.
+-- Trainings and home matches are the uses of the facilities by our teams:
+-- after each one, the facility can not be booked for 1 h 30 min.
 CREATE TABLE IF NOT EXISTS trainings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    player_id INTEGER,
+    team_id INTEGER,
     training_date TEXT NOT NULL,     -- YYYY-MM-DD
     start_time TEXT NOT NULL,        -- HH:MM
     end_time TEXT NOT NULL,          -- HH:MM
-    FOREIGN KEY (player_id) REFERENCES employees(id)
+    facility_id INTEGER NOT NULL,    -- facility where the training takes place
+    FOREIGN KEY (team_id) REFERENCES team(id),
+    FOREIGN KEY (facility_id) REFERENCES FACILITY(id)
 );
 
 create table if not exists day_schedule(
@@ -163,7 +157,7 @@ create table if not exists day_schedule(
 
 -- category: FIRST_TEAM or SUBSIDIARY (professional teams) or JUVENIL, CADETE,
 -- INFANTIL, ALEVIN, BENJAMIN, PREBENJAMIN (youth teams).
--- gender: MALE, FEMALE or MIXED (players must match; MIXED accepts anyone).
+-- gender: MALE or FEMALE (the players must have the gender of the team).
 -- first_coach_id / second_coach_id: mandatory, technical sports employees.
 -- created_at: YYYY-MM-DD HH:MM:SS.
 CREATE TABLE IF NOT EXISTS TEAM (
@@ -171,7 +165,7 @@ CREATE TABLE IF NOT EXISTS TEAM (
     name            TEXT    NOT NULL UNIQUE COLLATE NOCASE,
     category        TEXT    NOT NULL CHECK (category IN ('FIRST_TEAM', 'SUBSIDIARY', 'JUVENIL', 'CADETE',
                                                          'INFANTIL', 'ALEVIN', 'BENJAMIN', 'PREBENJAMIN')),
-    gender          TEXT    NOT NULL CHECK (gender IN ('MALE', 'FEMALE', 'MIXED')),
+    gender          TEXT    NOT NULL CHECK (gender IN ('MALE', 'FEMALE')),
     first_coach_id  INTEGER NOT NULL REFERENCES employees (id),
     second_coach_id INTEGER NOT NULL REFERENCES employees (id),
     created_at      TEXT    NOT NULL,

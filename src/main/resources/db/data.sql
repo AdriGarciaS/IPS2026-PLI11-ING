@@ -14,6 +14,7 @@ INSERT INTO personas (nombre, email) VALUES
 
 INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender) VALUES
     ('Lamine', 'Yamal', '12345678A', '2007-07-13', '+34600112233', 'SPORTS', 'Player', 1500000.0, 'MALE'),
+    ('Joan', 'García', '65437890W', '2002-04-22', '+34600412444', 'SPORTS', 'Player', 1100000.0, 'MALE'),
     ('Pedri', 'González', '12345678P', '2002-11-25', '+34600111222', 'SPORTS', 'Player', 900000.0, 'MALE'),
     ('Pep', 'Guardiola', '87654321B', '1971-01-18', '+34611223344', 'SPORTS', 'Coach', 12000000.0, 'MALE'),
     ('Sarah', 'Jenkins', '99887766C', '1985-04-12', '+34622334455', 'NON_SPORTS', 'General Manager', 95000.0, 'FEMALE'),
@@ -45,12 +46,12 @@ INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reserva
     
 -- Dummy work schedule to test the Recurring Work Schedules user story and the Specific Schedules user story.
 insert into work_schedule (employee_id, week_day, start_time, end_time) VALUES
-	(3, 1, '09:00', '17:00'),
-	(3, 2, '09:00', '17:00'),
-	(3, 3, '09:00', '17:00'),
-	(4, 4, '09:00', '17:00'),
-	(4, 5, '09:00', '10:00'),
-	(4, 6, '09:00', '16:00');
+	(4, 1, '09:00', '17:00'),
+	(4, 2, '09:00', '17:00'),
+	(4, 3, '09:00', '17:00'),
+	(5, 4, '09:00', '17:00'),
+	(5, 5, '09:30', '10:30'),
+	(5, 6, '09:00', '16:00');
 
 
 -- Sample sports employees for the sports teams. The birth dates are relative
@@ -268,3 +269,8 @@ UNION ALL
 SELECT (SELECT id FROM TEAM WHERE name = 'Juvenil A'), date('now', 'localtime', '+' || n || ' days'), '11:00', '13:00',
        'RCD Espanyol Juvenil', 0, NULL
 FROM days WHERE n % 7 = 3;
+
+-- Training added by the interviews user story (it was stored by player_id):
+-- player 1 (Lamine) belongs to the First Team, so it is a First Team training.
+INSERT INTO trainings (team_id, training_date, start_time, end_time, facility_id)
+    VALUES ((SELECT id FROM TEAM WHERE name = 'First Team'), '2026-10-15', '09:00', '11:00', 5);

@@ -72,13 +72,13 @@ public class MenuCardButton extends JButton {
         if (enabled) {
             Shape oldClip = g2.getClip();
             g2.clip(new RoundRectangle2D.Float(1, 1, getWidth() - 3, getHeight() - 3, ARC, ARC));
-            g2.setColor(Branding.GOLD);
+            g2.setColor(Branding.IPSWICH_RED);
             g2.fillRect(1, getHeight() - 7, getWidth() - 3, 5);
             g2.setClip(oldClip);
         }
 
         g2.setStroke(new BasicStroke(hover || focused ? 2f : 1f));
-        g2.setColor(hover || focused ? Branding.GOLD : BORDER);
+        g2.setColor(hover || focused ? Branding.NAVY_DARKER : BORDER);
         g2.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, ARC, ARC);
         g2.dispose();
 

@@ -1,199 +1,203 @@
-# IPS2026-PL11-ING
+# 🚜 Ipswich Town F.C. — Management System
 
-Proyecto base del equipo PL11 para la asignatura IPS (curso 2026), desarrollado en tres sprints según las user stories.
+> *"Official Management & Operations Platform for Ipswich Town F.C."*
 
-Sigue el patrón **MVC** (Modelo-Vista-Controlador) y usa una base de datos **SQLite** (un único archivo, sin servidor que instalar) como ejemplo de acceso a datos. Al arrancar, la app abre la ventana del menú principal: una cabecera (hueco para el logo + título) y cuatro botones en una rejilla 2x2, que de momento no hacen nada, y un pie de página. A partir de aquí se irán conectando con las funcionalidades de cada sprint.
+<p align="center">
+  <img src="src/main/resources/images/ipswich.png" alt="Ipswich Town F.C. Crest" width="160">
+</p>
 
-## Requisitos
+<p align="center">
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=java,sqlite,maven,git,idea,eclipse" alt="My Skills" />
+  </a>
+</p>
 
-Antes de nada, instalar en el ordenador:
+---
 
-- **JDK 21** (Java Development Kit). Se puede comprobar con `java -version` en una terminal.
-- **Maven 3.9+**. Se puede comprobar con `mvn -v`. (IntelliJ y Eclipse traen Maven integrado, así que si vais a usar el IDE no hace falta instalarlo aparte).
-- **Git**, para descargar el proyecto.
+## 📖 Índice
+1. [Sobre el Proyecto](#-sobre-el-proyecto)
+2. [Equipo de Desarrollo](#-equipo-de-desarrollo)
+3. [Objetivos del Sistema](#-objetivos-del-sistema)
+4. [Módulos y Funcionalidades](#-módulos-y-funcionalidades)
+5. [Tecnologías y Arquitectura](#-tecnologías-y-arquitectura)
+6. [Guía de Estilo Visual](#-guía-de-estilo-visual)
+7. [Notas de la Base de Datos](#-notas-de-la-base-de-datos)
+8. [Instalación y Configuración](#-instalación-y-configuración)
 
-## Descargar el proyecto (para tus compañeros)
+---
 
-Clonar el repositorio con:
+## 🌟 Sobre el Proyecto
 
-```bash
-git clone https://github.com/AdriGarciaS/IPS2026-PLI11-ING
-cd IPS2026-PLI11-ING
-```
+**IPS2026-PL11-ING** es el sistema integral de gestión de escritorio para el **Ipswich Town F.C.** ("The Tractor Boys"), desarrollado en **Java Swing** y **SQLite** por el equipo **PL11** para la asignatura de *Ingeniería del Proceso Software (IPS)*.
 
-También se puede descargar como ZIP desde GitHub (botón verde "Code" → "Download ZIP") si alguien no quiere usar Git.
+La plataforma centraliza las operaciones del club en un entorno unificado, abarcando desde la administración de la plantilla y cuerpo técnico hasta la planificación de entrenamientos, gestión de ruedas de prensa y entrevistas, reserva de instalaciones y la tienda oficial de merchandising.
 
-## Ejecutar el proyecto
+---
 
-### Opción A: desde terminal con Maven
+## 👥 Equipo de Desarrollo
 
-```bash
-# Compilar
-mvn compile
+Proyecto desarrollado para la asignatura Ingeniería del Proceso Software del Grado en Ingeniería Informática (Universidad de Oviedo):
 
-# Ejecutar los tests
-mvn test
+| 👤 Nombre | 📧 Email | 🐱 GitHub |
+| :---: | :---: | :---: |
+| <img src="https://avatars.githubusercontent.com/patriilaago" width="55" style="border-radius:50%"><br>**Patricia Lago Martín** | `UO294435@uniovi.es` | [![GitHub](https://img.shields.io/badge/GitHub-patriilaago-brightgreen?logo=github)](https://github.com/patriilaago) |
+| <img src="https://avatars.githubusercontent.com/reyero-txt" width="55" style="border-radius:50%"><br>**Daniel Reyero Espinedo** | `UO293963@uniovi.es` | [![GitHub](https://img.shields.io/badge/GitHub-reyero--txt-orange?logo=github)](https://github.com/reyero-txt) |
+| <img src="https://avatars.githubusercontent.com/AdriGarciaS" width="55" style="border-radius:50%"><br>**Adriana García** | `UO288675@uniovi.es` | [![GitHub](https://img.shields.io/badge/GitHub-AdriGarciaS-blue?logo=github)](https://github.com/AdriGarciaS) |
 
-# Generar el .jar ejecutable
-mvn package
+---
 
-# Ejecutar el .jar generado
-java -jar target/IPS2026-PL11-ING.jar
-```
+## 🎯 Objetivos del Sistema
 
-Al ejecutarlo debería abrirse la ventana del menú principal ("Football Club Management") con cuatro botones. La primera vez que arranca, se crea automáticamente el archivo `data/demo.db` con una tabla `personas` y unas filas de ejemplo — no hace falta instalar ni configurar nada de base de datos a mano.
+- **Centralizar la gestión operativa:** Integrar empleados, prensa, instalaciones y ventas en un único punto de control.
+- **Optimizar recursos del club:** Evitar solapamientos de agendas en campos de entrenamiento e itinerarios de ruedas de prensa.
+- **Simplificar la interacción corporativa:** Ofrecer una interfaz ágil, moderna e inmersiva adaptada a la identidad visual oficial del Ipswich Town F.C.
+- **Cero configuración de base de datos:** Despliegue inmediato mediante base de datos embebida SQLite con regeneración automática de esquemas.
 
-### Opción B: desde IntelliJ IDEA
+---
 
-1. `File` → `Open...` y seleccionar la carpeta del proyecto (la que contiene el `pom.xml`).
-2. IntelliJ detecta automáticamente que es un proyecto Maven y descarga las dependencias.
-3. Abrir `src/main/java/com/ips2026/pl11/App.java` y pulsar el botón de ejecutar (▶) junto al método `main`.
+## 🚀 Módulos y Funcionalidades
 
-### Opción C: desde Eclipse
+### 1. 👥 Gestión de Personal (`employee`)
+- **Alta, modificación y baja de empleados:** Registro completo de jugadores, cuerpo técnico y personal administrativo.
+- **Tipificación de roles:** Clasificación por contratos, categorías y estados de actividad dentro del club.
 
-1. `File` → `Import...` → `Maven` → `Existing Maven Projects`.
-2. Seleccionar la carpeta del proyecto (la que contiene el `pom.xml`) y finalizar.
-3. Eclipse descarga las dependencias automáticamente.
-4. Clic derecho sobre `App.java` → `Run As` → `Java Application`.
+### 2. 📰 Gestión de Entrevistas y Prensa (`interview` / `slots`)
+- **Creación de franjas de disponibilidad:** Asignación de *slots* horarios para entrevistas con medios acreditados mediante selecciones interactivas de fecha y hora (`JDateChooser` + tiempo con spinners).
+- **Control de conflictos:** Validación automática de solapamientos con sesiones de entrenamiento, partidos o disponibilidad del jugador/entrenador.
 
-## Base de datos
+### 3. 🏟️ Reserva de Instalaciones (`reservation`)
+- **Gestión de campos y espacios:** Asignación de terrenos de juego, gimnasio y salas de prensa del complejo del club.
+- **Reservas para externos:** Reserva por horas completas (de 8:00 a 22:00, a 50 €/hora) en los periodos que no usan nuestros equipos. Los entrenamientos y los partidos en casa bloquean la instalación, y también la 1 h 30 posterior; los partidos fuera no bloquean nada.
 
-Al arrancar, la app ejecuta los scripts de `src/main/resources/db/`:
+### 4. 📅 Agendas y Planificación (`schedule`)
+- **Control de turnos y eventos:** Cuadrante de horarios de trabajo para técnicos y personal de campo.
 
-- `schema.sql`: creación de las tablas (usar siempre `CREATE TABLE IF NOT EXISTS`). Se ejecuta en cada arranque.
-- `data.sql`: datos de ejemplo. Solo se cargan cuando la base de datos se crea desde cero.
+### 5. 🛍️ Tienda Oficial de Merchandising (`store`)
+- **Catálogo interactivo:** Venta de equipaciones oficiales, productos de merchandising y artículos del club.
+- **Caja registradora:** Carrito de compra, desglose de precios y emisión de recibos detallados mediante formateo `MoneyFormat`.
 
-Cada sentencia debe terminar en `;` y los comentarios van en líneas que empiecen por `--`.
+### 6. ⚽ Equipos Deportivos (`team`)
+- **Creación de equipos:** Equipos profesionales (primer equipo o filial) o de cantera (juvenil, cadete, infantil, alevín, benjamín y prebenjamín), masculinos o femeninos.
+- **Reglas:** Edades por categoría contadas por año (`TeamCategory.java`), mínimo de 7 jugadores (`TeamRules.java`), primer y segundo entrenador obligatorios y personal técnico opcional con su tarea. Un jugador solo puede estar en un equipo.
 
-En `config.properties`, la opción `bd.borrarAlCerrar` decide qué pasa al cerrar la app:
+---
 
-- `false` (por defecto): la base de datos `data/demo.db` se **mantiene** entre ejecuciones. Si cambiáis `schema.sql` o `data.sql`, borrad la carpeta `data/` para que se regenere.
-- `true`: la base de datos se **borra** al cerrar, así que cada arranque empieza limpio con `schema.sql` + `data.sql`.
+## 💻 Tecnologías y Arquitectura
 
-También se puede elegir al ejecutar, sin tocar el archivo:
+El proyecto está diseñado bajo un estricto patrón **MVC (Modelo-Vista-Controlador)**:
 
-```bash
-java -Dbd.borrarAlCerrar=true -jar target/IPS2026-PL11-ING.jar
-```
-
-## Guía de estilo de las ventanas
-
-Todas las ventanas deben tener el mismo aspecto. Para conseguirlo sin repetir código, el aspecto está centralizado en `view/common/Branding.java` y `view/common/HeaderPanel.java`:
-
-- **Tema global**: `App` llama una vez a `Branding.installLookAndFeel()` (Nimbus con los colores del club). Todas las ventanas, diálogos (`JOptionPane`), tablas y botones lo heredan solos: **no cambiéis el look and feel ni pongáis colores "a mano"** en las ventanas.
-- **Plantilla de una ventana nueva**:
-
-```java
-// Ventana secundaria: JDialog MODAL cuyo dueño es el menú principal, así el
-// menú queda bloqueado hasta que se cierra esta ventana.
-public class MiNuevaVentana extends JDialog {
-    public MiNuevaVentana(MiControlador controlador, Window owner) {
-        super(owner, ModalityType.APPLICATION_MODAL);
-        setTitle("Título de la ventana");
-        setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        setMinimumSize(new Dimension(850, 500));
-        contentPane = new JPanel(new BorderLayout(0, 0));
-        setContentPane(contentPane);
-        Branding.applyTo(this);                                   // icono + fondo del club
-        contentPane.add(getPnHeader(), BorderLayout.NORTH);      // new HeaderPanel("Título", "Subtítulo")
-        contentPane.add(getPnBody(), BorderLayout.CENTER);       // panel con EmptyBorder(14, 14, 14, 14)
-        Branding.setInitialSize(this, 1200, 760, owner);         // tamaño por defecto, centrada en el menú
-    }
-}
-```
-
-Y desde el menú principal se abre con `new MiNuevaVentana(controlador, this).setVisible(true);`.
-
-- **Colores y fuente**: usar siempre las constantes de `Branding` (`NAVY`, `GOLD`, `BACKGROUND`, `TEXT_MUTED`, `BORDER`, `FONT_FAMILY`).
-- **Ventanas secundarias**: siempre `JDialog` modal con el menú como dueño (el menú queda bloqueado mientras están abiertas). Solo el menú principal es un `JFrame` con `EXIT_ON_CLOSE`.
-- **Tamaño**: usar `Branding.setInitialSize(...)` (por defecto 1200x760 las ventanas secundarias y 1024x720 el menú; se reduce sola si la pantalla es más pequeña).
-- **Layouts**: nada de layout absoluto (`null`). Usar `BorderLayout`, `GridBagLayout`, `GridLayout` o `FlowLayout`, con márgenes (`EmptyBorder`) de 12–14 px. Toda ventana debe ser redimensionable y tener un tamaño mínimo.
-- **Agrupar contenido** en paneles con `TitledBorder` (como "Catalog" y "Cart" en la venta de merchandising).
-- **Botones de acción** abajo a la derecha (`FlowLayout.RIGHT`): primero el secundario (Close/Cancel) y después el principal, en negrita. Poner mnemónicos (`setMnemonic`).
-- **Tablas**: no editables, selección de una fila, ordenables (`setAutoCreateRowSorter(true)`), altura de fila 24 y precios con `MoneyFormat.tableRenderer()`.
-- **Mensajes**: siempre con `JOptionPane` y la ventana como padre; pedir confirmación antes de acciones que guardan datos.
-- **Textos de la interfaz en inglés**.
-
-## Estructura del proyecto (MVC)
-
-```
+```text
 IPS2026-PL11-ING/
-├── pom.xml                                        # Configuración de Maven (dependencias, plugins, versión de Java)
-├── .gitignore
-├── README.md
-├── CLAUDE.md                                      # Reglas del proyecto para Claude Code
-├── data/                                           # Se crea sola al arrancar (contiene demo.db, no se versiona)
+├── pom.xml                                        # Configuración y dependencias de Maven
+├── README.md                                      # Documentación principal del repositorio
+├── CLAUDE.md                                      # Guía de estilo y directrices del proyecto
+├── data/                                          # SQLite BD local (demo.db, no versionado)
+├── documentation/                                 # Documentación de User Stories y Sprints
 └── src/
     ├── main/java/com/ips2026/pl11/
-    │   ├── App.java                                # Punto de entrada (main): tema del club, arranca la BD y abre el menú
-    │   ├── model/                                  # MODELO: clases de datos, una subcarpeta por funcionalidad
-    │   │   ├── example/Persona.java                # Ejemplo de referencia (id, nombre, email)
-    │   │   └── store/                              # Venta de merchandising
-    │   │       ├── Merchandise.java                # Producto (tabla MERCHANDISING)
-    │   │       ├── Cart.java, CartLine.java        # Carrito y sus líneas
-    │   │       └── SaleReceipt.java                # Resumen de una compra realizada
-    │   ├── view/                                   # VISTA: ventanas Swing (estilo lazy de WindowBuilder)
-    │   │   ├── common/                             # Compartido por TODAS las ventanas
-    │   │   │   ├── Branding.java                   # Tema Nimbus con colores del club, logo, applyTo(ventana)
-    │   │   │   ├── HeaderPanel.java                # Cabecera del club (logo + título)
-    │   │   │   └── MoneyFormat.java                # Formato de precios en euros
-    │   │   ├── menu/                               # Menú principal
-    │   │   │   ├── MainWindow.java                 # Cabecera + botones de cada funcionalidad + pie
-    │   │   │   └── MenuCardButton.java             # Botones tipo tarjeta del menú
-    │   │   └── store/                              # Venta de merchandising
-    │   │       ├── StoreSalesWindow.java           # Catálogo + carrito
-    │   │       └── CatalogTableModel.java, CartTableModel.java
-    │   ├── controller/                             # CONTROLADOR: une vista y datos
-    │   │   ├── example/PersonaControlador.java
-    │   │   └── store/StoreSalesController.java
-    │   └── data/                                   # DATOS: acceso a la base de datos
-    │       ├── ConexionBD.java                     # Común: conexión SQLite y scripts de db/
-    │       ├── example/PersonaDAO.java             # Consultas a la tabla "personas"
-    │       └── store/
-    │           ├── MerchandiseDAO.java             # Consultas a MERCHANDISING
-    │           └── MerchandiseSaleDAO.java         # Registro de ventas en MERCHANDISING_SALE
-    ├── main/resources/images/
-    │   └── logo.png                                # Logo del club (icono de las ventanas y cabecera)
-    ├── main/resources/db/
-    │   ├── schema.sql                              # CREATE TABLE de todas las tablas
-    │   ├── data.sql                                # Datos de ejemplo (dummy data)
-    │   └── config.properties                       # Mantener la BD o borrarla al cerrar
-    └── test/java/com/ips2026/pl11/
-        ├── AppTest.java                             # Test de arranque (JUnit 5)
-        ├── model/example/PersonaTest.java           # Test del modelo Persona (mismo subpaquete que la clase)
-        ├── model/store/CartTest.java                # Carrito: unidades, límites de stock, total
-        ├── controller/store/StoreSalesControllerTest.java  # Búsqueda, filtro por tipo y compra (con DAOs falsos)
-        ├── data/TestDatabase.java                   # Ayuda para tests de DAO: BD temporal (nunca toca data/demo.db)
-        └── data/store/MerchandiseDAOTest.java, MerchandiseSaleDAOTest.java  # Consultas y registro de ventas en SQLite
-```
-
-Cómo fluyen los datos: una vista nunca habla con la base de datos directamente. Le pregunta a su controlador (por ejemplo `PersonaControlador`), que a su vez usa el DAO (`PersonaDAO`) para leer la tabla y devolver objetos del modelo (`Persona`). Las clases `Persona*` se mantienen como ejemplo de referencia, aunque ya no se usan desde el menú principal. Este orden — vista → controlador → datos → modelo — es el que hay que seguir para añadir pantallas nuevas.
-
-### Dónde poner los archivos nuevos
-
-Cada funcionalidad (user story) tiene **su propia subcarpeta con el mismo nombre en cada capa**. Por ejemplo, la venta de merchandising es `store` en las cuatro: `model/store`, `view/store`, `controller/store` y `data/store`. Para una funcionalidad nueva (por ejemplo, gestión de equipos), cread `team/` en las capas que necesite:
+    │   ├── App.java                               # Punto de entrada (Aplica Branding, carga BD y abre menú)
+    │   ├── controller/                            # CONTROLADOR: Lógica de negocio
+    │   │   ├── employee/                          # Gestión de empleados
+    │   │   ├── interview/                         # Control de entrevistas
+    │   │   ├── reservation/                       # Gestión de reservas
+    │   │   ├── schedule/                          # Planificación de agendas
+    │   │   ├── slots/                             # Control de franjas horarias
+    │   │   ├── store/                             # Lógica de caja y ventas
+    │   │   └── team/                              # Creación de equipos deportivos
+    │   ├── data/                                  # DATOS: Acceso a SQLite (DAOs)
+    │   │   ├── employee/                          # Acceso a 'employees'
+    │   │   ├── interview/                         # Acceso a 'interviews'
+    │   │   ├── reservation/                       # Acceso a 'facility_reservations'
+    │   │   ├── schedule/                          # Acceso a 'work_schedule'
+    │   │   ├── slots/                             # Acceso a 'interview_slots'
+    │   │   ├── store/                             # Acceso a 'merchandise'
+    │   │   ├── team/                              # Acceso a 'TEAM' y 'TEAM_MEMBER'
+    │   │   └── ConexionBD.java                    # Conexión JDBC común
+    │   ├── model/                                 # MODELO: Clases de dominio POJO
+    │   │   ├── employee/                          # Employee, EmployeeType
+    │   │   ├── interview/                         # Interview
+    │   │   ├── reservation/                       # Reservation
+    │   │   ├── schedule/                          # WorkSchedule
+    │   │   ├── slots/                             # InterviewSlot
+    │   │   ├── store/                             # Merchandise, Cart, SaleReceipt
+    │   │   └── team/                              # TeamCategory, TeamRules, NewTeam
+    │   └── view/                                  # VISTA: Componentes Swing
+    │       ├── common/                            # Branding, HeaderPanel, MoneyFormat
+    │       ├── employee/                          # Diálogos de empleados
+    │       ├── interview/                         # Diálogos de entrevistas
+    │       ├── menu/                              # Menú principal y MenuCardButton
+    │       ├── reservation/                       # Diálogos de reservas
+    │       ├── schedule/                          # Vistas de agenda
+    │       ├── slots/                             # Vistas de creación de slots
+    │       ├── store/                             # Vistas de tienda y caja
+    │       └── team/                              # Ventana de creación de equipos
+    └── main/resources/
+        ├── images/ipswich.png                     # Escudo e icono corporativo
+        └── db/                                    # schema.sql, data.sql, config.properties
 
 ```
-model/team/Team.java
-view/team/TeamWindow.java
-controller/team/TeamController.java
-data/team/TeamDAO.java
+
+---
+
+## 🎨 Guía de Estilo Visual
+
+Toda la aplicación utiliza la paleta oficial del **Ipswich Town F.C.** integrada mediante el motor Swing Nimbus en `Branding.java`:
+
+* **Royal Blue (`#0044AA`):** Azul base corporativo para títulos, bordes y encabezados.
+* **Crest Crimson Red (`#DE2C37`):** Rojo carmesí para detalles de acento, bordes activos y estados destructivos (`dangerMode`).
+* **Dark Navy (`#002C6E`):** Azul marino oscuro para contrastes y estados de selección (*hover*).
+
+---
+
+## 🗄️ Notas de la Base de Datos
+
+* **Género de los empleados:** la columna `gender` de `employees` es obligatoria (`MALE` / `FEMALE`) y se pide en los formularios de alta y modificación. Los equipos son solo masculinos o femeninos y sus jugadores deben tener el género del equipo.
+* **Entrenamientos y partidos:** cada entrenamiento (`trainings`) indica la instalación que usa (`facility_id`, obligatoria). Cada partido (`matches`) indica si se juega en nuestro campo (`is_home` = 1, con `facility_id` obligatoria) o en el del rival (`is_home` = 0, sin instalación). Ambos se asocian a un equipo con `team_id`.
+* **Datos de ejemplo:** `data.sql` usa fechas relativas al día actual. Si cambian las tablas, hay que **borrar la carpeta `data/`** para que la base de datos se vuelva a crear.
+
+---
+
+## ⚙️ Instalación y Configuración
+
+### Requisitos Previos
+
+* **JDK 21** (Java Development Kit).
+* **Maven 3.9+** (integrado automáticamente en IntelliJ IDEA y Eclipse).
+* **Git** para clonar el repositorio.
+
+### Pasos para Ejecutar
+
+#### Opción A: Desde Terminal con Maven
+
+```bash
+# 1. Compilar el código
+mvn compile
+
+# 2. Ejecutar los tests unitarios e integrados
+mvn test
+
+# 3. Generar el archivo .jar ejecutable
+mvn package
+
+# 4. Ejecutar la aplicación
+java -jar target/IPS2026-PL11-ING.jar
+
 ```
 
-- Nombre de la subcarpeta: una palabra en inglés, en minúsculas y en singular (`store`, `team`, `player`, `ticket`...).
-- Lo que usan **varias** funcionalidades va en `view/common` (o `model/common`, etc.), no se copia en cada carpeta.
-- `data/ConexionBD.java` es común a todos los DAO y se queda en la raíz de `data/`.
-- Las ventanas nuevas se abren desde un botón del menú (`view/menu/MainWindow.java`).
-- Los tests van en `src/test/java` con el mismo subpaquete que la clase que prueban (por ejemplo `model/store/CartTest.java`).
+#### Opción B: Desde IntelliJ IDEA
 
-## Notas para el equipo
+```bash
+1. Ve a `File` → `Open...` y selecciona la carpeta raíz del proyecto (donde está el `pom.xml`).
+2. IntelliJ detectará automáticamente que es un proyecto Maven y descargará las dependencias necesarias.
+3. Abre `src/main/java/com/ips2026/pl11/App.java` y haz clic en el botón de ejecución (**▶**) situado al lado del método `main`.
+```
 
-- **Equipos deportivos** (`model/team`, `view/team`, `controller/team`, `data/team`): las edades de cada categoría están en `model/team/TeamCategory.java` y el mínimo de 7 jugadores en `model/team/TeamRules.java`. La edad se cuenta **por año** (año actual − año de nacimiento). Tablas: `TEAM` (con los dos entrenadores obligatorios) y `TEAM_MEMBER` (jugadores y otro personal técnico con su tarea); un jugador solo puede estar en un equipo.
-- **Género de los empleados**: la columna `gender` de `employees` es **obligatoria** (`MALE` / `FEMALE`) y se pide en los formularios de alta y modificación de empleados. Los equipos son solo masculinos o femeninos (no hay equipos mixtos) y sus jugadores deben tener el género del equipo.
-- **Entrenamientos y partidos** (`trainings`, `matches`): cada entrenamiento tiene la instalación que usa (`facility_id`, obligatoria). Cada partido indica si se juega en nuestro campo (`is_home` = 1, con `facility_id` obligatoria) o en el del rival (`is_home` = 0, sin instalación). Los entrenamientos y los partidos en casa son los usos de las instalaciones por nuestros equipos: la reserva de instalaciones los bloquea, y también la 1 h 30 posterior. Los partidos fuera no bloquean nada.
+#### Opción C: Desde Eclipse
 
-- El paquete base de todo el código Java es `com.ips2026.pl11`. Las clases nuevas van en la capa MVC que les corresponda (`model`, `view`, `controller`, `data`) y dentro, en la subcarpeta de su funcionalidad (ver "Dónde poner los archivos nuevos"), siguiendo la convención estándar de nombres de paquete en minúsculas.
-- Las ventanas Swing se escriben con la generación de código **lazy** de Eclipse WindowBuilder (un atributo privado por componente y un getter `getXxx()` que lo crea la primera vez), para poder seguir editándolas desde la pestaña *Design*.
-- Los tests van en `src/test/java`, en el mismo subpaquete que la clase que prueban.
-- La base de datos es SQLite: un único archivo (`data/demo.db`) que se crea y se rellena solo la primera vez que se ejecuta la app. No hace falta instalar MySQL, PostgreSQL ni ningún gestor de base de datos aparte.
-- Si algo no compila o no importa bien en tu IDE, lo normal es que sea un problema de configuración local (versión de JDK distinta, caché de Maven, etc.) — comentadlo en el grupo antes de tocar el `pom.xml`.
+```bash
+1. Ve a `File` → `Import...` → `Maven` → `Existing Maven Projects`.
+2. Selecciona la carpeta raíz del proyecto y haz clic en `Finish`.
+3. Eclipse descargará las dependencias automáticamente.
+4. Haz clic derecho sobre `App.java` → `Run As` → `Java Application`.
+
+```

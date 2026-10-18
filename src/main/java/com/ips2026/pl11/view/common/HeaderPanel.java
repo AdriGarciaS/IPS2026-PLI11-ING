@@ -47,7 +47,7 @@ public class HeaderPanel extends JPanel {
 
         setBackground(Branding.NAVY);
         setBorder(BorderFactory.createCompoundBorder(
-                new MatteBorder(0, 0, 4, 0, Branding.GOLD),
+                new MatteBorder(0, 0, 4, 0, Branding.IPSWICH_RED),
                 new EmptyBorder(padding, 20, padding, 20)));
         setLayout(new BorderLayout(large ? 18 : 14, 0));
 
@@ -62,7 +62,7 @@ public class HeaderPanel extends JPanel {
 
         lblSubtitle = new JLabel(subtitle);
         lblSubtitle.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, large ? 14 : 13));
-        lblSubtitle.setForeground(Branding.GOLD);
+        lblSubtitle.setForeground(Color.BLACK);
         lblSubtitle.setVerticalAlignment(SwingConstants.TOP);
 
         JPanel pnTitles = new JPanel(new GridLayout(2, 1, 0, 2));

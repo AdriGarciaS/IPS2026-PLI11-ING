@@ -203,7 +203,7 @@ public class AvailabilityBar extends JComponent {
         if (type == TimeSlot.Type.BLOCKED_AFTER_TEAM) {
             Shape oldClip = g2.getClip();
             g2.clip(area);
-            g2.setColor(Branding.GOLD);
+            g2.setColor(Branding.NAVY_DARKER);
             g2.setStroke(new BasicStroke(1.5f));
             for (int x = area.x - area.height; x < area.x + area.width; x += 7) {
                 g2.drawLine(x, area.y + area.height, x + area.height, area.y);

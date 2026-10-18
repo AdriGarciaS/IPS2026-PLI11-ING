@@ -324,6 +324,7 @@ public class GMWorkScheduleWindow extends JFrame {
                     if(row != -1) {
                         int id = (int) tableWorkers.getValueAt(row, 0);
                         getTxtWorkerId().setText(String.valueOf(id));
+                        refreshShiftsTable();
                     }
                 }
             });
@@ -359,8 +360,10 @@ public class GMWorkScheduleWindow extends JFrame {
             DefaultTableModel model = (DefaultTableModel) tableShifts.getModel();
             model.setRowCount(0);
             for (WorkSchedule s : wsController.getWorkSchedules()) {
-                model.addRow(new Object[] {
-                        s.getEmployeeId(), DAYS[s.getWeekDay() - 1], s.getStartTime(), s.getEndTime()});
+                if(s.getEmployeeId() == Long.parseLong(txtWorkerId.getText())) {
+                    model.addRow(new Object[] {
+                        s.getEmployeeId(), DAYS[s.getWeekDay() - 1], s.getStartTime(), s.getEndTime()});                    
+                }
             }
         } catch (NumberFormatException e) {
             showError("Employee id must be a number");

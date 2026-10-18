@@ -1,24 +1,16 @@
 package com.ips2026.pl11.view.employee;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.ips2026.pl11.view.menu.MenuCardButton;
 
 public class EmployeeMenuDialog extends JDialog {
 
@@ -27,22 +19,21 @@ public class EmployeeMenuDialog extends JDialog {
     private JPanel contentPane;
     private HeaderPanel pnHeader;
     private JPanel pnButtons;
-    private JButton btnAdd;
-    private JButton btnModify;
-    private JButton btnDelete;
+    private MenuCardButton btnAdd;
+    private MenuCardButton btnModify;
+    private MenuCardButton btnDelete;
 
     public EmployeeMenuDialog(JFrame parent) {
         super(parent, "Employee Management", true);
-        setSize(480, 450);
+        setSize(480, 480);
         setLocationRelativeTo(parent);
         setResizable(false);
 
         // Aplica el icono de la ventana y el fondo corporativo
         Branding.applyTo(this);
 
-        contentPane = new JPanel();
+        contentPane = new JPanel(new BorderLayout(0, 0));
         contentPane.setBackground(Branding.BACKGROUND);
-        contentPane.setLayout(new BorderLayout(0, 0));
         setContentPane(contentPane);
 
         contentPane.add(getPnHeader(), BorderLayout.NORTH);
@@ -72,42 +63,12 @@ public class EmployeeMenuDialog extends JDialog {
         return pnButtons;
     }
 
-    private JButton getBtnAdd() {
+    private MenuCardButton getBtnAdd() {
         if (btnAdd == null) {
-            btnAdd = new JButton("Add New Employee");
-            btnAdd.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 15));
-            btnAdd.setFocusPainted(false);
-            btnAdd.setContentAreaFilled(false);
-            btnAdd.setOpaque(true);
-            btnAdd.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            btnAdd.setBackground(Color.WHITE);
-            btnAdd.setForeground(Branding.NAVY);
-            btnAdd.setHorizontalAlignment(SwingConstants.CENTER);
-            btnAdd.setBorder(BorderFactory.createCompoundBorder(
-                    new LineBorder(Branding.BORDER, 1, true),
-                    BorderFactory.createEmptyBorder(12, 15, 12, 15)
-            ));
-
-            btnAdd.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    btnAdd.setBackground(new Color(241, 245, 249));
-                    btnAdd.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.GOLD, 1, true),
-                            BorderFactory.createEmptyBorder(12, 15, 12, 15)
-                    ));
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    btnAdd.setBackground(Color.WHITE);
-                    btnAdd.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.BORDER, 1, true),
-                            BorderFactory.createEmptyBorder(12, 15, 12, 15)
-                    ));
-                }
-            });
-
+            btnAdd = new MenuCardButton(
+                    "Add New Employee",
+                    "Register a new coach, player, or administrative club staff"
+            );
             btnAdd.addActionListener(e -> {
                 new AddEmployeeView((JFrame) getOwner()).setVisible(true);
             });
@@ -115,42 +76,12 @@ public class EmployeeMenuDialog extends JDialog {
         return btnAdd;
     }
 
-    private JButton getBtnModify() {
+    private MenuCardButton getBtnModify() {
         if (btnModify == null) {
-            btnModify = new JButton("Modify Employee");
-            btnModify.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 15));
-            btnModify.setFocusPainted(false);
-            btnModify.setContentAreaFilled(false);
-            btnModify.setOpaque(true);
-            btnModify.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            btnModify.setBackground(Color.WHITE);
-            btnModify.setForeground(Branding.NAVY);
-            btnModify.setHorizontalAlignment(SwingConstants.CENTER);
-            btnModify.setBorder(BorderFactory.createCompoundBorder(
-                    new LineBorder(Branding.BORDER, 1, true),
-                    BorderFactory.createEmptyBorder(12, 15, 12, 15)
-            ));
-
-            btnModify.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    btnModify.setBackground(new Color(241, 245, 249));
-                    btnModify.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.GOLD, 1, true),
-                            BorderFactory.createEmptyBorder(12, 15, 12, 15)
-                    ));
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    btnModify.setBackground(Color.WHITE);
-                    btnModify.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.BORDER, 1, true),
-                            BorderFactory.createEmptyBorder(12, 15, 12, 15)
-                    ));
-                }
-            });
-
+            btnModify = new MenuCardButton(
+                    "Modify Employee",
+                    "Update personal, contractual, and role details of registered staff"
+            );
             btnModify.addActionListener(e -> {
                 ModifyEmployeeView modifyView = new ModifyEmployeeView(this);
                 modifyView.setVisible(true);
@@ -159,42 +90,12 @@ public class EmployeeMenuDialog extends JDialog {
         return btnModify;
     }
 
-    private JButton getBtnDelete() {
+    private MenuCardButton getBtnDelete() {
         if (btnDelete == null) {
-            btnDelete = new JButton("Delete Employee");
-            btnDelete.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 15));
-            btnDelete.setFocusPainted(false);
-            btnDelete.setContentAreaFilled(false);
-            btnDelete.setOpaque(true);
-            btnDelete.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            btnDelete.setBackground(Color.WHITE);
-            btnDelete.setForeground(Branding.NAVY);
-            btnDelete.setHorizontalAlignment(SwingConstants.CENTER);
-            btnDelete.setBorder(BorderFactory.createCompoundBorder(
-                    new LineBorder(Branding.BORDER, 1, true),
-                    BorderFactory.createEmptyBorder(12, 15, 12, 15)
-            ));
-
-            btnDelete.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    btnDelete.setBackground(new Color(254, 226, 226));
-                    btnDelete.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.ERROR, 1, true),
-                            BorderFactory.createEmptyBorder(12, 15, 12, 15)
-                    ));
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    btnDelete.setBackground(Color.WHITE);
-                    btnDelete.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.BORDER, 1, true),
-                            BorderFactory.createEmptyBorder(12, 15, 12, 15)
-                    ));
-                }
-            });
-
+            btnDelete = new MenuCardButton(
+                    "Delete Employee",
+                    "Remove personnel and finalize contract terminations"
+            );
             btnDelete.addActionListener(e -> {
                 DeleteEmployeeView deleteView = new DeleteEmployeeView(this);
                 deleteView.setVisible(true);

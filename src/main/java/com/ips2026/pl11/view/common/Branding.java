@@ -28,7 +28,7 @@ import javax.swing.UIManager;
 public final class Branding {
 
     /** Official Ipswich Town FC Royal Blue (#0044AA). Primary club color. */
-    public static final Color NAVY = new Color(0x00, 0x44, 0xAA);
+    public static final Color NAVY = new Color(/*0x00, 0x44, 0xAA*/ 0x07, 0x33, 0x75);
 
     /** Official Ipswich Town crest crimson red (#DE2C37). */
     public static final Color IPSWICH_RED = new Color(0xDE, 0x2C, 0x37);
@@ -68,7 +68,7 @@ public final class Branding {
      * Installs the Nimbus look and feel styled with Ipswich Town FC colors.
      */
     public static void installLookAndFeel() {
-        UIManager.put("nimbusBase", new Color(0x00, 0x44, 0xAA));              
+        UIManager.put("nimbusBase", new Color(0x23, 0x5B, 0xB0));              
         UIManager.put("nimbusBlueGrey", new Color(0x94, 0xA3, 0xB8));         
         UIManager.put("control", BACKGROUND);                                 
         UIManager.put("nimbusSelectionBackground", new Color(0x00, 0x33, 0x85)); 

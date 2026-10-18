@@ -62,7 +62,7 @@ public class HeaderPanel extends JPanel {
 
         lblSubtitle = new JLabel(subtitle);
         lblSubtitle.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, large ? 14 : 13));
-        lblSubtitle.setForeground(Color.BLACK);
+        lblSubtitle.setForeground(Color.WHITE);
         lblSubtitle.setVerticalAlignment(SwingConstants.TOP);
 
         JPanel pnTitles = new JPanel(new GridLayout(2, 1, 0, 2));

@@ -203,12 +203,21 @@ public class CreateInterviewSlotDialog extends JDialog {
             tblCoaches.getColumnModel().getColumn(1).setPreferredWidth(260);
 
             tblCoaches.getSelectionModel().addListSelectionListener(e -> {
-                if (!e.getValueIsAdjusting()) {
+            	if (!e.getValueIsAdjusting()) {
                     int row = tblCoaches.getSelectedRow();
                     if (row != -1 && coachesList != null && row < coachesList.size()) {
                         selectedCoach = coachesList.get(row);
                         getTxtSelectedCoach().setText(selectedCoach.getFirstName() + " " + selectedCoach.getLastName());
-                        loadPlayersForCoach(selectedCoach.getId());
+                        
+                        selectedPlayer = null;
+                        getTxtSelectedPlayer().setText("");
+                        
+                        try {
+                            loadPlayersForCoach(selectedCoach.getId());
+                            loadSlotsForCoach(selectedCoach.getId());
+                        } catch (SQLException ex) {
+                            ex.printStackTrace();
+                        }
                     }
                 }
             });
@@ -240,8 +249,8 @@ public class CreateInterviewSlotDialog extends JDialog {
     }
 
     private JTable getTblPlayers() {
-        if (tblPlayers == null) {
-            String[] cols = {"ID", "Player Name", "Position"};
+    	if (tblPlayers == null) {
+            String[] cols = {"ID", "Player Name"};
             playersModel = new DefaultTableModel(cols, 0) {
                 @Override
                 public boolean isCellEditable(int row, int column) {
@@ -255,22 +264,21 @@ public class CreateInterviewSlotDialog extends JDialog {
             tblPlayers.getTableHeader().setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 12));
             tblPlayers.getTableHeader().setBackground(new Color(241, 245, 249));
 
-            tblPlayers.getColumnModel().getColumn(0).setPreferredWidth(35);
-            tblPlayers.getColumnModel().getColumn(1).setPreferredWidth(170);
-            tblPlayers.getColumnModel().getColumn(2).setPreferredWidth(95);
+            tblPlayers.getColumnModel().getColumn(0).setPreferredWidth(45);
+            tblPlayers.getColumnModel().getColumn(1).setPreferredWidth(260);
 
             tblPlayers.getSelectionModel().addListSelectionListener(e -> {
                 if (!e.getValueIsAdjusting()) {
                     int row = tblPlayers.getSelectedRow();
                     if (row != -1 && currentPlayersList != null && row < currentPlayersList.size()) {
                         selectedPlayer = currentPlayersList.get(row);
+                        
                         getTxtSelectedPlayer().setText(selectedPlayer.getFirstName() + " " + selectedPlayer.getLastName());
                         getBtnSave().setEnabled(true);
-                        loadSlotsTable(selectedPlayer.getId());
-                    } else {
-                        selectedPlayer = null;
-                        getTxtSelectedPlayer().setText("Select a player above");
-                        getBtnSave().setEnabled(false);
+                        
+                        if (selectedCoach != null) {
+                            loadSlotsForCoach(selectedCoach.getId());
+                        }
                     }
                 }
             });
@@ -572,39 +580,63 @@ public class CreateInterviewSlotDialog extends JDialog {
         }
     }
 
-    private void loadPlayersForCoach(int coachId) {
+    private void loadPlayersForCoach(int coachId) throws SQLException {
+    	this.currentPlayersList = controller.getPlayersByCoach(coachId);
+        
         playersModel.setRowCount(0);
+        slotsModel.setRowCount(0); 
+        getTxtSelectedPlayer().setText("");
         selectedPlayer = null;
-        getTxtSelectedPlayer().setText("Select a player");
-        getBtnSave().setEnabled(false);
-
-        try {
-            currentPlayersList = controller.getPlayersByCoach(coachId);
-            if (currentPlayersList != null) {
-                for (Employee p : currentPlayersList) {
-                    playersModel.addRow(new Object[]{p.getId(), p.getFirstName() + " " + p.getLastName(), p.getPosition()});
-                }
+        getBtnSave().setEnabled(false); 
+        
+        if (currentPlayersList != null) {
+            for (Employee p : currentPlayersList) {
+                playersModel.addRow(new Object[]{
+                    p.getId(), 
+                    p.getFirstName() + " " + p.getLastName()
+                });
             }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error loading players for coach: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void loadSlotsTable(int playerId) {
-        slotsModel.setRowCount(0);
+    	slotsModel.setRowCount(0);
         try {
-            List<InterviewSlotRecord> slots = controller.getAllSlots();
-            for (InterviewSlotRecord s : slots) {
-                slotsModel.addRow(new Object[]{
+            List<InterviewSlotRecord> slots = controller.getAllSlots(); 
+            if (slots != null) {
+                for (InterviewSlotRecord s : slots) {
+                    slotsModel.addRow(new Object[]{
                         s.getPlayerName(), 
                         s.getDate(),
                         s.getStartTime(),
                         s.getEndTime(),
                         s.getStatus()
-                });
+                    });
+                }
             }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error loading interview slots: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void loadSlotsForCoach(int coachId) {
+    	slotsModel.setRowCount(0);
+        try {
+            List<InterviewSlotRecord> slots = controller.getSlotsByCoach(coachId);
+            if (slots != null) {
+                for (InterviewSlotRecord s : slots) {
+                    slotsModel.addRow(new Object[]{
+                        s.getPlayerName(), 
+                        s.getDate().toString(),       
+                        s.getStartTime().toString(),  
+                        s.getEndTime().toString(),    
+                        s.getStatus()
+                    });
+                }
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error loading interview slots: " + ex.getMessage(), 
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -644,7 +676,7 @@ public class CreateInterviewSlotDialog extends JDialog {
             controller.createInterviewSlot(selectedPlayer.getId(), selectedCoach.getId(), date, start, end);
 
             JOptionPane.showMessageDialog(this, "Interview slot registered successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            loadSlotsTable(selectedPlayer.getId());
+            loadSlotsForCoach(selectedCoach.getId());
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Constraint Violation", JOptionPane.ERROR_MESSAGE);

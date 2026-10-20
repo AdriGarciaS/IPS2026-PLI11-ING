@@ -46,12 +46,12 @@ INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reserva
     
 -- Dummy work schedule to test the Recurring Work Schedules user story and the Specific Schedules user story.
 insert into work_schedule (employee_id, week_day, start_time, end_time) VALUES
-	(4, 1, '09:00', '17:00'),
-	(4, 2, '09:00', '17:00'),
-	(4, 3, '09:00', '17:00'),
-	(5, 4, '09:00', '17:00'),
-	(5, 5, '09:30', '10:30'),
-	(5, 6, '09:00', '16:00');
+	(5, 1, '09:00', '17:00'),
+	(5, 2, '09:00', '17:00'),
+	(5, 3, '09:00', '17:00'),
+	(6, 4, '09:00', '17:00'),
+	(6, 5, '09:30', '10:30'),
+	(6, 6, '09:00', '16:00');
 
 
 -- Sample sports employees for the sports teams. The birth dates are relative

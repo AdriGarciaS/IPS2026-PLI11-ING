@@ -1,7 +1,11 @@
 package com.ips2026.pl11.view.shareholder;
 
 import com.ips2026.pl11.controller.shareholder.ShareholderPortalController;
+import com.ips2026.pl11.controller.shareholder.SharesWalletController;
+import com.ips2026.pl11.data.shareholder.MarketPriceDAO;
+import com.ips2026.pl11.data.shareholder.ShareHoldingDAO;
 import com.ips2026.pl11.model.shareholder.Shareholder;
+import com.ips2026.pl11.model.shareholder.SharesWallet;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.menu.MenuCardButton;
@@ -12,6 +16,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Window;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +24,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -229,12 +235,14 @@ public class ShareholderPortalDialog extends JDialog {
         return pnOptions;
     }
 
-    /** The shares wallet: it will be connected in the next step of the user story. */
+    /** The shares wallet of the chosen shareholder (enabled once a shareholder is chosen). */
     private MenuCardButton getBtnWallet() {
         if (btnWallet == null) {
-            btnWallet = new MenuCardButton("My Shares Wallet", COMING_SOON);
+            btnWallet = new MenuCardButton("My Shares Wallet", "Portfolio value and details of my shares");
             btnWallet.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnWallet.setMnemonic('W');
             btnWallet.setEnabled(false);
+            btnWallet.addActionListener(event -> openWallet());
         }
         return btnWallet;
     }
@@ -304,6 +312,7 @@ public class ShareholderPortalDialog extends JDialog {
 
     private void showSelected() {
         Shareholder selected = controller.getSelected();
+        getBtnWallet().setEnabled(selected != null);
         if (selected == null) {
             getLblSelected().setForeground(Branding.TEXT_MUTED);
             getLblSelected().setText("No shareholder chosen: type your national ID or search your name.");
@@ -311,5 +320,22 @@ public class ShareholderPortalDialog extends JDialog {
             getLblSelected().setForeground(Branding.NAVY);
             getLblSelected().setText("Shareholder: " + selected);
         }
+    }
+
+    private void openWallet() {
+        Shareholder selected = controller.getSelected();
+        if (selected == null) {
+            return;
+        }
+        SharesWalletController walletController = new SharesWalletController(new ShareHoldingDAO(), new MarketPriceDAO());
+        SharesWallet wallet;
+        try {
+            wallet = walletController.loadWallet(selected);
+        } catch (SQLException | IllegalStateException exception) {
+            JOptionPane.showMessageDialog(this, "The shares wallet could not be loaded:\n" + exception.getMessage(),
+                    "Shares Wallet", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        new SharesWalletDialog(wallet, this).setVisible(true);
     }
 }

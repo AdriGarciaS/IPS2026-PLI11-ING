@@ -180,3 +180,55 @@ CREATE TABLE IF NOT EXISTS TEAM_MEMBER (
 -- A player can only belong to one team.
 CREATE UNIQUE INDEX IF NOT EXISTS ux_team_member_one_team_per_player ON TEAM_MEMBER (employee_id) WHERE role = 'PLAYER';
 
+-- ---------------------------------------------------------------------------
+-- Shareholders (US 35747: shares wallet).
+-- ---------------------------------------------------------------------------
+
+-- People that own shares of the club. There is no login: a shareholder
+-- identifies with the national ID or is searched by name.
+CREATE TABLE IF NOT EXISTS SHAREHOLDER (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name  TEXT    NOT NULL,
+    last_name   TEXT    NOT NULL,
+    national_id TEXT    NOT NULL UNIQUE COLLATE NOCASE
+);
+
+-- Campaigns in which the club sold shares (for example a capital increase).
+-- start_date / end_date: YYYY-MM-DD.
+CREATE TABLE IF NOT EXISTS SHARE_CAMPAIGN (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT    NOT NULL UNIQUE,
+    start_date TEXT    NOT NULL,
+    end_date   TEXT    NOT NULL,
+    CHECK (end_date >= start_date)
+);
+
+-- Shares that a shareholder bought in one campaign (one row per shareholder
+-- and campaign). The shares themselves, each one with its own ID, are in SHARE:
+-- the quantity is the number of shares of the holding.
+-- purchase_price: price of ONE share when it was bought.
+-- purchase_date: YYYY-MM-DD.
+CREATE TABLE IF NOT EXISTS SHARE_HOLDING (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    shareholder_id INTEGER NOT NULL REFERENCES SHAREHOLDER (id),
+    campaign_id    INTEGER NOT NULL REFERENCES SHARE_CAMPAIGN (id),
+    purchase_date  TEXT    NOT NULL,
+    purchase_price REAL    NOT NULL CHECK (purchase_price > 0),
+    UNIQUE (shareholder_id, campaign_id)
+);
+
+-- Every single share of the club: its id is the share ID (share number),
+-- and it belongs to one holding. The IDs of a holding do not need to be
+-- consecutive.
+CREATE TABLE IF NOT EXISTS SHARE (
+    id         INTEGER PRIMARY KEY,
+    holding_id INTEGER NOT NULL REFERENCES SHARE_HOLDING (id)
+);
+
+-- Market price of one share of the club, one row per day (YYYY-MM-DD).
+-- When the application starts, a random price for today is added if there
+-- is none yet (at most 5 % up or down from the last price).
+CREATE TABLE IF NOT EXISTS MARKET_PRICE (
+    price_date TEXT PRIMARY KEY,
+    price      REAL NOT NULL CHECK (price > 0)
+);

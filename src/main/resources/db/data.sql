@@ -267,3 +267,56 @@ FROM days WHERE n % 7 = 3;
 -- player 1 (Lamine) belongs to the First Team, so it is a First Team training.
 INSERT INTO trainings (team_id, training_date, start_time, end_time, facility_id)
     VALUES ((SELECT id FROM TEAM WHERE name = 'First Team'), '2026-10-15', '09:00', '11:00', 5);
+
+-- Sample shareholders (US 35747).
+INSERT INTO SHAREHOLDER (first_name, last_name, national_id) VALUES
+    ('Laura', 'Pérez Gil', '11111111H'),
+    ('Marcos', 'Ruiz Soto', '22222222J'),
+    ('Irene', 'Castillo Mora', '33333333P'),
+    ('Javier', 'Ortega Lima', '44444444A');
+
+-- Sample share campaigns, holdings and market prices (US 35747), so every
+-- case can be tested: Laura is in profit, Marcos at a loss, Irene has one
+-- holding up and one down, and Javier has no shares.
+INSERT INTO SHARE_CAMPAIGN (name, start_date, end_date) VALUES
+    ('Founding shares 2023', '2023-01-15', '2023-03-31'),
+    ('Capital increase 2024', '2024-03-01', '2024-04-30'),
+    ('Capital increase 2026', '2026-02-01', '2026-03-15');
+
+INSERT INTO SHARE_HOLDING (shareholder_id, campaign_id, purchase_date, purchase_price) VALUES
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '11111111H'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), '2023-02-10', 9.50),
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '11111111H'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2024'), '2024-03-12', 10.00),
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2024'), '2024-04-02', 15.00),
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), '2026-02-05', 14.20),
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), '2023-03-01', 9.80),
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), '2026-02-20', 14.80);
+
+-- The shares of each holding, with their IDs. Some holdings have IDs that
+-- are not consecutive (for example Laura: 1-300 and 601-800), to test it.
+-- Each SELECT gives the share numbers from..to of one holding.
+WITH RECURSIVE numbers(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM numbers WHERE n < 3000),
+ranges(national_id, campaign, first_id, last_id) AS (
+    SELECT '11111111H', 'Founding shares 2023', 1, 300
+    UNION ALL SELECT '11111111H', 'Founding shares 2023', 601, 800
+    UNION ALL SELECT '33333333P', 'Founding shares 2023', 301, 500
+    UNION ALL SELECT '11111111H', 'Capital increase 2024', 1001, 1300
+    UNION ALL SELECT '22222222J', 'Capital increase 2024', 1301, 1650
+    UNION ALL SELECT '22222222J', 'Capital increase 2024', 1701, 1750
+    UNION ALL SELECT '22222222J', 'Capital increase 2026', 2001, 2250
+    UNION ALL SELECT '33333333P', 'Capital increase 2026', 2251, 2500
+    UNION ALL SELECT '33333333P', 'Capital increase 2026', 2601, 2700
+)
+INSERT INTO SHARE (id, holding_id)
+SELECT n.n, h.id
+FROM ranges r
+JOIN SHAREHOLDER s ON s.national_id = r.national_id
+JOIN SHARE_CAMPAIGN c ON c.name = r.campaign
+JOIN SHARE_HOLDING h ON h.shareholder_id = s.id AND h.campaign_id = c.id
+JOIN numbers n ON n.n BETWEEN r.first_id AND r.last_id;
+
+-- Market prices of the last 3 days (relative to the day the database is
+-- created). The price of today is created at random when the app starts.
+INSERT INTO MARKET_PRICE (price_date, price) VALUES
+    (date('now', 'localtime', '-3 days'), 12.10),
+    (date('now', 'localtime', '-2 days'), 12.25),
+    (date('now', 'localtime', '-1 days'), 12.30);

@@ -2,11 +2,14 @@
 package com.ips2026.pl11;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.Random;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import com.ips2026.pl11.data.ConexionBD;
+import com.ips2026.pl11.data.shareholder.MarketPriceDAO;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.menu.MainWindow;
 
@@ -39,6 +42,9 @@ public final class App {
 
         try {
             ConexionBD.inicializar();
+            // Precio de mercado de las acciones de hoy (aleatorio), solo si
+            // todavia no existe: asi se crea una vez al dia.
+            new MarketPriceDAO().ensurePriceFor(LocalDate.now(), new Random());
         } catch (SQLException excepcion) {
             JOptionPane.showMessageDialog(null,
                     "No se pudo inicializar la base de datos:\n" + excepcion.getMessage(),

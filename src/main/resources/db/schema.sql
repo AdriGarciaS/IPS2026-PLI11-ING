@@ -232,3 +232,16 @@ CREATE TABLE IF NOT EXISTS MARKET_PRICE (
     price_date TEXT PRIMARY KEY,
     price      REAL NOT NULL CHECK (price > 0)
 );
+
+-- Tickets sold for home matches
+CREATE TABLE IF NOT EXISTS MATCH_TICKET (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    match_id    INTEGER NOT NULL REFERENCES matches(id),
+    grandstand  TEXT    NOT NULL CHECK (grandstand IN ('A', 'B', 'C', 'D')),
+    section     TEXT    NOT NULL CHECK (section IN ('A', 'B', 'C', 'D', 'E', 'F')),
+    row_num     INTEGER NOT NULL CHECK (row_num BETWEEN 1 AND 10),
+    seat_num    INTEGER NOT NULL CHECK (seat_num BETWEEN 1 AND 15),
+    price       REAL    NOT NULL DEFAULT 30.0,
+    created_at  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (match_id, grandstand, section, row_num, seat_num)
+);

@@ -5,13 +5,6 @@
 
 
 
-INSERT INTO personas (nombre, email) VALUES
-    ('Ada Lovelace', 'ada@example.com'),
-    ('Alan Turing', 'alan@example.com'),
-    ('Peter Parker', 'peter@example.com'),
-    ('Grace Hopper', 'grace@example.com');
-
-
 INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender) VALUES
     ('Lamine', 'Yamal', '12345678A', '2007-07-13', '+34600112233', 'SPORTS', 'Player', 1500000.0, 'MALE'),
     ('Joan', 'García', '65437890W', '2002-04-22', '+34600412444', 'SPORTS', 'Player', 1100000.0, 'MALE'),

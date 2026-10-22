@@ -3,12 +3,6 @@
 -- no falle si la base de datos ya existe (modo "mantener").
 -- Cada sentencia debe terminar en ";".
 
-CREATE TABLE IF NOT EXISTS personas (
-    id     INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT NOT NULL,
-    email  TEXT NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS employees (
     id                   INTEGER PRIMARY KEY AUTOINCREMENT,
     first_name           TEXT NOT NULL,

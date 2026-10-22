@@ -13,6 +13,7 @@ import java.util.List;
 import com.ips2026.pl11.data.ConexionBD;
 import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.slots.InterviewSlotRecord;
+import com.ips2026.pl11.model.slots.TeamActivityRecord;
 
 public class InterviewSlotDAO {
 
@@ -279,5 +280,40 @@ public class InterviewSlotDAO {
             }
         }
         return slots;
+    }
+    
+    public List<TeamActivityRecord> getTeamActivitiesByCoach(int coachId) throws SQLException {
+        List<TeamActivityRecord> activities = new ArrayList<>();
+        
+        String sql = "SELECT 'MATCH' AS activity_type, m.match_date AS activity_date, m.start_time, m.end_time " +
+                     "FROM matches m " +
+                     "JOIN TEAM t ON m.team_id = t.id " +
+                     "WHERE t.first_coach_id = ? OR t.second_coach_id = ? " +
+                     "UNION ALL " +
+                     "SELECT 'TRAINING' AS activity_type, tr.training_date AS activity_date, tr.start_time, tr.end_time " +
+                     "FROM trainings tr " +
+                     "JOIN TEAM t ON tr.team_id = t.id " +
+                     "WHERE t.first_coach_id = ? OR t.second_coach_id = ? " +
+                     "ORDER BY activity_date DESC, start_time ASC";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, coachId);
+            pstmt.setInt(2, coachId);
+            pstmt.setInt(3, coachId);
+            pstmt.setInt(4, coachId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    activities.add(new TeamActivityRecord(
+                        rs.getString("activity_type"),
+                        LocalDate.parse(rs.getString("activity_date")),
+                        LocalTime.parse(rs.getString("start_time")),
+                        LocalTime.parse(rs.getString("end_time"))
+                    ));
+                }
+            }
+        }
+        return activities;
     }
 }

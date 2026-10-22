@@ -180,3 +180,15 @@ CREATE TABLE IF NOT EXISTS TEAM_MEMBER (
 -- A player can only belong to one team.
 CREATE UNIQUE INDEX IF NOT EXISTS ux_team_member_one_team_per_player ON TEAM_MEMBER (employee_id) WHERE role = 'PLAYER';
 
+-- ---------------------------------------------------------------------------
+-- Shareholders (US 35747: shares wallet).
+-- ---------------------------------------------------------------------------
+
+-- People that own shares of the club. There is no login: a shareholder
+-- identifies with the national ID or is searched by name.
+CREATE TABLE IF NOT EXISTS SHAREHOLDER (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name  TEXT    NOT NULL,
+    last_name   TEXT    NOT NULL,
+    national_id TEXT    NOT NULL UNIQUE COLLATE NOCASE
+);

@@ -267,3 +267,10 @@ FROM days WHERE n % 7 = 3;
 -- player 1 (Lamine) belongs to the First Team, so it is a First Team training.
 INSERT INTO trainings (team_id, training_date, start_time, end_time, facility_id)
     VALUES ((SELECT id FROM TEAM WHERE name = 'First Team'), '2026-10-15', '09:00', '11:00', 5);
+
+-- Sample shareholders (US 35747).
+INSERT INTO SHAREHOLDER (first_name, last_name, national_id) VALUES
+    ('Laura', 'Pérez Gil', '11111111H'),
+    ('Marcos', 'Ruiz Soto', '22222222J'),
+    ('Irene', 'Castillo Mora', '33333333P'),
+    ('Javier', 'Ortega Lima', '44444444A');

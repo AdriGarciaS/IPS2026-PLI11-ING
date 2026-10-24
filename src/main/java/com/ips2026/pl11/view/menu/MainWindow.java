@@ -41,6 +41,7 @@ import com.ips2026.pl11.data.team.SportsEmployeeDAO;
 import com.ips2026.pl11.data.team.TeamDAO;
 import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.ticket.HomeMatch;
+import com.ips2026.pl11.view.campaign.CampaignsDialog;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
@@ -89,6 +90,7 @@ public class MainWindow extends JFrame {
     private MenuCardButton btnOption6;
     private MenuCardButton btnOption7;
     private MenuCardButton btnOption8;
+    private MenuCardButton btnOption9;
     
     private WorkScheduleWindow workScheduleWindow = new WorkScheduleWindow(this);
 
@@ -120,7 +122,7 @@ public class MainWindow extends JFrame {
             pnButtons = new JPanel();
             pnButtons.setOpaque(false);
             pnButtons.setBorder(new EmptyBorder(24, 24, 16, 24));
-            pnButtons.setLayout(new GridLayout(2, 4, 18, 18));
+            pnButtons.setLayout(new GridLayout(3, 3, 18, 18));
             pnButtons.add(getBtnOption1());
             pnButtons.add(getBtnOption2());
             pnButtons.add(getBtnOption3());
@@ -129,6 +131,7 @@ public class MainWindow extends JFrame {
             pnButtons.add(getBtnOption6());
             pnButtons.add(getBtnOption7());
             pnButtons.add(getBtnOption8());
+            pnButtons.add(getBtnOption9());
         }
         return pnButtons;
     }
@@ -237,6 +240,16 @@ public class MainWindow extends JFrame {
         return btnOption8;
     }
     
+    private MenuCardButton getBtnOption9() {
+        if (btnOption9 == null) {
+            btnOption9 = new MenuCardButton("Shareholder Campaigns", "Create and manage share capital campaigns");
+            btnOption9.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnOption9.setMnemonic('H');
+            btnOption9.addActionListener(event -> new CampaignsDialog(this).setVisible(true));
+        }
+        return btnOption9;
+    }
+
     private void openMatchTickets() {
         try {
             MatchTicketController ticketCtrl = new MatchTicketController();

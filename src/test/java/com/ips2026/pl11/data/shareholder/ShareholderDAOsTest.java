@@ -41,9 +41,9 @@ class ShareholderDAOsTest {
         TestDatabase.execute("INSERT INTO SHAREHOLDER (id, first_name, last_name, national_id) VALUES "
                 + "(1, 'Laura', 'Pérez Gil', '11111111H'), (2, 'Marcos', 'Ruiz Soto', '22222222J'), "
                 + "(3, 'Irene', 'Castillo Mora', '33333333P')");
-        TestDatabase.execute("INSERT INTO SHARE_CAMPAIGN (id, name, start_date, end_date) VALUES "
-                + "(1, 'Founding shares 2023', '2023-01-15', '2023-03-31'), "
-                + "(2, 'Capital increase 2024', '2024-03-01', '2024-04-30')");
+        TestDatabase.execute("INSERT INTO SHARE_CAMPAIGN (id, name, nominal_price, total_shares, status) VALUES "
+                + "(1, 'Founding shares 2023', 9.5, 1000, 'FINISHED'), "
+                + "(2, 'Capital increase 2024', 10.0, 1000, 'FINISHED')");
         // Laura: holding 10 (2023, IDs 1-3 and 7-8) and holding 11 (2024, IDs 20-21). Marcos: holding 12.
         TestDatabase.execute("INSERT INTO SHARE_HOLDING (id, shareholder_id, campaign_id, purchase_date, purchase_price) VALUES "
                 + "(11, 1, 2, '2024-03-12', 10.0), (10, 1, 1, '2023-02-10', 9.5), (12, 2, 2, '2024-04-02', 15.0)");

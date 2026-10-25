@@ -1,7 +1,9 @@
 package com.ips2026.pl11.controller.schedule;
 
 import java.sql.SQLException;
+import java.time.DayOfWeek;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.List;
 
 import com.ips2026.pl11.data.schedule.DayScheduleDAO;
@@ -27,55 +29,100 @@ public class DayScheduleController {
         if (!newShift.getEndTime().isAfter(newShift.getStartTime())) {
             throw new IllegalArgumentException("End of shift cannot be before its start.");
         }
-
         // Get the work schedule to be modified
-        WorkSchedule recurringSchedule = workScheduleDAO.getScheduleById(newShift.getWorkScheduleId());
-        if (recurringSchedule == null) {
+        WorkSchedule recurringSchedule = getRecurringSchedule(newShift.getWorkScheduleId());
+        long employeeId = recurringSchedule.getEmployeeId();
+
+        Duration dayTotal = computeDayTotal(newShift, employeeId);
+        if (dayTotal.compareTo(MAX_DAILY) > 0) {
+            throw new IllegalArgumentException("Worker cannot exceed 8 hours a day.");
+        }
+
+        Duration weekTotal = computeWeekTotal(employeeId, dayTotal, newShift);
+        if (weekTotal.compareTo(MAX_WEEKLY) > 0) {
+            throw new IllegalArgumentException("Worker cannot exceed 40 hours a week.");
+        }
+
+        dayScheduleDAO.insertSchedule(newShift);
+    }
+
+    private WorkSchedule getRecurringSchedule(long workScheduleId) throws SQLException {
+        WorkSchedule result = workScheduleDAO.getScheduleById(workScheduleId);
+        if (result == null) {
             throw new IllegalArgumentException("The referenced recurring schedule does not exist.");
         }
 
-        long employeeId = recurringSchedule.getEmployeeId();
+        return result;
+    }
 
+    private Duration computeWeekTotal(long employeeId, Duration dayTotal, DaySchedule newShift) throws SQLException {
+        List<WorkSchedule> weeklySchedules = workScheduleDAO.getSchedulesByEmployee(employeeId);
+        Duration weekTotal = Duration.ZERO;
+        LocalDate monday = newShift.getDate().with(DayOfWeek.MONDAY);
+
+        // traverse the whole week
+        for (int i = 0; i < 7; i++) {
+            LocalDate date = monday.plusDays(i);
+
+            // if the current day of the week is the same as the newShift to be added, we
+            // already got the amount -> add it
+            if (date.equals(newShift.getDate())) {
+                weekTotal = weekTotal.plus(dayTotal);
+
+            } else {
+                boolean hasDaySchedules = false;
+                List<DaySchedule> dailySchedules = dayScheduleDAO.getSchedulesByDate(date);
+                
+                for (DaySchedule ds : dailySchedules) {
+                    WorkSchedule ws = workScheduleDAO.getScheduleById(ds.getWorkScheduleId());
+
+                    if (ws.getEmployeeId() == employeeId) {
+                        hasDaySchedules = true;
+                        weekTotal = weekTotal.plus(ds.duration());
+                    }
+                }
+                if (hasDaySchedules) {
+
+                } else {
+                    int weekDay = date.getDayOfWeek().getValue();
+
+                    for (WorkSchedule ws : weeklySchedules) {
+                        if (ws.getWeekDay() == weekDay) {
+                            weekTotal = weekTotal.plus(ws.duration());
+                        }
+                    }
+                }
+            }
+        }
+        return weekTotal;
+    }
+
+    private Duration computeDayTotal(DaySchedule newShift, long employeeId) throws SQLException {
         List<DaySchedule> existingDaySchedules = dayScheduleDAO.getSchedulesByDate(newShift.getDate());
         Duration dayTotal = newShift.duration();
 
         for (DaySchedule ds : existingDaySchedules) {
             WorkSchedule ws = workScheduleDAO.getScheduleById(ds.getWorkScheduleId());
-            if (ws.getEmployeeId() != employeeId) {
-                continue;
+            // If the schedule is for the correct employee
+            if (ws.getEmployeeId() == employeeId) {
+                // if the shift overlaps -> throw exception
+                if (shiftOverlaps(newShift, ds)) {
+                    throw new IllegalArgumentException("New shift overlaps with an existing one");
+                }
+                // add its length to the day's total time
+                dayTotal = dayTotal.plus(ds.duration());
+
             }
-
-            dayTotal = dayTotal.plus(ds.duration());
-            boolean shiftOverlaps = newShift.getStartTime().isBefore(ds.getEndTime())
-                && ds.getStartTime().isBefore(newShift.getEndTime());
-
-            if (shiftOverlaps) {
-                throw new IllegalArgumentException("New shift overlaps with an existing one");
-            }
         }
-
-        if (dayTotal.compareTo(MAX_DAILY) > 0) {
-            throw new IllegalArgumentException("Worker cannot exceed 8 hours a day.");
-        }
-
-        List<WorkSchedule> weeklySchedules = workScheduleDAO.getSchedulesByEmployee(employeeId);
-        Duration weekTotal = Duration.ZERO;
-        for (WorkSchedule ws : weeklySchedules) {
-            weekTotal = weekTotal.plus(ws.duration());
-        }
-
-        weekTotal = weekTotal.minus(recurringSchedule.duration());
-        weekTotal = weekTotal.plus(dayTotal);
-
-        if (weekTotal.compareTo(MAX_WEEKLY) > 0) {
-            throw new IllegalArgumentException("Worker cannot exceed 40 hours a week.");
-        }
-        
-        dayScheduleDAO.insertSchedule(newShift);
-
+        return dayTotal;
     }
-    
-    public List<DaySchedule> getAllSchedules() throws SQLException{
+
+    private boolean shiftOverlaps(DaySchedule oneShift, DaySchedule otherShift) {
+        return oneShift.getStartTime().isBefore(otherShift.getEndTime())
+            && otherShift.getStartTime().isBefore(oneShift.getEndTime());
+    }
+
+    public List<DaySchedule> getAllSchedules() throws SQLException {
         return dayScheduleDAO.getAllSchedules();
     }
 }

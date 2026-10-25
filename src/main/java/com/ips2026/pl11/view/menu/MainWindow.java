@@ -24,28 +24,36 @@ import javax.swing.border.MatteBorder;
 
 import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.controller.reservation.FacilityReservationController;
+import com.ips2026.pl11.controller.shareholder.ShareholderPortalController;
 import com.ips2026.pl11.controller.slots.InterviewSlotsController;
 import com.ips2026.pl11.controller.store.StoreSalesController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.controller.team.TeamCreationController;
+import com.ips2026.pl11.controller.ticket.MatchTicketController;
 import com.ips2026.pl11.data.reservation.FacilityDAO;
 import com.ips2026.pl11.data.reservation.ReservationDAO;
 import com.ips2026.pl11.data.reservation.TeamUseDAO;
+import com.ips2026.pl11.data.shareholder.ShareholderDAO;
 import com.ips2026.pl11.data.slots.InterviewSlotDAO;
 import com.ips2026.pl11.data.store.MerchandiseDAO;
 import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
 import com.ips2026.pl11.data.team.SportsEmployeeDAO;
 import com.ips2026.pl11.data.team.TeamDAO;
 import com.ips2026.pl11.model.employee.Employee;
+import com.ips2026.pl11.model.ticket.HomeMatch;
+import com.ips2026.pl11.view.campaign.CampaignsDialog;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
 import com.ips2026.pl11.view.interview.InterviewHubDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
+import com.ips2026.pl11.view.shareholder.ShareholderPortalDialog;
 import com.ips2026.pl11.view.slots.CreateInterviewSlotDialog;
 import com.ips2026.pl11.view.schedule.WorkScheduleWindow;
 import com.ips2026.pl11.view.store.StoreSalesWindow;
 import com.ips2026.pl11.view.team.TeamCreationWindow;
+import com.ips2026.pl11.view.ticket.SelectMatchDialog;
+import com.ips2026.pl11.view.ticket.SellMatchTicketDialog;
 
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
@@ -80,6 +88,9 @@ public class MainWindow extends JFrame {
     private JButton selectedButton;
     private MenuCardButton btnOption5;
     private MenuCardButton btnOption6;
+    private MenuCardButton btnOption7;
+    private MenuCardButton btnOption8;
+    private MenuCardButton btnOption9;
     
     private WorkScheduleWindow workScheduleWindow = new WorkScheduleWindow(this);
 
@@ -111,13 +122,16 @@ public class MainWindow extends JFrame {
             pnButtons = new JPanel();
             pnButtons.setOpaque(false);
             pnButtons.setBorder(new EmptyBorder(24, 24, 16, 24));
-            pnButtons.setLayout(new GridLayout(2, 2, 18, 18));
+            pnButtons.setLayout(new GridLayout(3, 3, 18, 18));
             pnButtons.add(getBtnOption1());
             pnButtons.add(getBtnOption2());
             pnButtons.add(getBtnOption3());
             pnButtons.add(getBtnOption4());
             pnButtons.add(getBtnOption5());
             pnButtons.add(getBtnOption6());
+            pnButtons.add(getBtnOption7());
+            pnButtons.add(getBtnOption8());
+            pnButtons.add(getBtnOption9());
         }
         return pnButtons;
     }
@@ -206,6 +220,77 @@ public class MainWindow extends JFrame {
 		}
 		return btnOption6;
 	}
+
+    private MenuCardButton getBtnOption7() {
+        if (btnOption7 == null) {
+            btnOption7 = new MenuCardButton("Shareholders Portal", "Shares wallet and other options for shareholders");
+            btnOption7.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnOption7.addActionListener(event -> openShareholderPortal());
+        }
+        return btnOption7;
+    }
+    
+    private MenuCardButton getBtnOption8() {
+        if (btnOption8 == null) {
+            btnOption8 = new MenuCardButton("Match Ticket Sales", "Sell match tickets choosing section and seat");
+            btnOption8.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnOption8.setMnemonic('T');
+            btnOption8.addActionListener(event -> openMatchTickets());
+        }
+        return btnOption8;
+    }
+    
+    private MenuCardButton getBtnOption9() {
+        if (btnOption9 == null) {
+            btnOption9 = new MenuCardButton("Shareholder Campaigns", "Create and manage share capital campaigns");
+            btnOption9.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnOption9.setMnemonic('H');
+            btnOption9.addActionListener(event -> new CampaignsDialog(this).setVisible(true));
+        }
+        return btnOption9;
+    }
+
+    private void openMatchTickets() {
+        try {
+            MatchTicketController ticketCtrl = new MatchTicketController();
+            List<HomeMatch> homeMatches = ticketCtrl.getHomeMatches();
+
+            if (homeMatches.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "There are no home matches available for ticket sales.",
+                        "No Matches Found", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            SelectMatchDialog selector = new SelectMatchDialog(this, homeMatches);
+            selector.setVisible(true);
+
+            HomeMatch selected = selector.getSelectedMatch();
+            
+            if (selected != null) {
+                SellMatchTicketDialog dialog = new SellMatchTicketDialog(this, selected.getId(), selected.getDisplayName());
+                dialog.setVisible(true);
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error loading home matches: " + ex.getMessage(),
+                    "Ticket Sales Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void openShareholderPortal() {
+        ShareholderPortalController controller = new ShareholderPortalController(new ShareholderDAO());
+        try {
+            controller.load();
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this,
+                    "The shareholders could not be loaded:" + System.lineSeparator() + exception.getMessage(),
+                    "Shareholders Portal", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        new ShareholderPortalDialog(controller, this).setVisible(true);
+    }
 
     private void openTeamCreation() {
         TeamCreationController controller = new TeamCreationController(new SportsEmployeeDAO(), new TeamDAO());

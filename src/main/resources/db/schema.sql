@@ -3,12 +3,6 @@
 -- no falle si la base de datos ya existe (modo "mantener").
 -- Cada sentencia debe terminar en ";".
 
-CREATE TABLE IF NOT EXISTS personas (
-    id     INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT NOT NULL,
-    email  TEXT NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS employees (
     id                   INTEGER PRIMARY KEY AUTOINCREMENT,
     first_name           TEXT NOT NULL,
@@ -186,3 +180,76 @@ CREATE TABLE IF NOT EXISTS TEAM_MEMBER (
 -- A player can only belong to one team.
 CREATE UNIQUE INDEX IF NOT EXISTS ux_team_member_one_team_per_player ON TEAM_MEMBER (employee_id) WHERE role = 'PLAYER';
 
+-- ---------------------------------------------------------------------------
+-- Shareholders (US 35747: shares wallet).
+-- ---------------------------------------------------------------------------
+
+-- People that own shares of the club. There is no login: a shareholder
+-- identifies with the national ID or is searched by name.
+CREATE TABLE IF NOT EXISTS SHAREHOLDER (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name  TEXT    NOT NULL,
+    last_name   TEXT    NOT NULL,
+    national_id TEXT    NOT NULL UNIQUE COLLATE NOCASE
+);
+
+-- Campaigns in which the club sells shares (for example a capital increase).
+-- nominal_price: price of ONE share in the campaign.
+-- total_shares: number of shares offered; the shares sold are the SHARE rows
+-- of the campaign holdings (the IDs are created only when they are bought).
+-- status: a new campaign is INACTIVE; the manager moves it forward
+-- (INACTIVE -> PHASE_1 -> PHASE_2 -> PHASE_3 -> FINISHED).
+CREATE TABLE IF NOT EXISTS SHARE_CAMPAIGN (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    name          TEXT    NOT NULL UNIQUE COLLATE NOCASE,
+    nominal_price REAL    NOT NULL CHECK (nominal_price > 0),
+    total_shares  INTEGER NOT NULL CHECK (total_shares > 0),
+    status        TEXT    NOT NULL DEFAULT 'INACTIVE'
+                  CHECK (status IN ('INACTIVE', 'PHASE_1', 'PHASE_2', 'PHASE_3', 'FINISHED'))
+);
+
+-- Only one campaign can be open (not FINISHED) at a time.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_share_campaign_one_open ON SHARE_CAMPAIGN ((status <> 'FINISHED')) WHERE status <> 'FINISHED';
+
+-- Shares that a shareholder bought in one campaign (one row per shareholder
+-- and campaign). The shares themselves, each one with its own ID, are in SHARE:
+-- the quantity is the number of shares of the holding.
+-- purchase_price: price of ONE share when it was bought.
+-- purchase_date: YYYY-MM-DD.
+CREATE TABLE IF NOT EXISTS SHARE_HOLDING (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    shareholder_id INTEGER NOT NULL REFERENCES SHAREHOLDER (id),
+    campaign_id    INTEGER NOT NULL REFERENCES SHARE_CAMPAIGN (id),
+    purchase_date  TEXT    NOT NULL,
+    purchase_price REAL    NOT NULL CHECK (purchase_price > 0),
+    UNIQUE (shareholder_id, campaign_id)
+);
+
+-- Every single share of the club: its id is the share ID (share number),
+-- and it belongs to one holding. The IDs of a holding do not need to be
+-- consecutive.
+CREATE TABLE IF NOT EXISTS SHARE (
+    id         INTEGER PRIMARY KEY,
+    holding_id INTEGER NOT NULL REFERENCES SHARE_HOLDING (id)
+);
+
+-- Market price of one share of the club, one row per day (YYYY-MM-DD).
+-- When the application starts, a random price for today is added if there
+-- is none yet (at most 5 % up or down from the last price).
+CREATE TABLE IF NOT EXISTS MARKET_PRICE (
+    price_date TEXT PRIMARY KEY,
+    price      REAL NOT NULL CHECK (price > 0)
+);
+
+-- Tickets sold for home matches
+CREATE TABLE IF NOT EXISTS MATCH_TICKET (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    match_id    INTEGER NOT NULL REFERENCES matches(id),
+    grandstand  TEXT    NOT NULL CHECK (grandstand IN ('A', 'B', 'C', 'D')),
+    section     TEXT    NOT NULL CHECK (section IN ('A', 'B', 'C', 'D', 'E', 'F')),
+    row_num     INTEGER NOT NULL CHECK (row_num BETWEEN 1 AND 10),
+    seat_num    INTEGER NOT NULL CHECK (seat_num BETWEEN 1 AND 15),
+    price       REAL    NOT NULL DEFAULT 30.0,
+    created_at  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (match_id, grandstand, section, row_num, seat_num)
+);

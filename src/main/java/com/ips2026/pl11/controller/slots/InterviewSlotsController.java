@@ -8,6 +8,7 @@ import java.util.List;
 import com.ips2026.pl11.data.slots.InterviewSlotDAO;
 import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.slots.InterviewSlotRecord;
+import com.ips2026.pl11.model.slots.TeamActivityRecord;
 
 public class InterviewSlotsController {
 
@@ -79,5 +80,12 @@ public class InterviewSlotsController {
      */
     public List<InterviewSlotRecord> getSlotsByCoach(int coachId) throws SQLException {
         return slotDAO.getSlotsByCoach(coachId);
+    }
+    
+    /**
+     * Retrieves scheduled matches and training sessions for the coach's team.
+     */
+    public List<TeamActivityRecord> getTeamActivitiesByCoach(int coachId) throws SQLException {
+        return slotDAO.getTeamActivitiesByCoach(coachId);
     }
 }

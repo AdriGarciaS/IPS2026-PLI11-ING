@@ -39,6 +39,7 @@ import javax.swing.table.DefaultTableModel;
 import com.ips2026.pl11.controller.slots.InterviewSlotsController;
 import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.slots.InterviewSlotRecord;
+import com.ips2026.pl11.model.slots.TeamActivityRecord;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.toedter.calendar.JDateChooser;
@@ -91,6 +92,11 @@ public class CreateInterviewSlotDialog extends JDialog {
     // Footer Panel
     private JPanel pnFooter;
     private JButton btnClose;
+    
+    private JTable tblTeamSchedule;
+    private DefaultTableModel teamScheduleModel;
+    private JScrollPane spTeamSchedule;
+    private JSplitPane splitRightPanel;
 
     public CreateInterviewSlotDialog(JFrame parent, InterviewSlotsController controller) {
         super(parent, "Manage Interview Availability", true);
@@ -206,18 +212,16 @@ public class CreateInterviewSlotDialog extends JDialog {
             	if (!e.getValueIsAdjusting()) {
                     int row = tblCoaches.getSelectedRow();
                     if (row != -1 && coachesList != null && row < coachesList.size()) {
-                        selectedCoach = coachesList.get(row);
-                        getTxtSelectedCoach().setText(selectedCoach.getFirstName() + " " + selectedCoach.getLastName());
-                        
-                        selectedPlayer = null;
-                        getTxtSelectedPlayer().setText("");
-                        
-                        try {
-                            loadPlayersForCoach(selectedCoach.getId());
-                            loadSlotsForCoach(selectedCoach.getId());
-                        } catch (SQLException ex) {
-                            ex.printStackTrace();
-                        }
+                    	selectedCoach = coachesList.get(row);
+                    	getTxtSelectedCoach().setText(selectedCoach.getFirstName() + " " + selectedCoach.getLastName());
+
+                    	try {
+                    	    loadPlayersForCoach(selectedCoach.getId());
+                    	    loadTeamScheduleForCoach(selectedCoach.getId()); 
+                    	    loadSlotsForCoach(selectedCoach.getId());   
+                    	} catch (SQLException ex) {
+                    	    ex.printStackTrace();
+                    	}
                     }
                 }
             });
@@ -450,19 +454,68 @@ public class CreateInterviewSlotDialog extends JDialog {
 
     // --- RIGHT CONTAINER: EXISTING SLOTS ---
     private JPanel getPnSlotsContainer() {
-        if (pnSlotsContainer == null) {
-            pnSlotsContainer = new JPanel(new BorderLayout(0, 8));
+    	if (pnSlotsContainer == null) {
+            pnSlotsContainer = new JPanel(new BorderLayout());
             pnSlotsContainer.setPreferredSize(new Dimension(420, 0));
             pnSlotsContainer.setOpaque(false);
 
-            JLabel lblTableTitle = new JLabel("Existing Interview Slots");
-            lblTableTitle.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 14));
-            lblTableTitle.setForeground(Branding.NAVY);
+            JPanel pnScheduleWrap = new JPanel(new BorderLayout(0, 6));
+            pnScheduleWrap.setOpaque(false);
+            JLabel lblScheduleTitle = new JLabel("Team Activities (Matches & Training)");
+            lblScheduleTitle.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 13));
+            lblScheduleTitle.setForeground(Branding.NAVY);
+            pnScheduleWrap.add(lblScheduleTitle, BorderLayout.NORTH);
+            pnScheduleWrap.add(getSpTeamSchedule(), BorderLayout.CENTER);
 
-            pnSlotsContainer.add(lblTableTitle, BorderLayout.NORTH);
-            pnSlotsContainer.add(getSpSlots(), BorderLayout.CENTER);
+            JPanel pnSlotsWrap = new JPanel(new BorderLayout(0, 6));
+            pnSlotsWrap.setOpaque(false);
+            JLabel lblSlotsTitle = new JLabel("Existing Interview Slots");
+            lblSlotsTitle.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 13));
+            lblSlotsTitle.setForeground(Branding.NAVY);
+            pnSlotsWrap.add(lblSlotsTitle, BorderLayout.NORTH);
+            pnSlotsWrap.add(getSpSlots(), BorderLayout.CENTER);
+
+            splitRightPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pnScheduleWrap, pnSlotsWrap);
+            splitRightPanel.setResizeWeight(0.45);
+            splitRightPanel.setDividerSize(6);
+            splitRightPanel.setOpaque(false);
+            splitRightPanel.setBorder(null);
+
+            pnSlotsContainer.add(splitRightPanel, BorderLayout.CENTER);
         }
         return pnSlotsContainer;
+    }
+    
+    private JScrollPane getSpTeamSchedule() {
+        if (spTeamSchedule == null) {
+            spTeamSchedule = new JScrollPane(getTblTeamSchedule());
+            spTeamSchedule.setBorder(new LineBorder(Branding.BORDER, 1, true));
+        }
+        return spTeamSchedule;
+    }
+    
+    private JTable getTblTeamSchedule() {
+        if (tblTeamSchedule == null) {
+            String[] columns = {"Type", "Date", "Start", "End"};
+            teamScheduleModel = new DefaultTableModel(columns, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
+            tblTeamSchedule = new JTable(teamScheduleModel);
+            tblTeamSchedule.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            tblTeamSchedule.setRowHeight(24);
+            tblTeamSchedule.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 12));
+            tblTeamSchedule.getTableHeader().setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 12));
+            tblTeamSchedule.getTableHeader().setBackground(new Color(241, 245, 249));
+
+            tblTeamSchedule.getColumnModel().getColumn(0).setPreferredWidth(100); // MATCH / TRAINING
+            tblTeamSchedule.getColumnModel().getColumn(1).setPreferredWidth(85);
+            tblTeamSchedule.getColumnModel().getColumn(2).setPreferredWidth(55);
+            tblTeamSchedule.getColumnModel().getColumn(3).setPreferredWidth(55);
+        }
+        return tblTeamSchedule;
     }
 
     private JScrollPane getSpSlots() {
@@ -616,6 +669,26 @@ public class CreateInterviewSlotDialog extends JDialog {
             }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Error loading interview slots: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void loadTeamScheduleForCoach(int coachId) {
+        teamScheduleModel.setRowCount(0);
+        try {
+            List<TeamActivityRecord> activities = controller.getTeamActivitiesByCoach(coachId);
+            if (activities != null) {
+                for (TeamActivityRecord act : activities) {
+                    teamScheduleModel.addRow(new Object[]{
+                        act.getType(),
+                        act.getDate().toString(),
+                        act.getStartTime().toString(),
+                        act.getEndTime().toString()
+                    });
+                }
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error loading team activities: " + ex.getMessage(), 
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
     

@@ -39,12 +39,12 @@ public class MatchTicketDAO {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    int r = rs.getInt("row_num");
-                    int s = rs.getInt("seat_num");
+                    int rowIndex = rs.getInt("row_num");
+                    int colIndex = rs.getInt("seat_num");
                     
                     // Mark seat as occupied if within valid bounds
-                    if (r >= 1 && r <= 10 && s >= 1 && s <= 15) {
-                        occupied[r][s] = true;
+                    if (rowIndex >= 1 && rowIndex <= 10 && colIndex >= 1 && colIndex <= 15) {
+                        occupied[rowIndex][colIndex] = true;
                     }
                 }
             }
@@ -54,16 +54,16 @@ public class MatchTicketDAO {
         List<Integer> validRows = new ArrayList<>();
         List<Integer> startingSeats = new ArrayList<>();
 
-        for (int r = 1; r <= 10; r++) {
+        for (int rowIndex = 1; rowIndex <= 10; rowIndex++) {
             int consecutiveFree = 0;
-            for (int s = 1; s <= 15; s++) {
-                if (!occupied[r][s]) {
+            for (int colIndex = 1; colIndex <= 15; colIndex++) {
+                if (!occupied[rowIndex][colIndex]) {
                     consecutiveFree++;
                     
                     // A valid contiguous block of the requested size has been found
                     if (consecutiveFree == quantity) {
-                        int startSeat = s - quantity + 1;
-                        validRows.add(r);
+                        int startSeat = colIndex - quantity + 1;
+                        validRows.add(rowIndex);
                         startingSeats.add(startSeat);
                         break; // Stop searching this row and proceed to the next one
                     }
@@ -110,31 +110,33 @@ public class MatchTicketDAO {
     }
     
     /**
-     * Returns a 10x15 boolean matrix for a given grandstand and section.
-     * Matrix cell [row - 1][seat - 1] is true if the seat is occupied.
+     * Retrieves a 10x15 matrix representing occupied seats sold specifically for this match.
      */
     public boolean[][] getOccupiedSeats(int matchId, String grandstand, String section) throws SQLException {
-        boolean[][] occupied = new boolean[10][15];
+    	boolean[][] grid = new boolean[10][15];
+
         String sql = "SELECT row_num, seat_num FROM MATCH_TICKET " +
-                     "WHERE match_id = ? AND UPPER(TRIM(grandstand)) = UPPER(TRIM(?)) " +
-                     "AND UPPER(TRIM(section)) = UPPER(TRIM(?))";
+                     "WHERE match_id = ? AND grandstand = ? AND section = ?";
 
         try (Connection conn = ConexionBD.obtenerConexion();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, matchId);
-            pstmt.setString(2, grandstand);
-            pstmt.setString(3, section);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            try (ResultSet rs = pstmt.executeQuery()) {
+            stmt.setInt(1, matchId);
+            stmt.setString(2, grandstand);
+            stmt.setString(3, section);
+
+            try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    int r = rs.getInt("row_num") - 1;
-                    int s = rs.getInt("seat_num") - 1;
-                    if (r >= 0 && r < 10 && s >= 0 && s < 15) {
-                        occupied[r][s] = true;
+                    // Convert 1-based database index to 0-based Java array index
+                    int rowIndex = rs.getInt("row_num") - 1;
+                    int colIndex = rs.getInt("seat_num") - 1;
+
+                    if (rowIndex >= 0 && rowIndex < 10 && colIndex >= 0 && colIndex < 15) {
+                        grid[rowIndex][colIndex] = true;
                     }
                 }
             }
         }
-        return occupied;
+        return grid;
     }
 }

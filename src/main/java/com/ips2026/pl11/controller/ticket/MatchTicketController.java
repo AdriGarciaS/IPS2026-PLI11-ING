@@ -3,6 +3,7 @@ package com.ips2026.pl11.controller.ticket;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.ips2026.pl11.data.seasonpass.SeasonPassDAO;
 import com.ips2026.pl11.data.ticket.MatchDAO;
 import com.ips2026.pl11.data.ticket.MatchTicketDAO;
 import com.ips2026.pl11.model.ticket.HomeMatch;
@@ -11,10 +12,12 @@ public class MatchTicketController {
 
     private final MatchTicketDAO ticketDAO;
     private final MatchDAO matchDAO;
+    private final SeasonPassDAO seasonPassDAO;
 
     public MatchTicketController() {
         this.ticketDAO = new MatchTicketDAO();
         this.matchDAO = new MatchDAO();
+        this.seasonPassDAO = new SeasonPassDAO();
     }
 
     public List<HomeMatch> getHomeMatches() throws SQLException {
@@ -31,6 +34,26 @@ public class MatchTicketController {
     }
     
     public boolean[][] getOccupiedSeats(int matchId, String grandstand, String section) throws Exception {
-        return ticketDAO.getOccupiedSeats(matchId, grandstand, section);
+        // 1. Fetch match details
+        HomeMatch match = matchDAO.getMatchById(matchId);
+
+        // 2. Fetch seats sold directly for this specific match
+        boolean[][] grid = ticketDAO.getOccupiedSeats(matchId, grandstand, section);
+
+        // 3. Lock season pass seats ONLY if it is a STANDARD match (not Special)
+        if (match != null && !match.isSpecialMatch()) {
+            List<int[]> passSeats = seasonPassDAO.getActivePassSeatsForMatch(
+                    match.getTeamName(), grandstand, section, match.getMatchDate());
+
+            for (int[] seat : passSeats) {
+                int rowIndex = seat[0];
+                int columnIndex = seat[1];
+                if (rowIndex >= 0 && rowIndex < 10 && columnIndex >= 0 && columnIndex < 15) {
+                    grid[rowIndex][columnIndex] = true; // Mark season pass seat as occupied ('O')
+                }
+            }
+        }
+
+        return grid;
     }
 }

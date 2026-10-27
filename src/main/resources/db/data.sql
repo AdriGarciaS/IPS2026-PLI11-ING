@@ -278,10 +278,11 @@ INSERT INTO SHAREHOLDER (first_name, last_name, national_id) VALUES
 -- Sample share campaigns, holdings and market prices (US 35747), so every
 -- case can be tested: Laura is in profit, Marcos at a loss, Irene has one
 -- holding up and one down, and Javier has no shares.
-INSERT INTO SHARE_CAMPAIGN (name, start_date, end_date) VALUES
-    ('Founding shares 2023', '2023-01-15', '2023-03-31'),
-    ('Capital increase 2024', '2024-03-01', '2024-04-30'),
-    ('Capital increase 2026', '2026-02-01', '2026-03-15');
+-- All of them are finished, so a new campaign can be created.
+INSERT INTO SHARE_CAMPAIGN (name, nominal_price, total_shares, status) VALUES
+    ('Founding shares 2023', 9.50, 1000, 'FINISHED'),
+    ('Capital increase 2024', 10.00, 1000, 'FINISHED'),
+    ('Capital increase 2026', 14.00, 1000, 'FINISHED');
 
 INSERT INTO SHARE_HOLDING (shareholder_id, campaign_id, purchase_date, purchase_price) VALUES
     ((SELECT id FROM SHAREHOLDER WHERE national_id = '11111111H'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), '2023-02-10', 9.50),

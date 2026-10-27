@@ -193,15 +193,23 @@ CREATE TABLE IF NOT EXISTS SHAREHOLDER (
     national_id TEXT    NOT NULL UNIQUE COLLATE NOCASE
 );
 
--- Campaigns in which the club sold shares (for example a capital increase).
--- start_date / end_date: YYYY-MM-DD.
+-- Campaigns in which the club sells shares (for example a capital increase).
+-- nominal_price: price of ONE share in the campaign.
+-- total_shares: number of shares offered; the shares sold are the SHARE rows
+-- of the campaign holdings (the IDs are created only when they are bought).
+-- status: a new campaign is INACTIVE; the manager moves it forward
+-- (INACTIVE -> PHASE_1 -> PHASE_2 -> PHASE_3 -> FINISHED).
 CREATE TABLE IF NOT EXISTS SHARE_CAMPAIGN (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    name       TEXT    NOT NULL UNIQUE,
-    start_date TEXT    NOT NULL,
-    end_date   TEXT    NOT NULL,
-    CHECK (end_date >= start_date)
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    name          TEXT    NOT NULL UNIQUE COLLATE NOCASE,
+    nominal_price REAL    NOT NULL CHECK (nominal_price > 0),
+    total_shares  INTEGER NOT NULL CHECK (total_shares > 0),
+    status        TEXT    NOT NULL DEFAULT 'INACTIVE'
+                  CHECK (status IN ('INACTIVE', 'PHASE_1', 'PHASE_2', 'PHASE_3', 'FINISHED'))
 );
+
+-- Only one campaign can be open (not FINISHED) at a time.
+CREATE UNIQUE INDEX IF NOT EXISTS ux_share_campaign_one_open ON SHARE_CAMPAIGN ((status <> 'FINISHED')) WHERE status <> 'FINISHED';
 
 -- Shares that a shareholder bought in one campaign (one row per shareholder
 -- and campaign). The shares themselves, each one with its own ID, are in SHARE:

@@ -1,7 +1,6 @@
 package com.ips2026.pl11.view.schedule;
 
 import java.awt.BorderLayout;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -532,13 +531,16 @@ public class ManagerWorkScheduleWindow extends JFrame {
 
     private long obtainWorkScheduleId(long employeeId, LocalDate date) throws SQLException, IllegalArgumentException {
         List<WorkSchedule> workSchedules = wsController.getWorkSchedulesByEmployee(employeeId);
+        if(workSchedules.isEmpty()) {
+            throw new IllegalArgumentException("The employee has no work schedule");
+        }
         int dayOfWeek = date.getDayOfWeek().getValue();
         for(WorkSchedule ws : workSchedules) {
             if(ws.getWeekDay() == dayOfWeek) {
                 return ws.getId();
             }
         }
-        throw new IllegalArgumentException("There's no work schedule assigned to " + date.getDayOfWeek().toString());
+        return workSchedules.get(0).getId();
     }
     
     

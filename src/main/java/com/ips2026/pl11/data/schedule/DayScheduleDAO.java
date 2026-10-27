@@ -17,22 +17,21 @@ public class DayScheduleDAO {
 
     public void insertSchedule(DaySchedule ds) throws SQLException {
         String sql = "insert into day_schedule (work_schedule_id, date, start_time, end_time) values (?, ?, ?, ?)";
-        
+
         try (Connection conexion = ConexionBD.obtenerConexion();
             PreparedStatement ps = conexion.prepareStatement(sql)) {
-            
+
             ps.setLong(1, ds.getWorkScheduleId());
             ps.setString(2, ds.getDate().toString());
             ps.setString(3, String.valueOf(ds.getStartTime()));
             ps.setString(4, String.valueOf(ds.getEndTime()));
-            
+
             ps.executeUpdate();
         }
     }
 
     public List<DaySchedule> getSchedulesByDate(LocalDate date) throws SQLException {
-        String sql = "select id, work_schedule_id, date, start_time, end_time "
-            + "from day_schedule where date = ?";
+        String sql = "select id, work_schedule_id, date, start_time, end_time " + "from day_schedule where date = ?";
 
         List<DaySchedule> result = new ArrayList<>();
 
@@ -43,15 +42,16 @@ public class DayScheduleDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    result.add(new DaySchedule(rs.getLong("id"), rs.getLong("work_schedule_id"), LocalDate.parse(rs.getString("date")),
-                        LocalTime.parse(rs.getString("start_time")), LocalTime.parse(rs.getString("end_time"))));
+                    result.add(new DaySchedule(rs.getLong("id"), rs.getLong("work_schedule_id"),
+                        LocalDate.parse(rs.getString("date")), LocalTime.parse(rs.getString("start_time")),
+                        LocalTime.parse(rs.getString("end_time"))));
                 }
             }
         }
 
         return result;
     }
-    
+
     public List<DaySchedule> getAllSchedules() {
         String sql = "SELECT id, work_schedule_id, date, start_time, end_time FROM day_schedule ORDER BY id";
         List<DaySchedule> daySchedules = new ArrayList<>();
@@ -61,7 +61,7 @@ public class DayScheduleDAO {
             ResultSet resultado = sentencia.executeQuery(sql)) {
 
             while (resultado.next()) {
-                
+
                 daySchedules.add(new DaySchedule(resultado.getLong("id"), resultado.getLong("work_schedule_id"),
                     LocalDate.parse(resultado.getString("date")), LocalTime.parse(resultado.getString("start_time")),
                     LocalTime.parse(resultado.getString("end_time"))));
@@ -71,4 +71,6 @@ public class DayScheduleDAO {
         }
         return daySchedules;
     }
+
+   
 }

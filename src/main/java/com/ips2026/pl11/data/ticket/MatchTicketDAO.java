@@ -86,19 +86,29 @@ public class MatchTicketDAO {
 
         // 4. Batch-insert the newly reserved seats into the MATCH_TICKET table
         List<int[]> assignedSeats = new ArrayList<>();
-        String insertSql = "INSERT INTO MATCH_TICKET (match_id, grandstand, section, row_num, seat_num, price) " +
-                           "VALUES (?, ?, ?, ?, ?, 30.0)";
+        // All the seats of this purchase share a new purchase_number.
+        String nextNumberSql = "SELECT COALESCE(MAX(purchase_number), 0) + 1 FROM MATCH_TICKET";
+        String insertSql = "INSERT INTO MATCH_TICKET (purchase_number, match_id, grandstand, section, row_num, seat_num, price) " +
+                           "VALUES (?, ?, ?, ?, ?, ?, 30.0)";
 
         try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement nextNumber = conn.prepareStatement(nextNumberSql);
              PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
-            
+
+            int purchaseNumber;
+            try (ResultSet rs = nextNumber.executeQuery()) {
+                rs.next();
+                purchaseNumber = rs.getInt(1);
+            }
+
             for (int i = 0; i < quantity; i++) {
                 int seatNum = startSeat + i;
-                pstmt.setInt(1, matchId);
-                pstmt.setString(2, grandstand.trim());
-                pstmt.setString(3, section.trim());
-                pstmt.setInt(4, chosenRow);
-                pstmt.setInt(5, seatNum);
+                pstmt.setInt(1, purchaseNumber);
+                pstmt.setInt(2, matchId);
+                pstmt.setString(3, grandstand.trim());
+                pstmt.setString(4, section.trim());
+                pstmt.setInt(5, chosenRow);
+                pstmt.setInt(6, seatNum);
                 pstmt.addBatch();
 
                 assignedSeats.add(new int[]{chosenRow, seatNum});

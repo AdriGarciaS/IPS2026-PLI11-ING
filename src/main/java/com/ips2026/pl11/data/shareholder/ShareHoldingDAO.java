@@ -40,7 +40,7 @@ public class ShareHoldingDAO {
                     Row row = rows.get(holdingId);
                     if (row == null) {
                         row = new Row(result.getString("campaign_name"),
-                                LocalDate.parse(result.getString("purchase_date")),
+                                LocalDate.parse(result.getString("purchase_date").substring(0, 10)), // date part of the moment
                                 BigDecimal.valueOf(result.getDouble("purchase_price")).setScale(2, RoundingMode.HALF_UP));
                         rows.put(holdingId, row);
                     }

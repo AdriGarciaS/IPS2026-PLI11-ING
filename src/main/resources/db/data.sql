@@ -277,7 +277,9 @@ INSERT INTO SHAREHOLDER (first_name, last_name, national_id) VALUES
 
 -- Sample share campaigns, holdings and market prices (US 35747), so every
 -- case can be tested: Laura is in profit, Marcos at a loss, Irene has one
--- holding up and one down, and Javier has no shares.
+-- holding up and one down, and Javier has no shares. The purchases of the
+-- 2026 campaign are recent (relative to today), so they appear in the last
+-- 30 days of the sales history.
 -- All of them are finished, so a new campaign can be created.
 INSERT INTO SHARE_CAMPAIGN (name, nominal_price, total_shares, status) VALUES
     ('Founding shares 2023', 9.50, 1000, 'FINISHED'),
@@ -285,12 +287,12 @@ INSERT INTO SHARE_CAMPAIGN (name, nominal_price, total_shares, status) VALUES
     ('Capital increase 2026', 14.00, 1000, 'FINISHED');
 
 INSERT INTO SHARE_HOLDING (shareholder_id, campaign_id, purchase_date, purchase_price) VALUES
-    ((SELECT id FROM SHAREHOLDER WHERE national_id = '11111111H'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), '2023-02-10', 9.50),
-    ((SELECT id FROM SHAREHOLDER WHERE national_id = '11111111H'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2024'), '2024-03-12', 10.00),
-    ((SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2024'), '2024-04-02', 15.00),
-    ((SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), '2026-02-05', 14.20),
-    ((SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), '2023-03-01', 9.80),
-    ((SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), '2026-02-20', 14.80);
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '11111111H'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), '2023-02-10 10:15:00', 9.50),
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '11111111H'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2024'), '2024-03-12 12:40:00', 10.00),
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2024'), '2024-04-02 09:05:00', 15.00),
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), datetime('now', 'localtime', 'start of day', '-8 days', '+12 hours', '+30 minutes'), 14.20),
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), '2023-03-01 17:30:00', 9.80),
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), datetime('now', 'localtime', 'start of day', '-20 days', '+16 hours', '+10 minutes'), 14.80);
 
 -- The shares of each holding, with their IDs. Some holdings have IDs that
 -- are not consecutive (for example Laura: 1-300 and 601-800), to test it.
@@ -321,3 +323,39 @@ INSERT INTO MARKET_PRICE (price_date, price) VALUES
     (date('now', 'localtime', '-3 days'), 12.10),
     (date('now', 'localtime', '-2 days'), 12.25),
     (date('now', 'localtime', '-1 days'), 12.30);
+
+-- ---------------------------------------------------------------------------
+-- Sample income for the sales history (US 35084): at least one operation of
+-- each concept in the last 30 days, and some older ones (more than 30 days
+-- ago) to test the date filter. All the moments are relative to today.
+-- ---------------------------------------------------------------------------
+
+-- Merchandising: 4 purchases (one row per product line; total_price = units x price).
+INSERT INTO MERCHANDISING_SALE (sale_number, merch_id, units_sold, total_price, sale_date) VALUES
+    (1, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2, 119.98, datetime('now', 'localtime', 'start of day', '-1 days', '+18 hours', '+20 minutes')),
+    (1, (SELECT id FROM MERCHANDISING WHERE name = 'Club Scarf'), 1, 14.95, datetime('now', 'localtime', 'start of day', '-1 days', '+18 hours', '+20 minutes')),
+    (1, (SELECT id FROM MERCHANDISING WHERE name = 'Club Mug'), 3, 29.85, datetime('now', 'localtime', 'start of day', '-1 days', '+18 hours', '+20 minutes')),
+    (2, (SELECT id FROM MERCHANDISING WHERE name = 'Official Match Ball'), 1, 29.95, datetime('now', 'localtime', 'start of day', '-4 days', '+11 hours', '+5 minutes')),
+    (3, (SELECT id FROM MERCHANDISING WHERE name = 'Club Hoodie'), 1, 49.90, datetime('now', 'localtime', 'start of day', '-9 days', '+17 hours', '+40 minutes')),
+    (3, (SELECT id FROM MERCHANDISING WHERE name = 'Club Cap'), 2, 39.90, datetime('now', 'localtime', 'start of day', '-9 days', '+17 hours', '+40 minutes')),
+    (4, (SELECT id FROM MERCHANDISING WHERE name = 'Club Keyring'), 4, 18.00, datetime('now', 'localtime', 'start of day', '-45 days', '+12 hours'));
+
+-- Match tickets: 3 purchases for the next home matches (the seats of a purchase share the purchase_number).
+INSERT INTO MATCH_TICKET (purchase_number, match_id, grandstand, section, row_num, seat_num, price, created_at) VALUES
+    (1, (SELECT id FROM matches WHERE is_home = 1 ORDER BY match_date, start_time LIMIT 1), 'A', 'B', 4, 7, 30.0, datetime('now', 'localtime', 'start of day', '-2 days', '+10 hours', '+15 minutes')),
+    (1, (SELECT id FROM matches WHERE is_home = 1 ORDER BY match_date, start_time LIMIT 1), 'A', 'B', 4, 8, 30.0, datetime('now', 'localtime', 'start of day', '-2 days', '+10 hours', '+15 minutes')),
+    (1, (SELECT id FROM matches WHERE is_home = 1 ORDER BY match_date, start_time LIMIT 1), 'A', 'B', 4, 9, 30.0, datetime('now', 'localtime', 'start of day', '-2 days', '+10 hours', '+15 minutes')),
+    (2, (SELECT id FROM matches WHERE is_home = 1 ORDER BY match_date, start_time LIMIT 1), 'C', 'A', 1, 3, 30.0, datetime('now', 'localtime', 'start of day', '-6 days', '+20 hours', '+30 minutes')),
+    (3, (SELECT id FROM matches WHERE is_home = 1 ORDER BY match_date, start_time LIMIT 1 OFFSET 1), 'D', 'F', 10, 1, 30.0, datetime('now', 'localtime', 'start of day', '-12 days', '+9 hours', '+50 minutes')),
+    (3, (SELECT id FROM matches WHERE is_home = 1 ORDER BY match_date, start_time LIMIT 1 OFFSET 1), 'D', 'F', 10, 2, 30.0, datetime('now', 'localtime', 'start of day', '-12 days', '+9 hours', '+50 minutes'));
+
+-- Season tickets (provisional table).
+INSERT INTO SEASON_TICKET (season, holder_name, price, created_at) VALUES
+    ('2026/27', 'Carlos Medina', 350.00, datetime('now', 'localtime', 'start of day', '-3 days', '+9 hours', '+45 minutes')),
+    ('2026/27', 'Lucia Romero', 350.00, datetime('now', 'localtime', 'start of day', '-15 days', '+13 hours', '+20 minutes')),
+    ('2026/27', 'Pablo Ortiz', 280.00, datetime('now', 'localtime', 'start of day', '-40 days', '+19 hours'));
+
+-- Facility bookings made some days ago (the one above is made today).
+INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reservation_date, start_time, end_time, hours, total_price, created_at) VALUES
+    (4, 'Mario Blanco', '**** **** **** 2222', date('now', 'localtime', '+3 days'), '10:00', '12:00', 2, 100.0, datetime('now', 'localtime', 'start of day', '-5 days', '+16 hours', '+5 minutes')),
+    (5, 'Ana Torres', '**** **** **** 3333', date('now', 'localtime', '-18 days'), '18:00', '19:00', 1, 50.0, datetime('now', 'localtime', 'start of day', '-20 days', '+11 hours', '+35 minutes'));

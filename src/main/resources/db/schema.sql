@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS MERCHANDISING (
 -- share the same sale_number, so the final price of a purchase is
 -- SUM(total_price) grouped by sale_number.
 -- total_price: units_sold x unit price at the moment of the sale.
--- sale_date: date of the sale in ISO format (YYYY-MM-DD).
+-- sale_date: moment of the sale (YYYY-MM-DD HH:MM:SS, local time).
 CREATE TABLE IF NOT EXISTS MERCHANDISING_SALE (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     sale_number INTEGER NOT NULL,
@@ -215,7 +215,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_share_campaign_one_open ON SHARE_CAMPAIGN (
 -- and campaign). The shares themselves, each one with its own ID, are in SHARE:
 -- the quantity is the number of shares of the holding.
 -- purchase_price: price of ONE share when it was bought.
--- purchase_date: YYYY-MM-DD.
+-- purchase_date: moment of the purchase (YYYY-MM-DD HH:MM:SS, local time).
 CREATE TABLE IF NOT EXISTS SHARE_HOLDING (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     shareholder_id INTEGER NOT NULL REFERENCES SHAREHOLDER (id),
@@ -242,14 +242,29 @@ CREATE TABLE IF NOT EXISTS MARKET_PRICE (
 );
 
 -- Tickets sold for home matches
+-- purchase_number: the tickets bought together share the same number.
+-- created_at: moment of the purchase (YYYY-MM-DD HH:MM:SS, local time).
 CREATE TABLE IF NOT EXISTS MATCH_TICKET (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    purchase_number INTEGER NOT NULL,
     match_id    INTEGER NOT NULL REFERENCES matches(id),
     grandstand  TEXT    NOT NULL CHECK (grandstand IN ('A', 'B', 'C', 'D')),
     section     TEXT    NOT NULL CHECK (section IN ('A', 'B', 'C', 'D', 'E', 'F')),
     row_num     INTEGER NOT NULL CHECK (row_num BETWEEN 1 AND 10),
     seat_num    INTEGER NOT NULL CHECK (seat_num BETWEEN 1 AND 15),
     price       REAL    NOT NULL DEFAULT 30.0,
-    created_at  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now', 'localtime')),
     UNIQUE (match_id, grandstand, section, row_num, seat_num)
+);
+
+-- Season tickets sold. PROVISIONAL table: there is no user story to sell
+-- season tickets yet; it exists so they can be seen in the sales history.
+-- season: for example '2026/27'.
+-- created_at: moment of the sale (YYYY-MM-DD HH:MM:SS, local time).
+CREATE TABLE IF NOT EXISTS SEASON_TICKET (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    season      TEXT    NOT NULL,
+    holder_name TEXT    NOT NULL,
+    price       REAL    NOT NULL CHECK (price > 0),
+    created_at  TEXT    NOT NULL
 );

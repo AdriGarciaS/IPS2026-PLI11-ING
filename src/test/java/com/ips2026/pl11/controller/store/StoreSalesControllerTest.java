@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,11 +55,11 @@ class StoreSalesControllerTest {
     /** Fake sales table: remembers the registered lines, or fails if asked to. */
     private static class FakeSaleDAO extends MerchandiseSaleDAO {
         List<CartLine> registeredLines;
-        LocalDate registeredDate;
+        LocalDateTime registeredDate;
         boolean fail;
 
         @Override
-        public int registerSale(List<CartLine> lines, LocalDate date) throws SQLException {
+        public int registerSale(List<CartLine> lines, LocalDateTime date) throws SQLException {
             if (fail) {
                 throw new SQLException("There are not enough available units of 'Home Shirt 26/27'");
             }
@@ -202,7 +203,7 @@ class StoreSalesControllerTest {
         assertEquals(2, saleDAO.registeredLines.size());
         assertEquals(HOME_SHIRT, saleDAO.registeredLines.get(0).getMerchandise());
         assertEquals(2, saleDAO.registeredLines.get(0).getUnits());
-        assertEquals(LocalDate.now(), saleDAO.registeredDate);
+        assertEquals(LocalDate.now(), saleDAO.registeredDate.toLocalDate());
     }
 
     @Test

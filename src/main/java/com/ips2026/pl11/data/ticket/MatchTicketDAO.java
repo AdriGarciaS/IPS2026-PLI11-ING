@@ -118,4 +118,33 @@ public class MatchTicketDAO {
 
         return assignedSeats;
     }
+    
+    /**
+     * Returns a 10x15 boolean matrix for a given grandstand and section.
+     * Matrix cell [row - 1][seat - 1] is true if the seat is occupied.
+     */
+    public boolean[][] getOccupiedSeats(int matchId, String grandstand, String section) throws SQLException {
+        boolean[][] occupied = new boolean[10][15];
+        String sql = "SELECT row_num, seat_num FROM MATCH_TICKET " +
+                     "WHERE match_id = ? AND UPPER(TRIM(grandstand)) = UPPER(TRIM(?)) " +
+                     "AND UPPER(TRIM(section)) = UPPER(TRIM(?))";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, matchId);
+            pstmt.setString(2, grandstand);
+            pstmt.setString(3, section);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    int r = rs.getInt("row_num") - 1;
+                    int s = rs.getInt("seat_num") - 1;
+                    if (r >= 0 && r < 10 && s >= 0 && s < 15) {
+                        occupied[r][s] = true;
+                    }
+                }
+            }
+        }
+        return occupied;
+    }
 }

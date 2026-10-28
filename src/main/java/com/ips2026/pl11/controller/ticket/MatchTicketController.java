@@ -29,4 +29,8 @@ public class MatchTicketController {
         }
         return assigned;
     }
+    
+    public boolean[][] getOccupiedSeats(int matchId, String grandstand, String section) throws Exception {
+        return ticketDAO.getOccupiedSeats(matchId, grandstand, section);
+    }
 }

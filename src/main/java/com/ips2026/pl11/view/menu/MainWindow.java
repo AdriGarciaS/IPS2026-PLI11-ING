@@ -26,34 +26,27 @@ import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.controller.reservation.FacilityReservationController;
 import com.ips2026.pl11.controller.shareholder.ShareholderPortalController;
 import com.ips2026.pl11.controller.slots.InterviewSlotsController;
-import com.ips2026.pl11.controller.store.StoreSalesController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.controller.team.TeamCreationController;
-import com.ips2026.pl11.controller.ticket.MatchTicketController;
 import com.ips2026.pl11.data.reservation.FacilityDAO;
 import com.ips2026.pl11.data.reservation.ReservationDAO;
 import com.ips2026.pl11.data.reservation.TeamUseDAO;
 import com.ips2026.pl11.data.shareholder.ShareholderDAO;
 import com.ips2026.pl11.data.slots.InterviewSlotDAO;
-import com.ips2026.pl11.data.store.MerchandiseDAO;
-import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
 import com.ips2026.pl11.data.team.SportsEmployeeDAO;
 import com.ips2026.pl11.data.team.TeamDAO;
 import com.ips2026.pl11.model.employee.Employee;
-import com.ips2026.pl11.model.ticket.HomeMatch;
 import com.ips2026.pl11.view.campaign.CampaignsDialog;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
 import com.ips2026.pl11.view.interview.InterviewHubDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
+import com.ips2026.pl11.view.sale.SalesMenuDialog;
 import com.ips2026.pl11.view.shareholder.ShareholderPortalDialog;
 import com.ips2026.pl11.view.slots.CreateInterviewSlotDialog;
 import com.ips2026.pl11.view.schedule.WorkScheduleWindow;
-import com.ips2026.pl11.view.store.StoreSalesWindow;
 import com.ips2026.pl11.view.team.TeamCreationWindow;
-import com.ips2026.pl11.view.ticket.SelectMatchDialog;
-import com.ips2026.pl11.view.ticket.SellMatchTicketDialog;
 
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
@@ -185,10 +178,10 @@ public class MainWindow extends JFrame {
     }
     private MenuCardButton getBtnOption3() {
         if (btnOption3 == null) {
-            btnOption3 = new MenuCardButton("Store Sales", "Sell merchandising products from the catalog");
+            btnOption3 = new MenuCardButton("Sales", "Shop and ticket sales, and the sales history");
             btnOption3.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
             btnOption3.setMnemonic('S');
-            btnOption3.addActionListener(event -> openStoreSales());
+            btnOption3.addActionListener(event -> new SalesMenuDialog(this).setVisible(true));
         }
         return btnOption3;
     }
@@ -232,10 +225,10 @@ public class MainWindow extends JFrame {
     
     private MenuCardButton getBtnOption8() {
         if (btnOption8 == null) {
-            btnOption8 = new MenuCardButton("Match Ticket Sales", "Sell match tickets choosing section and seat");
+            // Blank card: free for a future option
+            btnOption8 = new MenuCardButton("", "");
             btnOption8.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
-            btnOption8.setMnemonic('T');
-            btnOption8.addActionListener(event -> openMatchTickets());
+            btnOption8.setEnabled(false);
         }
         return btnOption8;
     }
@@ -250,34 +243,6 @@ public class MainWindow extends JFrame {
         return btnOption9;
     }
 
-    private void openMatchTickets() {
-        try {
-            MatchTicketController ticketCtrl = new MatchTicketController();
-            List<HomeMatch> homeMatches = ticketCtrl.getHomeMatches();
-
-            if (homeMatches.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "There are no home matches available for ticket sales.",
-                        "No Matches Found", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            SelectMatchDialog selector = new SelectMatchDialog(this, homeMatches);
-            selector.setVisible(true);
-
-            HomeMatch selected = selector.getSelectedMatch();
-            
-            if (selected != null) {
-                SellMatchTicketDialog dialog = new SellMatchTicketDialog(this, selected.getId(), selected.getDisplayName());
-                dialog.setVisible(true);
-            }
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Error loading home matches: " + ex.getMessage(),
-                    "Ticket Sales Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
 
     private void openShareholderPortal() {
         ShareholderPortalController controller = new ShareholderPortalController(new ShareholderDAO());
@@ -319,18 +284,6 @@ public class MainWindow extends JFrame {
         new FacilityReservationWindow(controller, this).setVisible(true);
     }
 
-    private void openStoreSales() {
-        StoreSalesController controller = new StoreSalesController(new MerchandiseDAO(), new MerchandiseSaleDAO());
-        try {
-            controller.loadCatalog();
-        } catch (SQLException exception) {
-            JOptionPane.showMessageDialog(this,
-                    "The catalog could not be loaded:\n" + exception.getMessage(),
-                    "Store Sales", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        new StoreSalesWindow(controller, this).setVisible(true);
-    }
 
     private void openInterviewSlots() {
 		// TODO Auto-generated method stub

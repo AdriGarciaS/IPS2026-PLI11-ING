@@ -6,12 +6,12 @@ import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Window;
 import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -34,8 +34,8 @@ public class SellMatchTicketDialog extends JDialog {
     private JSpinner spQuantity;
     private JLabel lblTotalPrice;
 
-    public SellMatchTicketDialog(JFrame parent, int matchId, String matchTitle) {
-        super(parent, "Sell Match Tickets", true);
+    public SellMatchTicketDialog(Window parent, int matchId, String matchTitle) {
+        super(parent, "Sell Match Tickets", ModalityType.APPLICATION_MODAL);
         this.matchId = matchId;
         this.controller = new MatchTicketController();
 

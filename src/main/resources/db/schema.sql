@@ -270,3 +270,11 @@ CREATE TABLE IF NOT EXISTS SEASON_PASS (
     FOREIGN KEY (team_id) REFERENCES TEAMS(id),
     UNIQUE (team_id, grandstand, section, row_num, seat_num, start_date) 
 );
+
+CREATE TABLE IF NOT EXISTS FAN (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    dni         VARCHAR(20) NOT NULL UNIQUE,
+    full_name   VARCHAR(100) NOT NULL,
+    email       VARCHAR(100) NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

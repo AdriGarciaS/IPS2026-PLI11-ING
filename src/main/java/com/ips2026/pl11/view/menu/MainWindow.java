@@ -48,12 +48,12 @@ import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
 import com.ips2026.pl11.view.interview.InterviewHubDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.shareholder.ShareholderPortalDialog;
-import com.ips2026.pl11.view.slots.CreateInterviewSlotDialog;
 import com.ips2026.pl11.view.schedule.WorkScheduleWindow;
 import com.ips2026.pl11.view.store.StoreSalesWindow;
 import com.ips2026.pl11.view.team.TeamCreationWindow;
 import com.ips2026.pl11.view.ticket.SelectMatchDialog;
 import com.ips2026.pl11.view.ticket.SellMatchTicketDialog;
+import com.ips2026.pl11.view.seasonpass.PurchaseSeasonPassDialog; 
 
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
@@ -232,10 +232,10 @@ public class MainWindow extends JFrame {
     
     private MenuCardButton getBtnOption8() {
         if (btnOption8 == null) {
-            btnOption8 = new MenuCardButton("Match Ticket Sales", "Sell match tickets choosing section and seat");
+            btnOption8 = new MenuCardButton("Season Pass Holder Site", "Purchase annual season passes for specific teams");
             btnOption8.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
-            btnOption8.setMnemonic('T');
-            btnOption8.addActionListener(event -> openMatchTickets());
+            btnOption8.setMnemonic('S');
+            btnOption8.addActionListener(event -> openSeasonPass());
         }
         return btnOption8;
     }
@@ -330,6 +330,17 @@ public class MainWindow extends JFrame {
             return;
         }
         new StoreSalesWindow(controller, this).setVisible(true);
+    }
+    
+    private void openSeasonPass() {
+        try {
+            PurchaseSeasonPassDialog dialog = new PurchaseSeasonPassDialog(this);
+            dialog.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error opening Season Pass dialog: " + ex.getMessage(),
+                    "Season Pass Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void openInterviewSlots() {

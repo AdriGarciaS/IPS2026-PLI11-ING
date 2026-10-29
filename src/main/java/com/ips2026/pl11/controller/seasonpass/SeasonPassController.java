@@ -27,57 +27,45 @@ public class SeasonPassController {
     }
 
     /**
-     * Attempts to purchase a season pass.
-     * Checks if the seat is already taken for that team/season before saving.
+     * Gets 10x15 grid of occupied season pass seats for a given team, grandstand, section, and season.
      */
-    public boolean purchaseSeasonPass(int fanId, int teamId, String grandstand, String section,int rowNum, int seatNum, String ageCategory, double basePrice,String seasonStartDate, String seasonEndDate) throws SQLException {
+    public boolean[][] getOccupiedSeasonPassSeats(String teamName, String grandstand, String section) throws SQLException {
+        boolean[][] grid = new boolean[10][15];
+        String startDate = SeasonDateUtils.getCurrentSeasonBounds()[0];
 
-        // 1. Verify seat availability for this team's season
-        boolean isTaken = seasonPassDAO.isSeatPassOccupied(teamId, grandstand, section, rowNum, seatNum, seasonStartDate);
-        if (isTaken) {
-            throw new IllegalStateException("Seat " + seatNum + " in Row " + rowNum + 
-                    " is already reserved for another season pass holder.");
+        List<int[]> passSeats = seasonPassDAO.getActivePassSeatsForMatch(teamName, grandstand, section, startDate);
+        for (int[] seat : passSeats) {
+            int r = seat[0];
+            int c = seat[1];
+            if (r >= 0 && r < 10 && c >= 0 && c < 15) {
+                grid[r][c] = true;
+            }
         }
-
-        // 2. Calculate final adjusted price
-        double finalPrice = calculatePrice(basePrice, ageCategory);
-
-        // 3. Register season pass in database
-        return seasonPassDAO.createSeasonPass(fanId, teamId, grandstand, section, rowNum, seatNum, ageCategory, finalPrice, seasonStartDate, seasonEndDate);
+        return grid;
     }
-    
+
     /**
-     * Validates input parameters and purchases a season pass using dynamic season bounds.
+     * Purchases a season pass for the selected seat and fan details.
      */
-    public boolean purchaseSeasonPass(int fanId, int teamId, String grandstand, String section, 
-                                     int rowNum, int seatNum, String ageCategory, double basePrice) throws SQLException {
+    public boolean purchaseSeasonPass(String dni, String fullName, String email, String teamName, String grandstand, String section, int rowNum, int seatNum, String ageCategory, double basePrice) throws Exception {
 
-        // 1. Boundary validations
-        if (rowNum < 1 || rowNum > 10 || seatNum < 1 || seatNum > 15) {
-            throw new IllegalArgumentException("Invalid seat location. Rows must be 1-10 and seats 1-15.");
+        if (dni.isBlank() || fullName.isBlank() || email.isBlank()) {
+            throw new IllegalArgumentException("All pass holder details (DNI, Name, Email) are required.");
         }
 
-        if (!List.of("Adults", "Seniors", "Children", "Under 26").contains(ageCategory)) {
-            throw new IllegalArgumentException("Invalid age category provided.");
-        }
-
-        // 2. Compute dynamic July 1st - June 30th season range
         String[] seasonBounds = SeasonDateUtils.getCurrentSeasonBounds();
         String startDate = seasonBounds[0];
         String endDate = seasonBounds[1];
 
-        // 3. Check seat availability for this team and season
-        boolean isTaken = seasonPassDAO.isSeatPassOccupied(teamId, grandstand, section, rowNum, seatNum, startDate);
+        // Check if seat is already taken for this team & season
+        boolean isTaken = seasonPassDAO.isSeatPassOccupiedByName(teamName, grandstand, section, rowNum, seatNum, startDate);
         if (isTaken) {
-            throw new IllegalStateException("Seat " + seatNum + " in Row " + rowNum + 
-                    " (" + grandstand + "-" + section + ") is already occupied by a season pass holder.");
+            throw new IllegalStateException("Seat Row " + rowNum + ", Seat " + seatNum + " is already occupied by another season pass holder.");
         }
 
-        // 4. Calculate final discounted price
         double finalPrice = calculatePrice(basePrice, ageCategory);
 
-        // 5. Save transaction
-        return seasonPassDAO.createSeasonPass(fanId, teamId, grandstand, section,rowNum, seatNum, ageCategory, finalPrice, startDate, endDate);
+        return seasonPassDAO.createSeasonPassWithHolder(dni, fullName, email, teamName, grandstand, section, rowNum, seatNum, ageCategory, finalPrice, startDate, endDate);
     }
 
 }

@@ -114,11 +114,13 @@ CREATE TABLE IF NOT EXISTS matches (
     end_time TEXT NOT NULL,          -- HH:MM
     rival TEXT,
     is_home INTEGER NOT NULL CHECK (is_home IN (0, 1)), -- 1 = in our field, 0 = in the field of the rival
+    is_special_match INTEGER DEFAULT 0 CHECK (is_special_match IN (0, 1)), -- 1 = special/derby match, 0 = regular match
     facility_id INTEGER,             -- facility used, only for home matches
     FOREIGN KEY (team_id) REFERENCES team(id),
     FOREIGN KEY (facility_id) REFERENCES FACILITY(id),
     CHECK ((is_home = 1 AND facility_id IS NOT NULL) OR (is_home = 0 AND facility_id IS NULL))
 );
+
 
 -- Scheduled training sessions.
 -- Trainings and home matches are the uses of the facilities by our teams:

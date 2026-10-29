@@ -29,7 +29,7 @@ public class MatchDAO {
 
             while (rs.next()) {
                 matches.add(new HomeMatch(
-                		rs.getInt("id"),
+                        rs.getInt("id"),
                         rs.getString("team_name"),
                         rs.getString("rival"),
                         rs.getString("match_date"),
@@ -42,7 +42,10 @@ public class MatchDAO {
     }
     
     public HomeMatch getMatchById(int matchId) throws SQLException {
-    	String sql = "SELECT id, team_name, rival, match_date, start_time, is_special_match FROM MATCHES WHERE id = ?";
+        String sql = "SELECT m.id, t.name AS team_name, m.rival, m.match_date, m.start_time, m.is_special_match " +
+                     "FROM matches m " +
+                     "JOIN TEAM t ON m.team_id = t.id " +
+                     "WHERE m.id = ?";
 
         try (Connection conn = ConexionBD.obtenerConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -57,11 +60,11 @@ public class MatchDAO {
                             rs.getString("rival"),
                             rs.getString("match_date"),
                             rs.getString("start_time"),
-                            rs.getBoolean("is_special_match") // Read boolean flag
+                            rs.getBoolean("is_special_match")
                     );
                 }
             }
         }
-        return null; // Return null if no match is found with the given ID
+        return null;
     }
 }

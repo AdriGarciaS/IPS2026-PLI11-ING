@@ -267,4 +267,28 @@ CREATE TABLE IF NOT EXISTS SEASON_TICKET (
     holder_name TEXT    NOT NULL,
     price       REAL    NOT NULL CHECK (price > 0),
     created_at  TEXT    NOT NULL
+ );   
+CREATE TABLE IF NOT EXISTS SEASON_PASS (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    fan_id        INTEGER NOT NULL,
+    team_id       INTEGER NOT NULL,
+    grandstand    TEXT    NOT NULL CHECK (grandstand IN ('A', 'B', 'C', 'D')),
+    section       TEXT    NOT NULL CHECK (section IN ('A', 'B', 'C', 'D', 'E', 'F')),
+    row_num       INTEGER NOT NULL CHECK (row_num BETWEEN 1 AND 10),
+    seat_num      INTEGER NOT NULL CHECK (seat_num BETWEEN 1 AND 15),
+    age_category  TEXT    NOT NULL CHECK (age_category IN ('Adults', 'Seniors', 'Children', 'Under 26')),
+    price         REAL    NOT NULL,
+    start_date    TEXT    NOT NULL, 
+    end_date      TEXT    NOT NULL, 
+    created_at    TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (team_id) REFERENCES TEAMS(id),
+    UNIQUE (team_id, grandstand, section, row_num, seat_num, start_date) 
+);
+
+CREATE TABLE IF NOT EXISTS FAN (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    dni         VARCHAR(20) NOT NULL UNIQUE,
+    full_name   VARCHAR(100) NOT NULL,
+    email       VARCHAR(100) NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

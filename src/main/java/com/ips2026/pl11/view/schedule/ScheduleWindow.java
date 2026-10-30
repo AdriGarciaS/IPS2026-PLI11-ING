@@ -30,6 +30,7 @@ import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.menu.MainWindow;
 import com.ips2026.pl11.view.menu.MenuCardButton;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
+import com.ips2026.pl11.view.schedule.manager.ManagerSchedulesOptionWindow;
 import com.ips2026.pl11.view.store.StoreSalesWindow;
 
 /**
@@ -47,7 +48,7 @@ import com.ips2026.pl11.view.store.StoreSalesWindow;
  * a su getter, asi que la ventana se puede seguir editando desde la pestana
  * Design de WindowBuilder.</p>
  */
-public class WorkScheduleWindow extends JFrame {
+public class ScheduleWindow extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
@@ -59,7 +60,7 @@ public class WorkScheduleWindow extends JFrame {
     
     private MainWindow mw;
     private GMWorkScheduleWindow gmWorkScheduleWindow = new GMWorkScheduleWindow(this);
-    private ManagerWorkScheduleWindow managerWorkScheduleWindow = new ManagerWorkScheduleWindow(this);
+    private ManagerSchedulesOptionWindow managerSchedulesOptionWindow = new ManagerSchedulesOptionWindow(this);
     private NSEWorkScheduleWindow nseWorkScheduleWindow = new NSEWorkScheduleWindow(this);
     
     private JPanel pnBody;
@@ -69,7 +70,7 @@ public class WorkScheduleWindow extends JFrame {
     private JButton btnReturn;
     private MenuCardButton btnNonSportingEmp;
 
-    public WorkScheduleWindow(MainWindow mw) {
+    public ScheduleWindow(MainWindow mw) {
         setResizable(false);
         this.mw = mw;
         
@@ -91,7 +92,7 @@ public class WorkScheduleWindow extends JFrame {
     /** Cabecera del club, version grande (solo el menu principal). */
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
-            pnHeader = new HeaderPanel("Work Schedule Management",
+            pnHeader = new HeaderPanel("Schedule Management",
                     "Select your work position", false);
         }
         return pnHeader;
@@ -190,9 +191,7 @@ public class WorkScheduleWindow extends JFrame {
         	btnManager.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    managerWorkScheduleWindow.refreshShiftsTable();
-                    managerWorkScheduleWindow.refreshWorkersTable();
-        	        managerWorkScheduleWindow.setVisible(true);
+                    managerSchedulesOptionWindow.setVisible(true);
         	    }
         	});
         	btnManager.setFont(new Font("Tahoma", Font.PLAIN, 16));

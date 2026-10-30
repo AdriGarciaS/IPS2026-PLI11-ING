@@ -1,4 +1,4 @@
-package com.ips2026.pl11.view.schedule;
+package com.ips2026.pl11.view.schedule.manager;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -70,7 +70,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
     private List<DaySchedule> daySchedulesList = new ArrayList<>();
     private List<Employee> workersList = new ArrayList<>();
 
-    private WorkScheduleWindow wsw;
+    private ManagerSchedulesOptionWindow wsw;
     private HeaderPanel pnHeader;
     private JPanel pnFooter;
     private JLabel lblFooter;
@@ -125,7 +125,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
     /**
      * Create the frame.
      */
-    public ManagerWorkScheduleWindow(WorkScheduleWindow workScheduleWindow) {
+    public ManagerWorkScheduleWindow(ManagerSchedulesOptionWindow workScheduleWindow) {
         setResizable(false);
         setTitle("Football Club Management");
         this.wsw = workScheduleWindow;

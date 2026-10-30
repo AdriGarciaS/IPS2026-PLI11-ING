@@ -49,7 +49,7 @@ import com.ips2026.pl11.view.interview.InterviewHubDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.shareholder.ShareholderPortalDialog;
 import com.ips2026.pl11.view.slots.CreateInterviewSlotDialog;
-import com.ips2026.pl11.view.schedule.WorkScheduleWindow;
+import com.ips2026.pl11.view.schedule.ScheduleWindow;
 import com.ips2026.pl11.view.store.StoreSalesWindow;
 import com.ips2026.pl11.view.team.TeamCreationWindow;
 import com.ips2026.pl11.view.ticket.SelectMatchDialog;
@@ -92,7 +92,7 @@ public class MainWindow extends JFrame {
     private MenuCardButton btnOption8;
     private MenuCardButton btnOption9;
     
-    private WorkScheduleWindow workScheduleWindow = new WorkScheduleWindow(this);
+    private ScheduleWindow workScheduleWindow = new ScheduleWindow(this);
 
     public MainWindow() {
         setTitle("Football Club Management");

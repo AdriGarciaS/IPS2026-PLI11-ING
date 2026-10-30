@@ -71,7 +71,7 @@ public class NSEWorkScheduleWindow extends JFrame {
 
     private List<String> occupiedShiftCells = new ArrayList<>();
 
-    private WorkScheduleWindow wsw;
+    private ScheduleWindow wsw;
     private HeaderPanel pnHeader;
     private JPanel pnFooter;
     private JLabel lblFooter;
@@ -147,7 +147,7 @@ public class NSEWorkScheduleWindow extends JFrame {
     /**
      * Create the frame.
      */
-    public NSEWorkScheduleWindow(WorkScheduleWindow workScheduleWindow) {
+    public NSEWorkScheduleWindow(ScheduleWindow workScheduleWindow) {
         setResizable(false);
         setTitle("Football Club Management");
         this.wsw = workScheduleWindow;

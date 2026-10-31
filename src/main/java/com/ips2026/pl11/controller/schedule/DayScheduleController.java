@@ -152,13 +152,20 @@ public class DayScheduleController {
         Set<Long> overridden = new HashSet<>();
 
         for (DaySchedule ds : dayScheduleDAO.getAllSchedules()) {
+
+            WorkSchedule ws = workScheduleDAO.getScheduleById(ds.getWorkScheduleId());
             boolean inWeek = !ds.getDate().isBefore(monday) && !ds.getDate().isAfter(sunday);
             
+            int wsWeekDay = ws.getWeekDay();
+            int dsWeekDay = ds.getDate().getDayOfWeek().getValue();
             if (inWeek && employeeScheduleIds.contains(ds.getWorkScheduleId())) {
                 result.add(new WeeklyShift(ds.getWorkScheduleId(), ds.getDate().getDayOfWeek().getValue(),
                     ds.getStartTime(), ds.getEndTime(), true));
-                overridden.add(ds.getWorkScheduleId());
-            }
+                
+                if(wsWeekDay == dsWeekDay) {
+                    overridden.add(ds.getWorkScheduleId());                    
+                }
+            }         
         }
 
         for (WorkSchedule ws : recurring) {

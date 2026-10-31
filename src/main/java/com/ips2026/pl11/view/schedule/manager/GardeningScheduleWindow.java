@@ -33,6 +33,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 
 import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.controller.reservation.FacilityReservationController;
@@ -229,7 +230,7 @@ public class GardeningScheduleWindow extends JFrame {
     private JScrollPane getSpnTimeslots() {
         if (spnTimeslots == null) {
             spnTimeslots = new JScrollPane();
-            spnTimeslots.setBounds(477, 98, 262, 269);
+            spnTimeslots.setBounds(477, 98, 181, 269);
             spnTimeslots.setViewportView(getTableTimeslots());
         }
         return spnTimeslots;
@@ -240,8 +241,8 @@ public class GardeningScheduleWindow extends JFrame {
             tableTimeslots = new JTable();
             tableTimeslots.setModel(timeslotsModel);
 
-            tableGardeners.getTableHeader().setResizingAllowed(false);
-            tableGardeners.getTableHeader().setEnabled(false);
+            tableTimeslots.getTableHeader().setResizingAllowed(false);
+            tableTimeslots.getTableHeader().setEnabled(false);
 
         }
         return tableTimeslots;
@@ -252,12 +253,13 @@ public class GardeningScheduleWindow extends JFrame {
             tableGardeners = new JTable();
             tableGardeners.setModel(gardenersModel);
 
-            tableGardeners.getColumnModel().getColumn(0).setPreferredWidth(18);
+            TableColumn first = tableGardeners.getColumnModel().getColumn(0);
+            first.setMaxWidth(50);
+            first.setPreferredWidth(50);
+            
             tableGardeners.getTableHeader().setResizingAllowed(false);
             tableGardeners.getTableHeader().setEnabled(false);
 
-            tableGardeners.getColumnModel().getColumn(2).setPreferredWidth(50);
-            tableGardeners.getColumnModel().getColumn(1).setPreferredWidth(50);
         }
         return tableGardeners;
     }
@@ -291,7 +293,7 @@ public class GardeningScheduleWindow extends JFrame {
     private JComboBox<String> getCbGardeners() {
         if (cbGardeners == null) {
             cbGardeners = new JComboBox();
-            cbGardeners.setBounds(21, 135, 279, 27);
+            cbGardeners.setBounds(21, 135, 181, 27);
         }
         return cbGardeners;
     }
@@ -326,7 +328,7 @@ public class GardeningScheduleWindow extends JFrame {
             btnAddGardener.setMnemonic('A');
             btnAddGardener.setFont(new Font("Tahoma", Font.PLAIN, 11));
             btnAddGardener.setBackground(UIManager.getColor("Button.background"));
-            btnAddGardener.setBounds(321, 135, 85, 27);
+            btnAddGardener.setBounds(215, 135, 85, 27);
         }
         return btnAddGardener;
     }
@@ -369,7 +371,7 @@ public class GardeningScheduleWindow extends JFrame {
         if (lblAddedGardeners == null) {
             lblAddedGardeners = new JLabel("Added gardeners:");
             lblAddedGardeners.setDisplayedMnemonic('W');
-            lblAddedGardeners.setBounds(21, 158, 176, 23);
+            lblAddedGardeners.setBounds(21, 160, 176, 23);
         }
         return lblAddedGardeners;
     }
@@ -386,7 +388,7 @@ public class GardeningScheduleWindow extends JFrame {
                 BorderFactory.createEmptyBorder(2, 2, 2, 2)
             ));
             dateSession.setBackground(Color.WHITE);
-            dateSession.setBounds(477, 38, 146, 38);
+            dateSession.setBounds(477, 38, 181, 38);
         }
         return dateSession;
     }

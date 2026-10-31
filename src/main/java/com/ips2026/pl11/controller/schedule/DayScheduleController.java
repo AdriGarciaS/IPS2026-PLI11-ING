@@ -134,15 +134,24 @@ public class DayScheduleController {
         return dayScheduleDAO.getSchedulesByEmployee(gardenerId);
     }
 
-    /**
-     * Returns the shifts an employee effectively works in the week starting on the
-     * given Monday. Specific day schedules replace the recurring shift they
-     * override.
-     */
     public List<WeeklyShift> getWeekShifts(long employeeId, LocalDate monday) throws SQLException {
+        List<WeeklyShift> result = new ArrayList<>();
+        List<WeeklyShift> allShifts = getAllWeekShifts(monday);
+        
+        for(WeeklyShift s : allShifts) {
+            WorkSchedule ws = workScheduleDAO.getScheduleById(s.getWorkScheduleId());
+            if(ws.getEmployeeId() == employeeId) {
+                result.add(s);
+            }
+        }
+
+        return result;
+    }
+    
+    public List<WeeklyShift> getAllWeekShifts(LocalDate monday) throws SQLException {
         LocalDate sunday = monday.plusDays(6);
 
-        List<WorkSchedule> recurring = workScheduleDAO.getSchedulesByEmployee(employeeId);
+        List<WorkSchedule> recurring = workScheduleDAO.getAllSchedules();
         Set<Long> employeeScheduleIds = new HashSet<>();
         for (WorkSchedule ws : recurring) {
             employeeScheduleIds.add(ws.getId());

@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -38,6 +40,7 @@ import javax.swing.table.TableColumn;
 import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.controller.reservation.FacilityReservationController;
 import com.ips2026.pl11.controller.schedule.DayScheduleController;
+import com.ips2026.pl11.controller.schedule.WorkScheduleController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.data.reservation.FacilityDAO;
 import com.ips2026.pl11.data.reservation.ReservationDAO;
@@ -100,6 +103,13 @@ public class GardeningScheduleWindow extends JFrame {
     private JLabel lblAddedGardeners;
     private JDateChooser dateSession;
     private JSeparator separator;
+
+    private DayScheduleController dsController = new DayScheduleController(new DayScheduleDAO(), new WorkScheduleDAO());
+    private WorkScheduleController wsController = new WorkScheduleController(new WorkScheduleDAO());
+    private EmployeeController employeeController = new EmployeeController(new EmployeeDAO());
+    private JButton btnRemoveGardener;
+
+    private GardenerDateEvaluator evaluator;
 
     /**
      * Create the frame.
@@ -176,6 +186,7 @@ public class GardeningScheduleWindow extends JFrame {
             pnButtons.add(getLblAddedGardeners());
             pnButtons.add(getDate());
             pnButtons.add(getSeparator());
+            pnButtons.add(getBtnRemoveGardener());
         }
         return pnButtons;
     }
@@ -256,7 +267,7 @@ public class GardeningScheduleWindow extends JFrame {
             TableColumn first = tableGardeners.getColumnModel().getColumn(0);
             first.setMaxWidth(50);
             first.setPreferredWidth(50);
-            
+
             tableGardeners.getTableHeader().setResizingAllowed(false);
             tableGardeners.getTableHeader().setEnabled(false);
 
@@ -276,6 +287,7 @@ public class GardeningScheduleWindow extends JFrame {
     private JScrollPane getSpGardeners() {
         if (spGardeners == null) {
             spGardeners = new JScrollPane();
+            spGardeners.setEnabled(false);
             spGardeners.setBounds(21, 179, 385, 188);
             spGardeners.setViewportView(getTableGardeners());
         }
@@ -298,6 +310,33 @@ public class GardeningScheduleWindow extends JFrame {
         return cbGardeners;
     }
 
+    private JButton getBtnRemoveGardener() {
+        if (btnRemoveGardener == null) {
+            btnRemoveGardener = new JButton("Remove");
+            btnRemoveGardener.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    for (Employee gardener : gardenersList) {
+                        String gardenerName = gardener.getFirstName() + " " + gardener.getLastName();
+                        if (gardenerName.equals(cbGardeners.getSelectedItem())) {
+                            for (int i = 0; i < gardenersModel.getRowCount(); i++) {
+                                if (gardenersModel.getValueAt(i, 0).equals(gardener.getId())) {
+                                    gardenersModel.removeRow(i);
+                                    refreshGardenerAvailability();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            btnRemoveGardener.setMnemonic('R');
+            btnRemoveGardener.setFont(new Font("Tahoma", Font.PLAIN, 11));
+            btnRemoveGardener.setBackground(UIManager.getColor("Button.background"));
+            btnRemoveGardener.setBounds(306, 135, 85, 27);
+        }
+        return btnRemoveGardener;
+    }
+
     private JButton getBtnAddGardener() {
         if (btnAddGardener == null) {
             btnAddGardener = new JButton("Add");
@@ -317,6 +356,7 @@ public class GardeningScheduleWindow extends JFrame {
                             if (!alreadyAdded) {
                                 gardenersModel.addRow(
                                     new Object[] { gardener.getId(), gardener.getFirstName(), gardener.getLastName() });
+                                refreshGardenerAvailability();
                             } else {
                                 showError("This gardener is already added.");
                             }
@@ -379,14 +419,18 @@ public class GardeningScheduleWindow extends JFrame {
     private JDateChooser getDate() {
         if (dateSession == null) {
             dateSession = new JDateChooser();
-            GardenerDateEvaluator evaluator = new GardenerDateEvaluator();
+            dateSession.addPropertyChangeListener("date", new PropertyChangeListener() {
+                @Override
+                public void propertyChange(PropertyChangeEvent evt) {
+                    updateTimeslotsTable();
+                }
+            });
+            evaluator = new GardenerDateEvaluator();
             dateSession.getJCalendar().getDayChooser().addDateEvaluator(evaluator);
             dateSession.setFont(new Font("Tahoma", Font.PLAIN, 13));
             dateSession.setDateFormatString("yyyy-MM-dd");
-            dateSession.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(Branding.BORDER, 1, true),
-                BorderFactory.createEmptyBorder(2, 2, 2, 2)
-            ));
+            dateSession.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Branding.BORDER, 1, true),
+                BorderFactory.createEmptyBorder(2, 2, 2, 2)));
             dateSession.setBackground(Color.WHITE);
             dateSession.setBounds(477, 38, 181, 38);
         }
@@ -433,7 +477,84 @@ public class GardeningScheduleWindow extends JFrame {
         }
     }
 
-    private class GardenerDateEvaluator implements IDateEvaluator {
+    private void updateTimeslotsTable() {
+        timeslotsModel.setRowCount(0);
+        
+        if(tableGardeners.getRowCount() == 0) {
+            return;
+        }
+        
+        try {
+            LocalDate day = dateSession.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate monday = day.with(DayOfWeek.MONDAY);
+            List<WeeklyShift> shifts = dsController.getAllWeekShifts(monday);
+
+            for (WeeklyShift s : shifts) {
+                if (s.getDayOfWeek() == day.getDayOfWeek().getValue() && isCommonShift(s, day)) {
+                    Object[] timeslot = { s.getStartTime(), s.getEndTime() };
+
+                    boolean alreadyAdded = checkIfTimeslotAlreadyAdded(timeslot);
+
+                    if (!alreadyAdded) {
+                        timeslotsModel.addRow(timeslot);
+                    }
+
+                }
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,
+                "Something went wrong while showing the selected day's timeslots:\n" + e.getMessage(),
+                "Gardening Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }
+
+    private boolean checkIfTimeslotAlreadyAdded(Object[] timeslot) {
+        for (int i = 0; i < timeslotsModel.getRowCount(); i++) {
+            if (timeslotsModel.getValueAt(i, 0).equals(timeslot[0])
+                && timeslotsModel.getValueAt(i, 1).equals(timeslot[1])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isCommonShift(WeeklyShift s, LocalDate day) throws SQLException {
+        LocalDate monday = day.with(DayOfWeek.MONDAY);
+
+        for (int i = 0; i < gardenersModel.getRowCount(); i++) {
+            long gardenerId = ((Number) gardenersModel.getValueAt(i, 0)).longValue();
+
+            List<WeeklyShift> gardenerShifts = dsController.getWeekShifts(gardenerId, monday);
+
+            boolean hasSameShift = gardenerShifts.stream().anyMatch(shift -> shift.getDayOfWeek() == s.getDayOfWeek()
+                && shift.getStartTime().equals(s.getStartTime()) && shift.getEndTime().equals(s.getEndTime()));
+
+            if (!hasSameShift) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    private void refreshGardenerAvailability() {
+        if (evaluator != null) {
+            evaluator.clearMap();
+        }
+
+        if (dateSession != null && dateSession.getDate() != null) {
+            updateTimeslotsTable();
+            dateSession.getJCalendar().getDayChooser().repaint();
+        }
+    }
+
+    private long findEmployeeIdByScheduleId(long scheduleId) throws SQLException {
+        return wsController.getWorkScheduleById(scheduleId).getEmployeeId();
+    }
+
+    class GardenerDateEvaluator implements IDateEvaluator {
 
         private DayScheduleController dsController = new DayScheduleController(new DayScheduleDAO(),
             new WorkScheduleDAO());
@@ -443,10 +564,14 @@ public class GardeningScheduleWindow extends JFrame {
         private final Map<LocalDate, Boolean> availabilityMap = new HashMap<>();
         private boolean errorShown = false;
 
-        private void clearMap() {
+        public void clearMap() {
             availabilityMap.clear();
             weekShiftsCache.clear();
             errorShown = false;
+        }
+
+        public Map<String, List<WeeklyShift>> getWeekShiftsCache() {
+            return weekShiftsCache;
         }
 
         @Override

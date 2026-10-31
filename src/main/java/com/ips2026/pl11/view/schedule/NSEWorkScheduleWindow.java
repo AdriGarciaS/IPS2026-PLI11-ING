@@ -38,14 +38,11 @@ import javax.swing.table.DefaultTableModel;
 
 import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.controller.schedule.DayScheduleController;
-import com.ips2026.pl11.controller.schedule.WorkScheduleController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.data.schedule.DayScheduleDAO;
 import com.ips2026.pl11.data.schedule.WorkScheduleDAO;
 import com.ips2026.pl11.model.employee.Employee;
-import com.ips2026.pl11.model.schedule.DaySchedule;
 import com.ips2026.pl11.model.schedule.WeeklyShift;
-import com.ips2026.pl11.model.schedule.WorkSchedule;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 
@@ -60,15 +57,12 @@ public class NSEWorkScheduleWindow extends JFrame {
     private static final String[] MONTHS = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct",
         "Nov", "Dec" };
 
-    private static final String RECURRING = "Weekly";
 
     private WorkScheduleDAO wsDAO = new WorkScheduleDAO();
-    private WorkScheduleController wsController = new WorkScheduleController(wsDAO);
+
     private DayScheduleController dsController = new DayScheduleController(new DayScheduleDAO(), wsDAO);
     private EmployeeController eController = new EmployeeController(new EmployeeDAO());
 
-    private List<WorkSchedule> schedulesList = new ArrayList<>();
-    private List<DaySchedule> daySchedulesList = new ArrayList<>();
     private List<Employee> workersList = new ArrayList<>();
 
     private List<String> occupiedShiftCells = new ArrayList<>();

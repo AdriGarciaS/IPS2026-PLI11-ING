@@ -48,7 +48,7 @@ import com.ips2026.pl11.model.schedule.WorkSchedule;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 
-public class ManagerWorkScheduleWindow extends JFrame {
+public class DayScheduleWindow extends JFrame {
 
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
@@ -70,7 +70,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
     private List<DaySchedule> daySchedulesList = new ArrayList<>();
     private List<Employee> workersList = new ArrayList<>();
 
-    private ManagerSchedulesOptionWindow wsw;
+    private OptionWindowSchedules wsw;
     private HeaderPanel pnHeader;
     private JPanel pnFooter;
     private JLabel lblFooter;
@@ -125,7 +125,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
     /**
      * Create the frame.
      */
-    public ManagerWorkScheduleWindow(ManagerSchedulesOptionWindow workScheduleWindow) {
+    public DayScheduleWindow(OptionWindowSchedules workScheduleWindow) {
         setResizable(false);
         setTitle("Football Club Management");
         this.wsw = workScheduleWindow;

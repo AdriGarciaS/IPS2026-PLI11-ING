@@ -11,7 +11,11 @@ INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_num
     ('Pedri', 'González', '12345678P', '2002-11-25', '+34600111222', 'SPORTS', 'Player', 900000.0, 'MALE'),
     ('Pep', 'Guardiola', '87654321B', '1971-01-18', '+34611223344', 'SPORTS', 'Coach', 12000000.0, 'MALE'),
     ('Sarah', 'Jenkins', '99887766C', '1985-04-12', '+34622334455', 'NON_SPORTS', 'General Manager', 95000.0, 'FEMALE'),
-    ('Jackie', 'Taylor', '62671892R', '1978-11-09', '+34669571133', 'NON_SPORTS', 'Manager', 70000.0, 'MALE');
+    ('Jackie', 'Taylor', '62671892R', '1978-11-09', '+34669571133', 'NON_SPORTS', 'Manager', 70000.0, 'FEMALE'),
+    
+    ('Carlos', 'Maceta', '74392871L', '2001-12-19', '+34626014732', 'NON_SPORTS', 'Gardener', 30000.0, 'MALE'),
+    ('Rosa', 'Petunia', '87290851K', '1988-02-02', '+34692449181', 'NON_SPORTS', 'Gardener', 30000.0, 'FEMALE'),
+    ('Clara', 'Cizalla', '92378567M', '2002-08-21', '+34611311952', 'NON_SPORTS', 'Gardener', 30000.0, 'FEMALE');
 
 INSERT INTO MERCHANDISING (name, type, available_units, price) VALUES
     ('Home Shirt 26/27', 'Clothing', 25, 59.99),

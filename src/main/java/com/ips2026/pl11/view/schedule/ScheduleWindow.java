@@ -30,7 +30,7 @@ import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.menu.MainWindow;
 import com.ips2026.pl11.view.menu.MenuCardButton;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
-import com.ips2026.pl11.view.schedule.manager.ManagerSchedulesOptionWindow;
+import com.ips2026.pl11.view.schedule.manager.OptionWindowSchedules;
 import com.ips2026.pl11.view.store.StoreSalesWindow;
 
 /**
@@ -60,7 +60,7 @@ public class ScheduleWindow extends JFrame {
     
     private MainWindow mw;
     private GMWorkScheduleWindow gmWorkScheduleWindow = new GMWorkScheduleWindow(this);
-    private ManagerSchedulesOptionWindow managerSchedulesOptionWindow = new ManagerSchedulesOptionWindow(this);
+    private OptionWindowSchedules managerSchedulesOptionWindow = new OptionWindowSchedules(this);
     private NSEWorkScheduleWindow nseWorkScheduleWindow = new NSEWorkScheduleWindow(this);
     
     private JPanel pnBody;

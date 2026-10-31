@@ -6,10 +6,12 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -28,19 +30,22 @@ import javax.swing.border.MatteBorder;
 import javax.swing.table.DefaultTableModel;
 
 import com.ips2026.pl11.controller.employee.EmployeeController;
+import com.ips2026.pl11.controller.reservation.FacilityReservationController;
 import com.ips2026.pl11.controller.schedule.DayScheduleController;
 import com.ips2026.pl11.controller.schedule.WorkScheduleController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
+import com.ips2026.pl11.data.reservation.FacilityDAO;
+import com.ips2026.pl11.data.reservation.ReservationDAO;
+import com.ips2026.pl11.data.reservation.TeamUseDAO;
 import com.ips2026.pl11.data.schedule.DayScheduleDAO;
 import com.ips2026.pl11.data.schedule.WorkScheduleDAO;
 import com.ips2026.pl11.model.employee.Employee;
-import com.ips2026.pl11.model.schedule.DaySchedule;
-import com.ips2026.pl11.model.schedule.WorkSchedule;
+import com.ips2026.pl11.model.reservation.Facility;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.toedter.calendar.JDateChooser;
 
-public class ManagerGardeningScheduleWindow extends JFrame {
+public class GardeningScheduleWindow extends JFrame {
 
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
@@ -58,11 +63,10 @@ public class ManagerGardeningScheduleWindow extends JFrame {
     private DayScheduleController dsController = new DayScheduleController(new DayScheduleDAO(), wsDAO);
     private EmployeeController eController = new EmployeeController(new EmployeeDAO());
 
-    private List<WorkSchedule> schedulesList = new ArrayList<>();
-    private List<DaySchedule> daySchedulesList = new ArrayList<>();
-    private List<Employee> workersList = new ArrayList<>();
+    
+    private List<Employee> gardenersList = new ArrayList<>();
 
-    private ManagerSchedulesOptionWindow wsw;
+    private OptionWindowSchedules wsw;
     private HeaderPanel pnHeader;
     private JPanel pnFooter;
     private JLabel lblFooter;
@@ -109,7 +113,7 @@ public class ManagerGardeningScheduleWindow extends JFrame {
     /**
      * Create the frame.
      */
-    public ManagerGardeningScheduleWindow(ManagerSchedulesOptionWindow workScheduleWindow) {
+    public GardeningScheduleWindow(OptionWindowSchedules workScheduleWindow) {
         setResizable(false);
         setTitle("Football Club Management");
         this.wsw = workScheduleWindow;
@@ -294,7 +298,7 @@ public class ManagerGardeningScheduleWindow extends JFrame {
         return lblDate;
     }
     
-    private JComboBox getCbGardeners() {
+    private JComboBox<String> getCbGardeners() {
         if (cbGardeners == null) {
             cbGardeners = new JComboBox();
             cbGardeners.setBounds(21, 135, 279, 27);
@@ -305,6 +309,30 @@ public class ManagerGardeningScheduleWindow extends JFrame {
     private JButton getBtnAddGardener() {
         if (btnAddGardener == null) {
             btnAddGardener = new JButton("Add");
+            btnAddGardener.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    for (Employee gardener : gardenersList) {
+                        String gardenerName = gardener.getFirstName() + " " + gardener.getLastName();
+                        if (gardenerName.equals(cbGardeners.getSelectedItem())) {
+                            boolean alreadyAdded = false;
+                            for (int i = 0; i < gardenersModel.getRowCount(); i++) {
+                                if (gardenersModel.getValueAt(i, 0).equals(gardener.getId())) {
+                                    alreadyAdded = true;
+                                    break;
+                                }
+                            }
+                            if (!alreadyAdded) {
+                                gardenersModel.addRow(new Object[] { gardener.getId(), gardener.getFirstName(),
+                                        gardener.getLastName() });
+                            } else {
+                                showError("This gardener is already added.");
+                            }
+                            break;
+                        }
+                    }
+                }
+            });
             btnAddGardener.setMnemonic('A');
             btnAddGardener.setFont(new Font("Tahoma", Font.PLAIN, 11));
             btnAddGardener.setBackground(UIManager.getColor("Button.background"));
@@ -313,7 +341,7 @@ public class ManagerGardeningScheduleWindow extends JFrame {
         return btnAddGardener;
     }
 
-    private JComboBox getCbFacilities() {
+    private JComboBox<Facility> getCbFacilities() {
         if (cbFacilities == null) {
             cbFacilities = new JComboBox();
             cbFacilities.setBounds(21, 39, 279, 27);
@@ -386,7 +414,35 @@ public class ManagerGardeningScheduleWindow extends JFrame {
 
     // ---- Auxiliary methods ----
 
-   
+    public void loadFacilities() {
+        FacilityReservationController controller = new FacilityReservationController(
+                new FacilityDAO(), new TeamUseDAO(), new ReservationDAO());
+        try {
+            controller.loadFacilities();
+            List<Facility> facilities = controller.getFacilities();
+            getCbFacilities().setModel(new DefaultComboBoxModel<>(facilities.toArray(new Facility[0])));
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this,
+                    "Facilities could not be loaded:\n" + exception.getMessage(),
+                    "Gardening Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    public void loadGardeners() {
+        EmployeeController controller = new EmployeeController(new EmployeeDAO());
+        try {
+            gardenersList = controller.getEmployeesByRole("Gardener");
+            List<String> gardenerNames = new ArrayList<>();
+            for(Employee gardener : gardenersList) {
+                gardenerNames.add(gardener.getFirstName() + " " + gardener.getLastName());
+            }
+            getCbGardeners().setModel(new DefaultComboBoxModel<>(gardenerNames.toArray(new String[0])));
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this,
+                    "Gardeners could not be loaded:\n" + exception.getMessage(),
+                    "Gardening Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
     
 }

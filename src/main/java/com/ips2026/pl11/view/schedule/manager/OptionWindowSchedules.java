@@ -6,31 +6,20 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.SQLException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
-import com.ips2026.pl11.controller.reservation.FacilityReservationController;
-import com.ips2026.pl11.controller.store.StoreSalesController;
-import com.ips2026.pl11.data.reservation.FacilityDAO;
-import com.ips2026.pl11.data.reservation.ReservationDAO;
-import com.ips2026.pl11.data.reservation.TeamUseDAO;
-import com.ips2026.pl11.data.store.MerchandiseDAO;
-import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.menu.MenuCardButton;
-import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.schedule.ScheduleWindow;
-import com.ips2026.pl11.view.store.StoreSalesWindow;
 
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
@@ -47,12 +36,12 @@ import com.ips2026.pl11.view.store.StoreSalesWindow;
  * a su getter, asi que la ventana se puede seguir editando desde la pestana
  * Design de WindowBuilder.</p>
  */
-public class ManagerSchedulesOptionWindow extends JFrame {
+public class OptionWindowSchedules extends JFrame {
 
     private static final long serialVersionUID = 1L;
     
-    private ManagerWorkScheduleWindow managerWorkScheduleWindow = new ManagerWorkScheduleWindow(this);
-    private ManagerGardeningScheduleWindow managerGardeningScheduleWindow = new ManagerGardeningScheduleWindow(this);
+    private DayScheduleWindow managerWorkScheduleWindow = new DayScheduleWindow(this);
+    private GardeningScheduleWindow managerGardeningScheduleWindow = new GardeningScheduleWindow(this);
 
     private JPanel contentPane;
     private HeaderPanel pnHeader;
@@ -69,7 +58,7 @@ public class ManagerSchedulesOptionWindow extends JFrame {
     private JButton btnReturn;
     private MenuCardButton btnNonSportingEmp;
 
-    public ManagerSchedulesOptionWindow(ScheduleWindow sw) {
+    public OptionWindowSchedules(ScheduleWindow sw) {
         setResizable(false);
         this.sw = sw;
         
@@ -88,40 +77,12 @@ public class ManagerSchedulesOptionWindow extends JFrame {
          
     }
 
-    /** Cabecera del club, version grande (solo el menu principal). */
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
             pnHeader = new HeaderPanel("Manager: Schedule Management",
                     "Select an option", false);
         }
         return pnHeader;
-    }
-
-    private void openFacilityReservations() {
-        FacilityReservationController controller = new FacilityReservationController(
-                new FacilityDAO(), new TeamUseDAO(), new ReservationDAO());
-        try {
-            controller.loadFacilities();
-        } catch (SQLException exception) {
-            JOptionPane.showMessageDialog(this,
-                    "The facilities could not be loaded:\n" + exception.getMessage(),
-                    "Facility Reservations", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        new FacilityReservationWindow(controller, this).setVisible(true);
-    }
-
-    private void openStoreSales() {
-        StoreSalesController controller = new StoreSalesController(new MerchandiseDAO(), new MerchandiseSaleDAO());
-        try {
-            controller.loadCatalog();
-        } catch (SQLException exception) {
-            JOptionPane.showMessageDialog(this,
-                    "The catalog could not be loaded:\n" + exception.getMessage(),
-                    "Store Sales", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        new StoreSalesWindow(controller, this).setVisible(true);
     }
 
     private JPanel getPnFooter() {
@@ -174,7 +135,10 @@ public class ManagerSchedulesOptionWindow extends JFrame {
         	btnGeneralManager.addActionListener(new ActionListener() {
         	    @Override
                 public void actionPerformed(ActionEvent e) {
+        	        managerGardeningScheduleWindow.loadFacilities();
+        	        managerGardeningScheduleWindow.loadGardeners();
         	        managerGardeningScheduleWindow.setVisible(true);
+        	        
         	    }
         	});
         	btnGeneralManager.setFont(new Font("Tahoma", Font.PLAIN, 16));
@@ -211,5 +175,10 @@ public class ManagerSchedulesOptionWindow extends JFrame {
         }
         return btnReturn;
     }
+    
+    // ---- auxiliary methods ----
+    
+    
+    
    
 }

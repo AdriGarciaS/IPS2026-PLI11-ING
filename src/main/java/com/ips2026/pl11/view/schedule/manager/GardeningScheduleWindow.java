@@ -7,8 +7,14 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -20,7 +26,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
@@ -32,7 +37,6 @@ import javax.swing.table.DefaultTableModel;
 import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.controller.reservation.FacilityReservationController;
 import com.ips2026.pl11.controller.schedule.DayScheduleController;
-import com.ips2026.pl11.controller.schedule.WorkScheduleController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.data.reservation.FacilityDAO;
 import com.ips2026.pl11.data.reservation.ReservationDAO;
@@ -41,8 +45,10 @@ import com.ips2026.pl11.data.schedule.DayScheduleDAO;
 import com.ips2026.pl11.data.schedule.WorkScheduleDAO;
 import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.reservation.Facility;
+import com.ips2026.pl11.model.schedule.WeeklyShift;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.toedter.calendar.IDateEvaluator;
 import com.toedter.calendar.JDateChooser;
 
 public class GardeningScheduleWindow extends JFrame {
@@ -50,20 +56,6 @@ public class GardeningScheduleWindow extends JFrame {
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
 
-    private static final String[] DAYS = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
-        "Sunday" };
-
-    private static final String[] MONTHS = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct",
-        "Nov", "Dec" };
-
-    private static final String RECURRING = "Weekly";
-
-    private WorkScheduleDAO wsDAO = new WorkScheduleDAO();
-    private WorkScheduleController wsController = new WorkScheduleController(wsDAO);
-    private DayScheduleController dsController = new DayScheduleController(new DayScheduleDAO(), wsDAO);
-    private EmployeeController eController = new EmployeeController(new EmployeeDAO());
-
-    
     private List<Employee> gardenersList = new ArrayList<>();
 
     private OptionWindowSchedules wsw;
@@ -71,8 +63,6 @@ public class GardeningScheduleWindow extends JFrame {
     private JPanel pnFooter;
     private JLabel lblFooter;
     private JPanel pnButtons;
-    private JSpinner spStart;
-    private JSpinner spEnd;
     private JLabel lblGardeners;
     private JButton btnReturn;
     private JButton btnSchedule;
@@ -107,7 +97,7 @@ public class GardeningScheduleWindow extends JFrame {
     private JComboBox cbSessionType;
     private JLabel lblType;
     private JLabel lblAddedGardeners;
-    private JDateChooser dateBirth;
+    private JDateChooser dateSession;
     private JSeparator separator;
 
     /**
@@ -249,10 +239,10 @@ public class GardeningScheduleWindow extends JFrame {
         if (tableTimeslots == null) {
             tableTimeslots = new JTable();
             tableTimeslots.setModel(timeslotsModel);
-            
+
             tableGardeners.getTableHeader().setResizingAllowed(false);
             tableGardeners.getTableHeader().setEnabled(false);
-            
+
         }
         return tableTimeslots;
     }
@@ -261,11 +251,11 @@ public class GardeningScheduleWindow extends JFrame {
         if (tableGardeners == null) {
             tableGardeners = new JTable();
             tableGardeners.setModel(gardenersModel);
-            
+
             tableGardeners.getColumnModel().getColumn(0).setPreferredWidth(18);
             tableGardeners.getTableHeader().setResizingAllowed(false);
             tableGardeners.getTableHeader().setEnabled(false);
-            
+
             tableGardeners.getColumnModel().getColumn(2).setPreferredWidth(50);
             tableGardeners.getColumnModel().getColumn(1).setPreferredWidth(50);
         }
@@ -297,7 +287,7 @@ public class GardeningScheduleWindow extends JFrame {
         }
         return lblDate;
     }
-    
+
     private JComboBox<String> getCbGardeners() {
         if (cbGardeners == null) {
             cbGardeners = new JComboBox();
@@ -323,8 +313,8 @@ public class GardeningScheduleWindow extends JFrame {
                                 }
                             }
                             if (!alreadyAdded) {
-                                gardenersModel.addRow(new Object[] { gardener.getId(), gardener.getFirstName(),
-                                        gardener.getLastName() });
+                                gardenersModel.addRow(
+                                    new Object[] { gardener.getId(), gardener.getFirstName(), gardener.getLastName() });
                             } else {
                                 showError("This gardener is already added.");
                             }
@@ -385,22 +375,22 @@ public class GardeningScheduleWindow extends JFrame {
     }
 
     private JDateChooser getDate() {
-        if (dateBirth == null) {
-            dateBirth = new JDateChooser();
-            dateBirth.setFont(new Font("Tahoma", Font.PLAIN, 13));
-            dateBirth.setDateFormatString("yyyy-MM-dd");
-            dateBirth.setBorder(BorderFactory.createCompoundBorder(
-
+        if (dateSession == null) {
+            dateSession = new JDateChooser();
+            GardenerDateEvaluator evaluator = new GardenerDateEvaluator();
+            dateSession.getJCalendar().getDayChooser().addDateEvaluator(evaluator);
+            dateSession.setFont(new Font("Tahoma", Font.PLAIN, 13));
+            dateSession.setDateFormatString("yyyy-MM-dd");
+            dateSession.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(Branding.BORDER, 1, true),
-
                 BorderFactory.createEmptyBorder(2, 2, 2, 2)
-
             ));
-            dateBirth.setBackground(Color.WHITE);
-            dateBirth.setBounds(477, 38, 146, 38);
+            dateSession.setBackground(Color.WHITE);
+            dateSession.setBounds(477, 38, 146, 38);
         }
-        return dateBirth;
+        return dateSession;
     }
+
     private JSeparator getSeparator() {
         if (separator == null) {
             separator = new JSeparator();
@@ -411,38 +401,140 @@ public class GardeningScheduleWindow extends JFrame {
         return separator;
     }
 
-
     // ---- Auxiliary methods ----
 
     public void loadFacilities() {
-        FacilityReservationController controller = new FacilityReservationController(
-                new FacilityDAO(), new TeamUseDAO(), new ReservationDAO());
+        FacilityReservationController controller = new FacilityReservationController(new FacilityDAO(),
+            new TeamUseDAO(), new ReservationDAO());
         try {
             controller.loadFacilities();
             List<Facility> facilities = controller.getFacilities();
             getCbFacilities().setModel(new DefaultComboBoxModel<>(facilities.toArray(new Facility[0])));
         } catch (SQLException exception) {
-            JOptionPane.showMessageDialog(this,
-                    "Facilities could not be loaded:\n" + exception.getMessage(),
-                    "Gardening Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Facilities could not be loaded:\n" + exception.getMessage(),
+                "Gardening Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
     public void loadGardeners() {
         EmployeeController controller = new EmployeeController(new EmployeeDAO());
         try {
             gardenersList = controller.getEmployeesByRole("Gardener");
             List<String> gardenerNames = new ArrayList<>();
-            for(Employee gardener : gardenersList) {
+            for (Employee gardener : gardenersList) {
                 gardenerNames.add(gardener.getFirstName() + " " + gardener.getLastName());
             }
             getCbGardeners().setModel(new DefaultComboBoxModel<>(gardenerNames.toArray(new String[0])));
         } catch (SQLException exception) {
-            JOptionPane.showMessageDialog(this,
-                    "Gardeners could not be loaded:\n" + exception.getMessage(),
-                    "Gardening Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Gardeners could not be loaded:\n" + exception.getMessage(),
+                "Gardening Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    
+    private class GardenerDateEvaluator implements IDateEvaluator {
+
+        private DayScheduleController dsController = new DayScheduleController(new DayScheduleDAO(),
+            new WorkScheduleDAO());
+
+        // key: gardenerId + "|" + monday
+        private final Map<String, List<WeeklyShift>> weekShiftsCache = new HashMap<>();
+        private final Map<LocalDate, Boolean> availabilityMap = new HashMap<>();
+        private boolean errorShown = false;
+
+        private void clearMap() {
+            availabilityMap.clear();
+            weekShiftsCache.clear();
+            errorShown = false;
+        }
+
+        @Override
+        public boolean isInvalid(Date date) {
+            LocalDate day = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            if (day.isBefore(LocalDate.now()) || gardenersModel.getRowCount() == 0) {
+                return true;
+            }
+
+            Boolean isAvailable = availabilityMap.get(day);
+            if (isAvailable == null) {
+                isAvailable = checkAvailability(day);
+                availabilityMap.put(day, isAvailable);
+            }
+            return !isAvailable;
+        }
+
+        private boolean checkAvailability(LocalDate day) {
+            for (int i = 0; i < gardenersModel.getRowCount(); i++) {
+                long gardenerId = ((Number) gardenersModel.getValueAt(i, 0)).longValue();
+                if (!isGardenerAvailable(gardenerId, day)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private boolean isGardenerAvailable(long gardenerId, LocalDate day) {
+            try {
+                LocalDate monday = day.with(DayOfWeek.MONDAY);
+                String key = gardenerId + "|" + monday;
+
+                List<WeeklyShift> shifts = weekShiftsCache.get(key);
+                if (shifts == null) {
+                    shifts = dsController.getWeekShifts(gardenerId, monday);
+                    weekShiftsCache.put(key, shifts);
+                }
+
+                int weekDay = day.getDayOfWeek().getValue();
+                for (WeeklyShift shift : shifts) {
+                    if (shift.getDayOfWeek() == weekDay) {
+                        return true;
+                    }
+                }
+                return false;
+
+            } catch (SQLException e) {
+                if (!errorShown) {
+                    errorShown = true;
+                    showError("Schedules could not be loaded:\n" + e.getMessage());
+                }
+                return false;
+            }
+        }
+
+        @Override
+        public boolean isSpecial(Date date) {
+            return false;
+        }
+
+        @Override
+        public Color getSpecialForegroundColor() {
+            return null;
+        }
+
+        @Override
+        public Color getSpecialBackroundColor() {
+            return null;
+        }
+
+        @Override
+        public String getSpecialTooltip() {
+            return null;
+        }
+
+        @Override
+        public Color getInvalidForegroundColor() {
+            return null;
+        }
+
+        @Override
+        public Color getInvalidBackroundColor() {
+            return null;
+        }
+
+        @Override
+        public String getInvalidTooltip() {
+            return null;
+        }
+    }
+
 }

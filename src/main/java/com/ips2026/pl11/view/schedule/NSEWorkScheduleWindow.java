@@ -8,6 +8,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.Year;
@@ -43,6 +44,7 @@ import com.ips2026.pl11.data.schedule.DayScheduleDAO;
 import com.ips2026.pl11.data.schedule.WorkScheduleDAO;
 import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.schedule.DaySchedule;
+import com.ips2026.pl11.model.schedule.WeeklyShift;
 import com.ips2026.pl11.model.schedule.WorkSchedule;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
@@ -433,74 +435,14 @@ public class NSEWorkScheduleWindow extends JFrame {
         try {
             occupiedShiftCells.clear();
 
-            WeekFields wf = WeekFields.ISO;
             DefaultTableModel model = (DefaultTableModel) tableShifts.getModel();
-            List<Long> overridenSchedulesIds = new ArrayList<>();
-            int selectedEmployeeId = Integer.parseInt(txtWorkerId.getText());
+            long employeeId = Long.parseLong(txtWorkerId.getText().trim());
 
             model.setRowCount(0);
             model.setRowCount(24);
-            for (DaySchedule ds : dsController.getAllSchedules()) {
-                if (scheduleBelongsToSelectedWeek(ds, wf)
-                    && wsController.getWorkScheduleById(ds.getWorkScheduleId()).getEmployeeId() == selectedEmployeeId) {
 
-                    int dayOfWeek = ds.getDate().getDayOfWeek().getValue() - 1;
-                    int entryHour = ds.getStartTime().getHour();
-                    int entryMinute = ds.getStartTime().getMinute();
-                    int exitHour = ds.getEndTime().getHour();
-                    int exitMinute = ds.getEndTime().getMinute();
-
-                    for (int i = entryHour; i <= exitHour; i++) {
-                        if (i == entryHour) {
-                            if (entryHour == exitHour) {
-                                model.setValueAt(ds.getStartTime() + "/" + exitMinute, i, dayOfWeek);
-                            } else {
-                                model.setValueAt(ds.getStartTime(), i, dayOfWeek);
-                            }
-                            occupiedShiftCells.add(i + "," + dayOfWeek);
-                        } else if (i == exitHour) {
-                            model.setValueAt(ds.getEndTime(), i, dayOfWeek);
-                            occupiedShiftCells.add(i + "," + dayOfWeek);
-                        } else {
-                            occupiedShiftCells.add(i + "," + dayOfWeek);
-
-                        }
-                    }
-
-                    overridenSchedulesIds.add(ds.getWorkScheduleId());
-                }
-            }
-
-            for (WorkSchedule s : wsController.getWorkSchedules()) {
-                if (!overridenSchedulesIds.contains(s.getId()) && s.getEmployeeId() == selectedEmployeeId) {
-
-                    int dayOfWeek = s.getWeekDay() - 1;
-                    int entryHour = s.getStartTime().getHour();
-                    int entryMinute = s.getStartTime().getMinute();
-                    int exitHour = s.getEndTime().getHour();
-                    int exitMinute = s.getEndTime().getMinute();
-
-                    for (int i = entryHour; i <= exitHour; i++) {
-                        if (i == entryHour) {
-                            if (entryHour == exitHour) {
-                                model.setValueAt(s.getStartTime() + "/"  + exitMinute, i, dayOfWeek);
-                            } else {
-                                model.setValueAt(s.getStartTime(), i, dayOfWeek);
-                            }
-                            occupiedShiftCells.add(i + "," + dayOfWeek);
-
-                        } else if (i == exitHour) {
-                            model.setValueAt(s.getEndTime(), i, dayOfWeek);
-                            occupiedShiftCells.add(i + "," + dayOfWeek);
-
-                        } else {
-                            if (!(exitMinute == 0 && i == exitHour)) {
-                                occupiedShiftCells.add(i + "," + dayOfWeek);
-                            }
-                        }
-
-                    }
-                }
+            for (WeeklyShift shift : dsController.getWeekShifts(employeeId, getSelectedMonday())) {
+                paintShift(model, shift);
             }
 
         } catch (NumberFormatException e) {
@@ -510,13 +452,32 @@ public class NSEWorkScheduleWindow extends JFrame {
         }
     }
 
-    private boolean scheduleBelongsToSelectedWeek(DaySchedule ds, WeekFields wf) {
-        LocalDate date = LocalDate.of((Integer) cbYear.getSelectedItem(),
-            obtainMonthNumber((String) cbMonth.getSelectedItem()), (Integer) cbDay.getSelectedItem());
-        LocalDate scheduleDate = ds.getDate();
+    private void paintShift(DefaultTableModel model, WeeklyShift shift) {
+        int col = shift.getDayOfWeek() - 1;
+        int entryHour = shift.getStartTime().getHour();
+        int exitHour = shift.getEndTime().getHour();
+        int exitMinute = shift.getEndTime().getMinute();
 
-        return date.get(wf.weekOfWeekBasedYear()) == scheduleDate.get(wf.weekOfWeekBasedYear())
-            && date.get(wf.weekBasedYear()) == scheduleDate.get(wf.weekBasedYear());
+        for (int row = entryHour; row <= exitHour; row++) {
+            if (row == entryHour) {
+                if (entryHour == exitHour) {
+                    model.setValueAt(shift.getStartTime() + "/" + exitMinute, row, col);
+                } else {
+                    model.setValueAt(shift.getStartTime(), row, col);
+                }
+            } else if (row == exitHour) {
+                model.setValueAt(shift.getEndTime(), row, col);
+            }
+            occupiedShiftCells.add(row + "," + col);
+        }
+    }
+    
+    private LocalDate getSelectedMonday() {
+        LocalDate selected = LocalDate.of(
+            (Integer) cbYear.getSelectedItem(),
+            obtainMonthNumber((String) cbMonth.getSelectedItem()),
+            (Integer) cbDay.getSelectedItem());
+        return selected.with(DayOfWeek.MONDAY);
     }
 
     private void initializeShiftsTable() {

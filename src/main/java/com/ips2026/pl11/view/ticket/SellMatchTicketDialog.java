@@ -12,6 +12,8 @@ import java.awt.*;
  */
 public class SellMatchTicketDialog extends JDialog {
 
+    private static final long serialVersionUID = 1L;
+
     private final MatchTicketController controller;
     private final int matchId;
 
@@ -113,16 +115,19 @@ public class SellMatchTicketDialog extends JDialog {
         String grandstand = (String) cbGrandstand.getSelectedItem();
         String section = (String) cbSection.getSelectedItem();
         int quantity = (Integer) spinnerQuantity.getValue();
+        double ticketPrice = 30.0; // Standard base price per ticket
 
         try {
-            var assignedSeats = controller.sellTickets(matchId, grandstand, section, quantity);
+            var assignedSeats = controller.sellTickets(matchId, grandstand, section, quantity, ticketPrice);
 
             StringBuilder seatsMsg = new StringBuilder("Tickets booked successfully in Grandstand ")
                     .append(grandstand).append(", Section ").append(section).append(":\n");
 
             for (int[] seat : assignedSeats) {
-                // Array coordinates [row, col] mapped to 1-based display numbers
-                seatsMsg.append("• Row ").append(seat[0] + 1).append(", Seat ").append(seat[1] + 1).append("\n");
+                // Check if seat array is 0-indexed or 1-indexed to display correctly
+                int row = seat[0] < 10 ? seat[0] + 1 : seat[0];
+                int col = seat[1] < 15 ? seat[1] + 1 : seat[1];
+                seatsMsg.append("• Row ").append(row).append(", Seat ").append(col).append("\n");
             }
 
             JOptionPane.showMessageDialog(this, seatsMsg.toString(), "Success", JOptionPane.INFORMATION_MESSAGE);

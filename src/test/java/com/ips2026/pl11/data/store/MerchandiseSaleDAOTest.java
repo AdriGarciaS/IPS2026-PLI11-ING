@@ -9,7 +9,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -26,7 +26,7 @@ import com.ips2026.pl11.model.store.Merchandise;
 @DisplayName("MerchandiseSaleDAO")
 class MerchandiseSaleDAOTest {
 
-    private static final LocalDate SALE_DATE = LocalDate.of(2026, 10, 2);
+    private static final LocalDateTime SALE_DATE = LocalDateTime.of(2026, 10, 2, 18, 45, 12);
 
     // Same data as the rows inserted in setUp().
     private static final Merchandise SHIRT = new Merchandise(1, "Home Shirt", "Clothing", 5, new BigDecimal("59.99"));
@@ -77,7 +77,7 @@ class MerchandiseSaleDAOTest {
             assertEquals(1, rows.getInt("merch_id"));
             assertEquals(2, rows.getInt("units_sold"));
             assertEquals(119.98, rows.getDouble("total_price"), 0.001); // 2 x 59.99
-            assertEquals("2026-10-02", rows.getString("sale_date"));
+            assertEquals("2026-10-02 18:45:12", rows.getString("sale_date"));
 
             rows.next();
             assertEquals(1, rows.getInt("sale_number"));

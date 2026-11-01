@@ -8,13 +8,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
  * SQL operations on the MERCHANDISING_SALE table.
  */
 public class MerchandiseSaleDAO {
+
+    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * Registers a purchase: inserts one MERCHANDISING_SALE row per cart line
@@ -24,9 +27,10 @@ public class MerchandiseSaleDAO {
      * <p>Everything runs in a single transaction: if any product does not
      * have enough available units, nothing is stored.</p>
      *
+     * @param moment date and time of the purchase
      * @return the sale_number assigned to the purchase
      */
-    public int registerSale(List<CartLine> lines, LocalDate date) throws SQLException {
+    public int registerSale(List<CartLine> lines, LocalDateTime moment) throws SQLException {
         String sqlNextNumber = "SELECT COALESCE(MAX(sale_number), 0) + 1 FROM MERCHANDISING_SALE";
         String sqlUpdateStock = "UPDATE MERCHANDISING SET available_units = available_units - ? "
                 + "WHERE id = ? AND available_units >= ?";
@@ -61,7 +65,7 @@ public class MerchandiseSaleDAO {
                     insertSale.setInt(2, merchId);
                     insertSale.setInt(3, line.getUnits());
                     insertSale.setDouble(4, line.getSubtotal().doubleValue());
-                    insertSale.setString(5, date.toString()); // ISO format: YYYY-MM-DD
+                    insertSale.setString(5, moment.format(DATE_TIME_FORMAT));
                     insertSale.executeUpdate();
                 }
 

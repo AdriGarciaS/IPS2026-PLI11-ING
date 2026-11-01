@@ -8,7 +8,7 @@ import com.ips2026.pl11.model.store.SaleReceipt;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -85,10 +85,10 @@ public class StoreSalesController {
         if (cart.isEmpty()) {
             throw new IllegalStateException("The cart is empty");
         }
-        LocalDate today = LocalDate.now();
+        LocalDateTime now = LocalDateTime.now();
         BigDecimal finalPrice = cart.getTotal();
-        int saleNumber = saleDAO.registerSale(cart.getLines(), today);
-        SaleReceipt receipt = new SaleReceipt(saleNumber, today, cart.getLines(), finalPrice);
+        int saleNumber = saleDAO.registerSale(cart.getLines(), now);
+        SaleReceipt receipt = new SaleReceipt(saleNumber, now.toLocalDate(), cart.getLines(), finalPrice);
 
         cart.clear();
         loadCatalog();

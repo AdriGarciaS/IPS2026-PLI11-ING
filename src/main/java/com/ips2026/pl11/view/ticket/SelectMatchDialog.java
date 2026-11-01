@@ -6,12 +6,12 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Window;
 import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -26,8 +26,8 @@ public class SelectMatchDialog extends JDialog {
     private final JComboBox<HomeMatch> cbMatches;
     private HomeMatch selectedMatch;
 
-    public SelectMatchDialog(JFrame parent, List<HomeMatch> matches) {
-    	super(parent, "Select Home Match", true);
+    public SelectMatchDialog(Window parent, List<HomeMatch> matches) {
+    	super(parent, "Select Home Match", ModalityType.APPLICATION_MODAL);
         Branding.applyTo(this);
         setSize(520, 280);
         setLocationRelativeTo(parent);

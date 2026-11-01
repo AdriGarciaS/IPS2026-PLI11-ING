@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS MERCHANDISING (
 -- share the same sale_number, so the final price of a purchase is
 -- SUM(total_price) grouped by sale_number.
 -- total_price: units_sold x unit price at the moment of the sale.
--- sale_date: date of the sale in ISO format (YYYY-MM-DD).
+-- sale_date: moment of the sale (YYYY-MM-DD HH:MM:SS, local time).
 CREATE TABLE IF NOT EXISTS MERCHANDISING_SALE (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     sale_number INTEGER NOT NULL,
@@ -114,11 +114,13 @@ CREATE TABLE IF NOT EXISTS matches (
     end_time TEXT NOT NULL,          -- HH:MM
     rival TEXT,
     is_home INTEGER NOT NULL CHECK (is_home IN (0, 1)), -- 1 = in our field, 0 = in the field of the rival
+    is_special_match INTEGER DEFAULT 0 CHECK (is_special_match IN (0, 1)), -- 1 = special/derby match, 0 = regular match
     facility_id INTEGER,             -- facility used, only for home matches
     FOREIGN KEY (team_id) REFERENCES team(id),
     FOREIGN KEY (facility_id) REFERENCES FACILITY(id),
     CHECK ((is_home = 1 AND facility_id IS NOT NULL) OR (is_home = 0 AND facility_id IS NULL))
 );
+
 
 -- Scheduled training sessions.
 -- Trainings and home matches are the uses of the facilities by our teams:
@@ -215,7 +217,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_share_campaign_one_open ON SHARE_CAMPAIGN (
 -- and campaign). The shares themselves, each one with its own ID, are in SHARE:
 -- the quantity is the number of shares of the holding.
 -- purchase_price: price of ONE share when it was bought.
--- purchase_date: YYYY-MM-DD.
+-- purchase_date: moment of the purchase (YYYY-MM-DD HH:MM:SS, local time).
 CREATE TABLE IF NOT EXISTS SHARE_HOLDING (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     shareholder_id INTEGER NOT NULL REFERENCES SHAREHOLDER (id),
@@ -242,17 +244,21 @@ CREATE TABLE IF NOT EXISTS MARKET_PRICE (
 );
 
 -- Tickets sold for home matches
+-- purchase_number: the tickets bought together share the same number.
+-- created_at: moment of the purchase (YYYY-MM-DD HH:MM:SS, local time).
 CREATE TABLE IF NOT EXISTS MATCH_TICKET (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    purchase_number INTEGER NOT NULL,
     match_id    INTEGER NOT NULL REFERENCES matches(id),
     grandstand  TEXT    NOT NULL CHECK (grandstand IN ('A', 'B', 'C', 'D')),
     section     TEXT    NOT NULL CHECK (section IN ('A', 'B', 'C', 'D', 'E', 'F')),
     row_num     INTEGER NOT NULL CHECK (row_num BETWEEN 1 AND 10),
     seat_num    INTEGER NOT NULL CHECK (seat_num BETWEEN 1 AND 15),
     price       REAL    NOT NULL DEFAULT 30.0,
-    created_at  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now', 'localtime')),
     UNIQUE (match_id, grandstand, section, row_num, seat_num)
 );
+
 
 -- Gardening sessions for the club facilities
 create table if not exists gardening_session(
@@ -265,4 +271,41 @@ create table if not exists gardening_session(
 	-- type: Interior (inside the facility), Exterior (outside the facility), Field (soccer field maintenance)
 	type				text not null check (type in ('Interior', 'Exterior')),
 	foreign key (facility_id) references facility(id)
+
+-- Season tickets sold. PROVISIONAL table: there is no user story to sell
+-- season tickets yet; it exists so they can be seen in the sales history.
+-- season: for example '2026/27'.
+-- created_at: moment of the sale (YYYY-MM-DD HH:MM:SS, local time).
+CREATE TABLE IF NOT EXISTS SEASON_TICKET (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    season      TEXT    NOT NULL,
+    holder_name TEXT    NOT NULL,
+    price       REAL    NOT NULL CHECK (price > 0),
+    created_at  TEXT    NOT NULL
+ );   
+CREATE TABLE IF NOT EXISTS SEASON_PASS (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    fan_id        INTEGER NOT NULL,
+    team_id       INTEGER NOT NULL,
+    grandstand    TEXT    NOT NULL CHECK (grandstand IN ('A', 'B', 'C', 'D')),
+    section       TEXT    NOT NULL CHECK (section IN ('A', 'B', 'C', 'D', 'E', 'F')),
+    row_num       INTEGER NOT NULL CHECK (row_num BETWEEN 1 AND 10),
+    seat_num      INTEGER NOT NULL CHECK (seat_num BETWEEN 1 AND 15),
+    age_category  TEXT    NOT NULL CHECK (age_category IN ('Adults', 'Seniors', 'Children', 'Under 26')),
+    price         REAL    NOT NULL,
+    start_date    TEXT    NOT NULL, 
+    end_date      TEXT    NOT NULL, 
+    created_at    TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (team_id) REFERENCES TEAMS(id),
+    UNIQUE (team_id, grandstand, section, row_num, seat_num, start_date) 
+);
+
+--CLIENT
+CREATE TABLE IF NOT EXISTS FAN (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    dni         VARCHAR(20) NOT NULL UNIQUE,
+    full_name   VARCHAR(100) NOT NULL,
+    email       VARCHAR(100) NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+
 );

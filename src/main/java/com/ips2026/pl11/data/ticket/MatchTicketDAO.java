@@ -15,13 +15,7 @@ import com.ips2026.pl11.model.ticket.MatchTicket;
 
 public class MatchTicketDAO {
 
-    private MatchPriceDAO matchPriceDAO = new MatchPriceDAO();
-
-    /**
-     * Finds and reserves a contiguous block of requested seats in the same row.
-     * Uses dynamic ticket pricing from MATCH_PRICE table and returns a list of MatchTicket models.
-     */
-    public List<MatchTicket> bookContiguousSeats(int matchId, String grandstand, String section, int quantity) throws SQLException {
+    public List<MatchTicket> bookContiguousSeats(int matchId, String grandstand, String section, int quantity, double price) throws SQLException {
         if (quantity < 1 || quantity > 15) {
             throw new IllegalArgumentException("You can only request between 1 and 15 seats.");
         }
@@ -80,8 +74,7 @@ public class MatchTicketDAO {
         int chosenRow = validRows.get(randomIndex);
         int startSeat = startingSeats.get(randomIndex);
 
-        // Fetch dynamic pricing for this match and section
-        double dynamicPrice = matchPriceDAO.getPriceForMatch(matchId, grandstand, section);
+        double ticketPrice = (price > 0) ? price : 30.0;
 
         List<MatchTicket> purchasedTickets = new ArrayList<>();
         String nextNumberSql = "SELECT COALESCE(MAX(purchase_number), 0) + 1 FROM MATCH_TICKET";
@@ -106,13 +99,13 @@ public class MatchTicketDAO {
                 pstmt.setString(4, section.trim());
                 pstmt.setInt(5, chosenRow);
                 pstmt.setInt(6, seatNum);
-                pstmt.setDouble(7, dynamicPrice);
+                pstmt.setDouble(7, ticketPrice);
                 pstmt.executeUpdate();
 
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         int ticketId = generatedKeys.getInt(1);
-                        purchasedTickets.add(new MatchTicket(ticketId, matchId, grandstand, section, chosenRow, seatNum, dynamicPrice));
+                        purchasedTickets.add(new MatchTicket(ticketId, matchId, grandstand, section, chosenRow, seatNum, ticketPrice));
                     }
                 }
             }
@@ -121,9 +114,6 @@ public class MatchTicketDAO {
         return purchasedTickets;
     }
     
-    /**
-     * Retrieves a 10x15 matrix representing occupied seats sold specifically for this match.
-     */
     public boolean[][] getOccupiedSeats(int matchId, String grandstand, String section) throws SQLException {
         boolean[][] grid = new boolean[10][15];
 

@@ -6,17 +6,11 @@ import com.ips2026.pl11.data.ticket.MatchDAO;
 
 public class ScheduleMatchController {
 
-    private MatchDAO matchDAO = new MatchDAO();
-    private MatchPriceDAO matchPriceDAO = new MatchPriceDAO();
+    private final MatchDAO matchDAO = new MatchDAO();
 
-    /**
-     * Schedules a new home match, validates inputs, clears facility conflicts,
-     * and sets category-based pricing across stadium sections.
-     */
     public void scheduleMatch(int teamId, String rival, String date, String startTime, 
                               boolean isSpecial, String selectedGrandstand, String selectedSection, double basePrice) throws SQLException {
         
-        // Input Validations
         if (date == null || !date.matches("\\d{4}-\\d{2}-\\d{2}")) {
             throw new IllegalArgumentException("Invalid match date format. Use YYYY-MM-DD.");
         }
@@ -28,29 +22,13 @@ public class ScheduleMatchController {
         }
 
         String endTime = calculateEndTime(startTime);
-        int facilityId = 1; // Default facility ID for main stadium home matches
+        int facilityId = 1;
 
-        // 1. Save fixture and automatically cancel conflicting facility bookings
-        int matchId = matchDAO.createHomeMatchWithConflictsCleared(
+        // Inserta el partido y cancela reservas/entrenamientos conflictivos
+        matchDAO.createHomeMatchWithConflictsCleared(
                 teamId, rival, date, startTime, endTime, isSpecial, facilityId);
-
-        // 2. Register ticket rates across all stadium grandstands and sections
-        if (matchId != -1) {
-            String[] grandstands = {"A", "B", "C", "D"};
-            String[] sections = {"A", "B", "C", "D", "E", "F"};
-
-            for (String g : grandstands) {
-                for (String s : sections) {
-                    // Applies base price to all sections (or customized per selection)
-                    matchPriceDAO.saveMatchPrice(matchId, g, s, basePrice);
-                }
-            }
-        }
     }
 
-    /**
-     * Calculates the default 2-hour end time given a start time formatted as HH:MM.
-     */
     private String calculateEndTime(String startTime) {
         try {
             String[] parts = startTime.split(":");

@@ -26,14 +26,13 @@ public class MatchTicketController {
         return matchDAO.getHomeMatches();
     }
 
-    public List<int[]> sellTickets(int matchId, String grandstand, String section, int quantity) throws Exception {
-        List<MatchTicket> tickets = ticketDAO.bookContiguousSeats(matchId, grandstand, section, quantity);
+    public List<int[]> sellTickets(int matchId, String grandstand, String section, int quantity, double price) throws Exception {
+        List<MatchTicket> tickets = ticketDAO.bookContiguousSeats(matchId, grandstand, section, quantity, price);
         if (tickets.isEmpty()) {
             throw new IllegalStateException("There is no row in section " + section + 
                     " of grandstand " + grandstand + " with " + quantity + " contiguous free seats.");
         }
 
-        // Convierte la lista de objetos MatchTicket a int[] (fila, asiento) para la vista UI
         List<int[]> assigned = new ArrayList<>();
         for (MatchTicket ticket : tickets) {
             assigned.add(new int[]{ticket.getRowNum(), ticket.getSeatNum()});
@@ -48,7 +47,7 @@ public class MatchTicketController {
         // 2. Fetch seats sold directly for this specific match
         boolean[][] grid = ticketDAO.getOccupiedSeats(matchId, grandstand, section);
 
-     // 3. Lock season pass seats ONLY if it is a STANDARD match (not Special)
+        // 3. Lock season pass seats ONLY if it is a STANDARD match (not Special)
         if (match != null && !match.isSpecialMatch()) {
             List<int[]> passSeats = seasonPassDAO.getActivePassSeatsForMatch(
                     match.getTeamName(), grandstand, section, match.getMatchDate());

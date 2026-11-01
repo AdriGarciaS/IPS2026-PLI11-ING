@@ -287,6 +287,7 @@ CREATE TABLE IF NOT EXISTS SEASON_PASS (
     UNIQUE (team_id, grandstand, section, row_num, seat_num, start_date) 
 );
 
+--CLIENT
 CREATE TABLE IF NOT EXISTS FAN (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     dni         VARCHAR(20) NOT NULL UNIQUE,

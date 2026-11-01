@@ -137,6 +137,7 @@ public class OptionWindowSchedules extends JFrame {
                 public void actionPerformed(ActionEvent e) {
         	        managerGardeningScheduleWindow.loadFacilities();
         	        managerGardeningScheduleWindow.loadGardeners();
+        	        managerGardeningScheduleWindow.refreshGardenerAvailability();
         	        managerGardeningScheduleWindow.setVisible(true);
         	        
         	    }

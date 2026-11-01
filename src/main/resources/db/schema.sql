@@ -253,3 +253,16 @@ CREATE TABLE IF NOT EXISTS MATCH_TICKET (
     created_at  TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (match_id, grandstand, section, row_num, seat_num)
 );
+
+-- Gardening sessions for the club facilities
+create table if not exists gardening_session(
+	id              	integer primary key autoincrement,
+	facility_id     	integer not null,
+	description     	text not null,
+	date 		 		text not null,	
+	start_time      	text not null,
+	end_time        	text not null,
+	-- type: Interior (inside the facility), Exterior (outside the facility), Field (soccer field maintenance)
+	type				text not null check (type in ('Interior', 'Exterior')),
+	foreign key (facility_id) references facility(id)
+);

@@ -11,6 +11,7 @@ import java.beans.PropertyChangeListener;
 import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,6 +30,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
@@ -38,17 +41,20 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
 import com.ips2026.pl11.controller.employee.EmployeeController;
+import com.ips2026.pl11.controller.gardening.GardeningSessionController;
 import com.ips2026.pl11.controller.reservation.FacilityReservationController;
 import com.ips2026.pl11.controller.schedule.DayScheduleController;
-import com.ips2026.pl11.controller.schedule.WorkScheduleController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
+import com.ips2026.pl11.data.gardening.GardeningSessionDAO;
 import com.ips2026.pl11.data.reservation.FacilityDAO;
 import com.ips2026.pl11.data.reservation.ReservationDAO;
 import com.ips2026.pl11.data.reservation.TeamUseDAO;
 import com.ips2026.pl11.data.schedule.DayScheduleDAO;
 import com.ips2026.pl11.data.schedule.WorkScheduleDAO;
 import com.ips2026.pl11.model.employee.Employee;
+import com.ips2026.pl11.model.gardening.GardeningSession;
 import com.ips2026.pl11.model.reservation.Facility;
+import com.ips2026.pl11.model.reservation.TimeSlot;
 import com.ips2026.pl11.model.schedule.WeeklyShift;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
@@ -98,18 +104,22 @@ public class GardeningScheduleWindow extends JFrame {
     private JButton btnAddGardener;
     private JComboBox cbFacilities;
     private JLabel lblFacility;
-    private JComboBox cbSessionType;
+    private JComboBox<String> cbSessionType;
     private JLabel lblType;
     private JLabel lblAddedGardeners;
     private JDateChooser dateSession;
     private JSeparator separator;
 
     private DayScheduleController dsController = new DayScheduleController(new DayScheduleDAO(), new WorkScheduleDAO());
-    private WorkScheduleController wsController = new WorkScheduleController(new WorkScheduleDAO());
-    private EmployeeController employeeController = new EmployeeController(new EmployeeDAO());
-    private JButton btnRemoveGardener;
+    private GardeningSessionController gardeningSessionController = new GardeningSessionController(
+        new GardeningSessionDAO());
 
+    private JButton btnRemoveGardener;
     private GardenerDateEvaluator evaluator;
+    private JTextField txtSelectedTimeslot;
+    private JLabel lblSelectedTimeslot;
+    private JTextArea txtaDescrption;
+    private JLabel lblDescription;
 
     /**
      * Create the frame.
@@ -120,7 +130,7 @@ public class GardeningScheduleWindow extends JFrame {
         this.wsw = workScheduleWindow;
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setBounds(100, 100, 789, 559);
+        setBounds(100, 100, 629, 638);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
@@ -187,6 +197,10 @@ public class GardeningScheduleWindow extends JFrame {
             pnButtons.add(getDate());
             pnButtons.add(getSeparator());
             pnButtons.add(getBtnRemoveGardener());
+            pnButtons.add(getTxtSelectedTimeslot());
+            pnButtons.add(getLblSelectedTimeslot());
+            pnButtons.add(getTxtaDescrption());
+            pnButtons.add(getLblDescription());
         }
         return pnButtons;
     }
@@ -195,7 +209,6 @@ public class GardeningScheduleWindow extends JFrame {
         if (lblGardeners == null) {
             lblGardeners = new JLabel("Gardeners:");
             lblGardeners.setLabelFor(getSpGardeners());
-            lblGardeners.setDisplayedMnemonic('W');
             lblGardeners.setBounds(21, 114, 176, 23);
         }
         return lblGardeners;
@@ -213,7 +226,7 @@ public class GardeningScheduleWindow extends JFrame {
             });
             btnReturn.setBackground(new Color(240, 240, 240));
             btnReturn.setFont(new Font("Tahoma", Font.PLAIN, 11));
-            btnReturn.setBounds(558, 388, 85, 27);
+            btnReturn.setBounds(408, 463, 85, 27);
         }
         return btnReturn;
     }
@@ -221,15 +234,20 @@ public class GardeningScheduleWindow extends JFrame {
     private JButton getBtnSchedule() {
         if (btnSchedule == null) {
             btnSchedule = new JButton("Schedule");
+            btnSchedule.setEnabled(false);
             btnSchedule.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-
+                    addGardeningSession();
+                    txtaDescrption.setText("");
+                    txtSelectedTimeslot.setText("");
+                    timeslotsModel.setRowCount(0);
+                    gardenersModel.setRowCount(0);
                 }
             });
             btnSchedule.setFont(new Font("Tahoma", Font.BOLD, 11));
             btnSchedule.setBackground(UIManager.getColor("Button.background"));
-            btnSchedule.setBounds(653, 388, 85, 27);
+            btnSchedule.setBounds(503, 463, 85, 27);
         }
         return btnSchedule;
     }
@@ -241,7 +259,7 @@ public class GardeningScheduleWindow extends JFrame {
     private JScrollPane getSpnTimeslots() {
         if (spnTimeslots == null) {
             spnTimeslots = new JScrollPane();
-            spnTimeslots.setBounds(477, 98, 181, 269);
+            spnTimeslots.setBounds(407, 98, 181, 236);
             spnTimeslots.setViewportView(getTableTimeslots());
         }
         return spnTimeslots;
@@ -251,6 +269,18 @@ public class GardeningScheduleWindow extends JFrame {
         if (tableTimeslots == null) {
             tableTimeslots = new JTable();
             tableTimeslots.setModel(timeslotsModel);
+            tableTimeslots.getSelectionModel().addListSelectionListener(e -> {
+                if (!e.getValueIsAdjusting()) {
+                    btnSchedule.setEnabled(true);
+                    int row = tableTimeslots.getSelectedRow();
+
+                    if (row != -1) {
+                        String start = ((LocalTime) tableTimeslots.getValueAt(row, 0)).toString();
+                        String end = ((LocalTime) tableTimeslots.getValueAt(row, 1)).toString();
+                        getTxtSelectedTimeslot().setText(String.valueOf(start + " - " + end));
+                    }
+                }
+            });
 
             tableTimeslots.getTableHeader().setResizingAllowed(false);
             tableTimeslots.getTableHeader().setEnabled(false);
@@ -278,8 +308,9 @@ public class GardeningScheduleWindow extends JFrame {
     private JLabel getLblTimeslots() {
         if (lblTimeslots == null) {
             lblTimeslots = new JLabel("Available timeslots:");
+            lblTimeslots.setDisplayedMnemonic('A');
             lblTimeslots.setLabelFor(getSpnTimeslots());
-            lblTimeslots.setBounds(477, 84, 220, 14);
+            lblTimeslots.setBounds(407, 84, 220, 14);
         }
         return lblTimeslots;
     }
@@ -287,8 +318,7 @@ public class GardeningScheduleWindow extends JFrame {
     private JScrollPane getSpGardeners() {
         if (spGardeners == null) {
             spGardeners = new JScrollPane();
-            spGardeners.setEnabled(false);
-            spGardeners.setBounds(21, 179, 385, 188);
+            spGardeners.setBounds(21, 179, 331, 188);
             spGardeners.setViewportView(getTableGardeners());
         }
         return spGardeners;
@@ -297,7 +327,7 @@ public class GardeningScheduleWindow extends JFrame {
     private JLabel getLblDate() {
         if (lblDate == null) {
             lblDate = new JLabel("Date:");
-            lblDate.setBounds(477, 21, 48, 14);
+            lblDate.setBounds(407, 21, 48, 14);
         }
         return lblDate;
     }
@@ -332,7 +362,7 @@ public class GardeningScheduleWindow extends JFrame {
             btnRemoveGardener.setMnemonic('R');
             btnRemoveGardener.setFont(new Font("Tahoma", Font.PLAIN, 11));
             btnRemoveGardener.setBackground(UIManager.getColor("Button.background"));
-            btnRemoveGardener.setBounds(306, 135, 85, 27);
+            btnRemoveGardener.setBounds(282, 135, 70, 27);
         }
         return btnRemoveGardener;
     }
@@ -368,7 +398,7 @@ public class GardeningScheduleWindow extends JFrame {
             btnAddGardener.setMnemonic('A');
             btnAddGardener.setFont(new Font("Tahoma", Font.PLAIN, 11));
             btnAddGardener.setBackground(UIManager.getColor("Button.background"));
-            btnAddGardener.setBounds(215, 135, 85, 27);
+            btnAddGardener.setBounds(208, 135, 70, 27);
         }
         return btnAddGardener;
     }
@@ -376,7 +406,18 @@ public class GardeningScheduleWindow extends JFrame {
     private JComboBox<Facility> getCbFacilities() {
         if (cbFacilities == null) {
             cbFacilities = new JComboBox();
-            cbFacilities.setBounds(21, 39, 279, 27);
+            cbFacilities.addActionListener(e -> {
+                if (evaluator != null) {
+                    evaluator.clearMap();
+                }
+
+                updateTimeslotsTable();
+
+                if (dateSession != null) {
+                    dateSession.getJCalendar().getDayChooser().repaint();
+                }
+            });
+            cbFacilities.setBounds(21, 39, 181, 27);
         }
         return cbFacilities;
     }
@@ -384,7 +425,6 @@ public class GardeningScheduleWindow extends JFrame {
     private JLabel getLblFacility() {
         if (lblFacility == null) {
             lblFacility = new JLabel("Facility:");
-            lblFacility.setDisplayedMnemonic('W');
             lblFacility.setBounds(21, 21, 85, 23);
         }
         return lblFacility;
@@ -393,7 +433,8 @@ public class GardeningScheduleWindow extends JFrame {
     private JComboBox getCbSessionType() {
         if (cbSessionType == null) {
             cbSessionType = new JComboBox();
-            cbSessionType.setBounds(21, 87, 279, 27);
+            cbSessionType.setBounds(21, 87, 181, 27);
+            cbSessionType.setModel(new DefaultComboBoxModel<>(new String[] { "Interior", "Exterior" }));
         }
         return cbSessionType;
     }
@@ -401,7 +442,6 @@ public class GardeningScheduleWindow extends JFrame {
     private JLabel getLblType() {
         if (lblType == null) {
             lblType = new JLabel("Session type:");
-            lblType.setDisplayedMnemonic('W');
             lblType.setBounds(21, 65, 130, 23);
         }
         return lblType;
@@ -423,6 +463,7 @@ public class GardeningScheduleWindow extends JFrame {
                 @Override
                 public void propertyChange(PropertyChangeEvent evt) {
                     updateTimeslotsTable();
+                    getTxtSelectedTimeslot().setText("");
                 }
             });
             evaluator = new GardenerDateEvaluator();
@@ -432,7 +473,7 @@ public class GardeningScheduleWindow extends JFrame {
             dateSession.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Branding.BORDER, 1, true),
                 BorderFactory.createEmptyBorder(2, 2, 2, 2)));
             dateSession.setBackground(Color.WHITE);
-            dateSession.setBounds(477, 38, 181, 38);
+            dateSession.setBounds(407, 38, 181, 38);
         }
         return dateSession;
     }
@@ -442,9 +483,48 @@ public class GardeningScheduleWindow extends JFrame {
             separator = new JSeparator();
             separator.setOrientation(SwingConstants.VERTICAL);
             separator.setForeground(new Color(126, 126, 126));
-            separator.setBounds(443, 21, 8, 346);
+            separator.setBounds(373, 21, 8, 346);
         }
         return separator;
+    }
+
+    private JTextField getTxtSelectedTimeslot() {
+        if (txtSelectedTimeslot == null) {
+            txtSelectedTimeslot = new JTextField();
+            txtSelectedTimeslot.setHorizontalAlignment(SwingConstants.CENTER);
+            txtSelectedTimeslot.setEditable(false);
+            txtSelectedTimeslot.setBounds(483, 340, 94, 27);
+            txtSelectedTimeslot.setColumns(10);
+        }
+        return txtSelectedTimeslot;
+    }
+
+    private JLabel getLblSelectedTimeslot() {
+        if (lblSelectedTimeslot == null) {
+            lblSelectedTimeslot = new JLabel("Selected:");
+            lblSelectedTimeslot.setLabelFor(getTxtSelectedTimeslot());
+            lblSelectedTimeslot.setBounds(418, 341, 85, 26);
+        }
+        return lblSelectedTimeslot;
+    }
+
+    private JTextArea getTxtaDescrption() {
+        if (txtaDescrption == null) {
+            txtaDescrption = new JTextArea();
+            txtaDescrption.setFont(new Font("Tahoma", Font.PLAIN, 13));
+            txtaDescrption.setBounds(21, 390, 561, 64);
+        }
+        return txtaDescrption;
+    }
+
+    private JLabel getLblDescription() {
+        if (lblDescription == null) {
+            lblDescription = new JLabel("Task details: (Optional)");
+            lblDescription.setDisplayedMnemonic('T');
+            lblDescription.setLabelFor(getTxtaDescrption());
+            lblDescription.setBounds(21, 369, 257, 26);
+        }
+        return lblDescription;
     }
 
     // ---- Auxiliary methods ----
@@ -479,85 +559,165 @@ public class GardeningScheduleWindow extends JFrame {
 
     private void updateTimeslotsTable() {
         timeslotsModel.setRowCount(0);
-        
-        if(tableGardeners.getRowCount() == 0) {
+        txtSelectedTimeslot.setText("");
+        btnSchedule.setEnabled(false);
+
+        if (gardenersModel.getRowCount() == 0 || dateSession.getDate() == null
+            || cbFacilities.getSelectedItem() == null) {
             return;
         }
-        
+
         try {
             LocalDate day = dateSession.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             LocalDate monday = day.with(DayOfWeek.MONDAY);
-            List<WeeklyShift> shifts = dsController.getAllWeekShifts(monday);
+            int weekDay = day.getDayOfWeek().getValue();
 
-            for (WeeklyShift s : shifts) {
-                if (s.getDayOfWeek() == day.getDayOfWeek().getValue() && isCommonShift(s, day)) {
-                    Object[] timeslot = { s.getStartTime(), s.getEndTime() };
+            FacilityReservationController facilityController = new FacilityReservationController(new FacilityDAO(),
+                new TeamUseDAO(), new ReservationDAO());
+            facilityController.selectDay((Facility) cbFacilities.getSelectedItem(), day);
 
-                    boolean alreadyAdded = checkIfTimeslotAlreadyAdded(timeslot);
+            List<TimeSlot> commonPeriods = new ArrayList<>(facilityController.getAvailability().getFreePeriods());
+            for (int i = 0; i < gardenersModel.getRowCount(); i++) {
+                long gardenerId = ((Number) gardenersModel.getValueAt(i, 0)).longValue();
 
-                    if (!alreadyAdded) {
-                        timeslotsModel.addRow(timeslot);
-                    }
+                List<WeeklyShift> shifts = dsController.getWeekShifts(gardenerId, monday);
+                commonPeriods = intersectWithShifts(commonPeriods, shifts, weekDay);
 
+                if (commonPeriods.isEmpty()) {
+                    break;
                 }
             }
+
+            long facilityId = ((Facility) cbFacilities.getSelectedItem()).getId();
+            commonPeriods = removeOccupiedSessions(day, facilityId, commonPeriods);
+            for (TimeSlot period : commonPeriods) {
+                timeslotsModel.addRow(new Object[] { period.getStart(), period.getEnd() });
+            }
+
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this,
                 "Something went wrong while showing the selected day's timeslots:\n" + e.getMessage(),
                 "Gardening Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
         }
-
     }
 
-    private boolean checkIfTimeslotAlreadyAdded(Object[] timeslot) {
-        for (int i = 0; i < timeslotsModel.getRowCount(); i++) {
-            if (timeslotsModel.getValueAt(i, 0).equals(timeslot[0])
-                && timeslotsModel.getValueAt(i, 1).equals(timeslot[1])) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isCommonShift(WeeklyShift s, LocalDate day) throws SQLException {
-        LocalDate monday = day.with(DayOfWeek.MONDAY);
-
-        for (int i = 0; i < gardenersModel.getRowCount(); i++) {
-            long gardenerId = ((Number) gardenersModel.getValueAt(i, 0)).longValue();
-
-            List<WeeklyShift> gardenerShifts = dsController.getWeekShifts(gardenerId, monday);
-
-            boolean hasSameShift = gardenerShifts.stream().anyMatch(shift -> shift.getDayOfWeek() == s.getDayOfWeek()
-                && shift.getStartTime().equals(s.getStartTime()) && shift.getEndTime().equals(s.getEndTime()));
-
-            if (!hasSameShift) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-
-    private void refreshGardenerAvailability() {
+    public void refreshGardenerAvailability() {
         if (evaluator != null) {
             evaluator.clearMap();
         }
-
         if (dateSession != null && dateSession.getDate() != null) {
             updateTimeslotsTable();
             dateSession.getJCalendar().getDayChooser().repaint();
         }
     }
 
-    private long findEmployeeIdByScheduleId(long scheduleId) throws SQLException {
-        return wsController.getWorkScheduleById(scheduleId).getEmployeeId();
+    private void addGardeningSession() {
+        String sessionType = (String) cbSessionType.getSelectedItem();
+        int facilityId = ((Facility) cbFacilities.getSelectedItem()).getId();
+        String date = dateSession.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString();
+        String startTime = tableTimeslots.getValueAt(tableTimeslots.getSelectedRow(), 0).toString();
+        String endTime = tableTimeslots.getValueAt(tableTimeslots.getSelectedRow(), 1).toString();
+
+        if (txtaDescrption.getText().trim().isEmpty()) {
+            txtaDescrption.setText("No description provided.");
+        }
+        String description = txtaDescrption.getText().trim();
+
+        try {
+            List<GardeningSession> sessions = gardeningSessionController.getAllGardeningSessions();
+            for (GardeningSession s : sessions) {
+                if (s.getFacilityId() == facilityId && s.getDate().equals(date)) {
+                    LocalTime existingStart = LocalTime.parse(s.getStartTime());
+                    LocalTime existingEnd = LocalTime.parse(s.getEndTime());
+                    LocalTime newStart = LocalTime.parse(startTime);
+                    LocalTime newEnd = LocalTime.parse(endTime);
+
+                    if ((newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart))) {
+                        JOptionPane.showMessageDialog(this,
+                            "The selected timeslot overlaps with an existing gardening session:\n"
+                                + "Existing session: " + existingStart + " - " + existingEnd,
+                            "Gardening Session Scheduling", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                }
+            }
+
+            gardeningSessionController.scheduleGardeningSession(
+                new GardeningSession(0L, facilityId, description, sessionType, date, startTime, endTime));
+
+            JOptionPane.showMessageDialog(this,
+                "Gardening session scheduled successfully!\n\n" + "Facility ID: " + facilityId + "\n" + "Description: "
+                    + sessionType + "\n" + "Date: " + date + "\n" + "Start Time: " + startTime + "\n" + "End Time: "
+                    + endTime,
+                "Gardening Session Scheduled", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error scheduling gardening session:\n" + e.getMessage(),
+                "Gardening Session Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }
+
+    List<TimeSlot> removeOccupiedSessions(LocalDate day, long facilityId, List<TimeSlot> commonPeriods)
+        throws SQLException {
+
+        List<TimeSlot> availablePeriods = new ArrayList<>(commonPeriods);
+        for (GardeningSession session : gardeningSessionController.getAllGardeningSessions()) {
+            if (session.getFacilityId() != facilityId || !session.getDate().equals(day.toString())) {
+                continue;
+            }
+            LocalTime existingStart = LocalTime.parse(session.getStartTime());
+            LocalTime existingEnd = LocalTime.parse(session.getEndTime());
+            List<TimeSlot> updatedPeriods = new ArrayList<>();
+
+            for (TimeSlot period : availablePeriods) {
+                if (!existingEnd.isAfter(period.getStart()) || !existingStart.isBefore(period.getEnd())) {
+                    updatedPeriods.add(period);
+
+                } else {
+                    if (existingStart.isAfter(period.getStart())) {
+                        updatedPeriods.add(new TimeSlot(period.getStart(), existingStart, TimeSlot.Type.FREE, ""));
+                    }
+                    if (existingEnd.isBefore(period.getEnd())) {
+                        updatedPeriods.add(new TimeSlot(existingEnd, period.getEnd(), TimeSlot.Type.FREE, ""));
+                    }
+                }
+            }
+
+            availablePeriods = updatedPeriods;
+            if (availablePeriods.isEmpty()) {
+                break;
+            }
+        }
+
+        return availablePeriods;
+    }
+
+    private List<TimeSlot> intersectWithShifts(List<TimeSlot> availablePeriods, List<WeeklyShift> shifts, int weekDay) {
+        List<TimeSlot> intersections = new ArrayList<>();
+
+        for (WeeklyShift shift : shifts) {
+            if (shift.getDayOfWeek() == weekDay) {
+                for (TimeSlot period : availablePeriods) {
+                    LocalTime start = shift.getStartTime().isAfter(period.getStart()) ? shift.getStartTime()
+                        : period.getStart();
+
+                    LocalTime end = shift.getEndTime().isBefore(period.getEnd()) ? shift.getEndTime() : period.getEnd();
+
+                    if (start.isBefore(end)) {
+                        intersections.add(new TimeSlot(start, end, TimeSlot.Type.FREE, ""));
+                    }
+                }
+            }
+        }
+
+        return intersections;
     }
 
     class GardenerDateEvaluator implements IDateEvaluator {
-
-        private DayScheduleController dsController = new DayScheduleController(new DayScheduleDAO(),
-            new WorkScheduleDAO());
+        private FacilityReservationController facilityController = new FacilityReservationController(new FacilityDAO(),
+            new TeamUseDAO(), new ReservationDAO());
 
         // key: gardenerId + "|" + monday
         private final Map<String, List<WeeklyShift>> weekShiftsCache = new HashMap<>();
@@ -591,38 +751,40 @@ public class GardeningScheduleWindow extends JFrame {
         }
 
         private boolean checkAvailability(LocalDate day) {
-            for (int i = 0; i < gardenersModel.getRowCount(); i++) {
-                long gardenerId = ((Number) gardenersModel.getValueAt(i, 0)).longValue();
-                if (!isGardenerAvailable(gardenerId, day)) {
+            try {
+                facilityController.selectDay((Facility) cbFacilities.getSelectedItem(), day);
+
+                List<TimeSlot> commonPeriods = new ArrayList<>(facilityController.getAvailability().getFreePeriods());
+
+                if (commonPeriods.isEmpty()) {
                     return false;
                 }
-            }
-            return true;
-        }
 
-        private boolean isGardenerAvailable(long gardenerId, LocalDate day) {
-            try {
                 LocalDate monday = day.with(DayOfWeek.MONDAY);
-                String key = gardenerId + "|" + monday;
-
-                List<WeeklyShift> shifts = weekShiftsCache.get(key);
-                if (shifts == null) {
-                    shifts = dsController.getWeekShifts(gardenerId, monday);
-                    weekShiftsCache.put(key, shifts);
-                }
-
                 int weekDay = day.getDayOfWeek().getValue();
-                for (WeeklyShift shift : shifts) {
-                    if (shift.getDayOfWeek() == weekDay) {
-                        return true;
+                for (int i = 0; i < gardenersModel.getRowCount(); i++) {
+                    long gardenerId = ((Number) gardenersModel.getValueAt(i, 0)).longValue();
+                    String key = gardenerId + "|" + monday;
+                    List<WeeklyShift> shifts = weekShiftsCache.get(key);
+
+                    if (shifts == null) {
+                        shifts = dsController.getWeekShifts(gardenerId, monday);
+                        weekShiftsCache.put(key, shifts);
+                    }
+
+                    commonPeriods = intersectWithShifts(commonPeriods, shifts, weekDay);
+                    if (commonPeriods.isEmpty()) {
+                        return false;
                     }
                 }
-                return false;
 
+                commonPeriods = removeOccupiedSessions(day, ((Facility) cbFacilities.getSelectedItem()).getId(), commonPeriods);
+
+                return !commonPeriods.isEmpty();
             } catch (SQLException e) {
                 if (!errorShown) {
                     errorShown = true;
-                    showError("Schedules could not be loaded:\n" + e.getMessage());
+                    showError("Availability could not be loaded:\n" + e.getMessage());
                 }
                 return false;
             }

@@ -1,8 +1,10 @@
 package com.ips2026.pl11.view.shareholder;
 
+import com.ips2026.pl11.controller.market.SellSharesController;
 import com.ips2026.pl11.controller.market.ShareMarketController;
 import com.ips2026.pl11.controller.shareholder.ShareholderPortalController;
 import com.ips2026.pl11.controller.shareholder.SharesWalletController;
+import com.ips2026.pl11.data.market.ListingDAO;
 import com.ips2026.pl11.data.market.MarketDAO;
 import com.ips2026.pl11.data.shareholder.MarketPriceDAO;
 import com.ips2026.pl11.data.shareholder.ShareHoldingDAO;
@@ -10,6 +12,7 @@ import com.ips2026.pl11.model.shareholder.Shareholder;
 import com.ips2026.pl11.model.shareholder.SharesWallet;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.ips2026.pl11.view.market.SellSharesDialog;
 import com.ips2026.pl11.view.market.ShareMarketDialog;
 import com.ips2026.pl11.view.menu.MenuCardButton;
 
@@ -50,7 +53,6 @@ public class ShareholderPortalDialog extends JDialog {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String COMING_SOON = "Coming soon";
 
     private final transient ShareholderPortalController controller;
     private final ShareholdersTableModel resultsModel = new ShareholdersTableModel();
@@ -252,9 +254,11 @@ public class ShareholderPortalDialog extends JDialog {
 
     private MenuCardButton getBtnOption2() {
         if (btnOption2 == null) {
-            btnOption2 = new MenuCardButton("Option 2", COMING_SOON);
+            btnOption2 = new MenuCardButton("Sell Shares", "Put shares from my wallet up for sale");
             btnOption2.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnOption2.setMnemonic('S');
             btnOption2.setEnabled(false);
+            btnOption2.addActionListener(event -> openSellShares());
         }
         return btnOption2;
     }
@@ -318,6 +322,7 @@ public class ShareholderPortalDialog extends JDialog {
     private void showSelected() {
         Shareholder selected = controller.getSelected();
         getBtnWallet().setEnabled(selected != null);
+        getBtnOption2().setEnabled(selected != null);
         getBtnOption3().setEnabled(selected != null);
         if (selected == null) {
             getLblSelected().setForeground(Branding.TEXT_MUTED);
@@ -343,6 +348,27 @@ public class ShareholderPortalDialog extends JDialog {
             return;
         }
         new SharesWalletDialog(wallet, this).setVisible(true);
+    }
+
+    /** Sell Shares for the chosen shareholder: shares of their wallet put up for sale. */
+    private void openSellShares() {
+        Shareholder selected = controller.getSelected();
+        if (selected == null) {
+            return;
+        }
+        SellSharesController sellController = new SellSharesController(new ListingDAO(), selected);
+        try {
+            sellController.load();
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this, "Your shares could not be loaded:" + System.lineSeparator()
+                    + exception.getMessage(), "Sell Shares", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (sellController.getShares(null).isEmpty()) {
+            JOptionPane.showMessageDialog(this, "You have no shares to sell.", "Sell Shares", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        new SellSharesDialog(sellController, this).setVisible(true);
     }
 
     /** The share market for the chosen shareholder (their own sales are not listed). */

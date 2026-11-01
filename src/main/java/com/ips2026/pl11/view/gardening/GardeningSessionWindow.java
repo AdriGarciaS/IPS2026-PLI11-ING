@@ -1,4 +1,4 @@
-package com.ips2026.pl11.view.schedule.manager;
+package com.ips2026.pl11.view.gardening;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -6,20 +6,33 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
+import com.ips2026.pl11.controller.reservation.FacilityReservationController;
+import com.ips2026.pl11.controller.store.StoreSalesController;
+import com.ips2026.pl11.data.reservation.FacilityDAO;
+import com.ips2026.pl11.data.reservation.ReservationDAO;
+import com.ips2026.pl11.data.reservation.TeamUseDAO;
+import com.ips2026.pl11.data.store.MerchandiseDAO;
+import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.ips2026.pl11.view.gardening.gardener.ViewGardeningSessions;
+import com.ips2026.pl11.view.gardening.manager.GardeningScheduleWindow;
+import com.ips2026.pl11.view.menu.MainWindow;
 import com.ips2026.pl11.view.menu.MenuCardButton;
-import com.ips2026.pl11.view.schedule.ScheduleWindow;
+import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
+import com.ips2026.pl11.view.store.StoreSalesWindow;
 
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
@@ -36,12 +49,9 @@ import com.ips2026.pl11.view.schedule.ScheduleWindow;
  * a su getter, asi que la ventana se puede seguir editando desde la pestana
  * Design de WindowBuilder.</p>
  */
-public class OptionWindowSchedules extends JFrame {
+public class GardeningSessionWindow extends JFrame {
 
     private static final long serialVersionUID = 1L;
-    
-    private DayScheduleWindow managerWorkScheduleWindow = new DayScheduleWindow(this);
-    private GardeningScheduleWindow managerGardeningScheduleWindow = new GardeningScheduleWindow(this);
 
     private JPanel contentPane;
     private HeaderPanel pnHeader;
@@ -49,7 +59,9 @@ public class OptionWindowSchedules extends JFrame {
     private JLabel lblFooter;
     private JButton selectedButton;
     
-    private ScheduleWindow sw;
+    private MainWindow mw;
+    private GardeningScheduleWindow gardeningScheduleWindow = new GardeningScheduleWindow(this);
+    private ViewGardeningSessions viewGardeningSessions = new ViewGardeningSessions(this);
     
     private JPanel pnBody;
     private JPanel pnPositions;
@@ -58,9 +70,9 @@ public class OptionWindowSchedules extends JFrame {
     private JButton btnReturn;
     private MenuCardButton btnNonSportingEmp;
 
-    public OptionWindowSchedules(ScheduleWindow sw) {
+    public GardeningSessionWindow(MainWindow mw) {
         setResizable(false);
-        this.sw = sw;
+        this.mw = mw;
         
         setTitle("Football Club Management");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -73,16 +85,44 @@ public class OptionWindowSchedules extends JFrame {
         contentPane.add(getPnFooter(), BorderLayout.SOUTH);
         contentPane.add(getPnBody(), BorderLayout.CENTER);
         
-        setLocationRelativeTo(sw);
+        setLocationRelativeTo(mw);
          
     }
 
+    /** Cabecera del club, version grande (solo el menu principal). */
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
-            pnHeader = new HeaderPanel("Manager: Schedule Management",
-                    "Select an option", false);
+            pnHeader = new HeaderPanel("Gardening Sessions",
+                    "Select your work position", false);
         }
         return pnHeader;
+    }
+
+    private void openFacilityReservations() {
+        FacilityReservationController controller = new FacilityReservationController(
+                new FacilityDAO(), new TeamUseDAO(), new ReservationDAO());
+        try {
+            controller.loadFacilities();
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this,
+                    "The facilities could not be loaded:\n" + exception.getMessage(),
+                    "Facility Reservations", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        new FacilityReservationWindow(controller, this).setVisible(true);
+    }
+
+    private void openStoreSales() {
+        StoreSalesController controller = new StoreSalesController(new MerchandiseDAO(), new MerchandiseSaleDAO());
+        try {
+            controller.loadCatalog();
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this,
+                    "The catalog could not be loaded:\n" + exception.getMessage(),
+                    "Store Sales", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        new StoreSalesWindow(controller, this).setVisible(true);
     }
 
     private JPanel getPnFooter() {
@@ -129,32 +169,29 @@ public class OptionWindowSchedules extends JFrame {
         }
         return pnPositions;
     }
-    private MenuCardButton getBtnOption2_1() {
+    private MenuCardButton getBtnOption1_1() {
         if (btnGeneralManager == null) {
-        	btnGeneralManager = new MenuCardButton("Schedule gardening sessions", "for available club facilities");
+        	btnGeneralManager = new MenuCardButton("Manager\r\n", "Schedule gardening sessions");
         	btnGeneralManager.addActionListener(new ActionListener() {
         	    @Override
                 public void actionPerformed(ActionEvent e) {
-        	        managerGardeningScheduleWindow.loadFacilities();
-        	        managerGardeningScheduleWindow.loadGardeners();
-        	        managerGardeningScheduleWindow.refreshGardenerAvailability();
-        	        managerGardeningScheduleWindow.setVisible(true);
-        	        
+        	        gardeningScheduleWindow.loadFacilities();
+        	        gardeningScheduleWindow.loadGardeners();
+        	        gardeningScheduleWindow.setVisible(true);
         	    }
         	});
         	btnGeneralManager.setFont(new Font("Tahoma", Font.PLAIN, 16));
         }
         return btnGeneralManager;
     }
-    private MenuCardButton getBtnOption1_1() {
+    private MenuCardButton getBtnOption2_1() {
         if (btnManager == null) {
-        	btnManager =  new MenuCardButton("Add specific day schedules", "for non sporting employees");
+        	btnManager = new MenuCardButton("Gardener", "View your gardening sessions");
         	btnManager.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    managerWorkScheduleWindow.refreshShiftsTable();
-                    managerWorkScheduleWindow.refreshWorkersTable();
-                    managerWorkScheduleWindow.setVisible(true);
+                    viewGardeningSessions.loadGardeners();
+                    viewGardeningSessions.setVisible(true);
         	    }
         	});
         	btnManager.setFont(new Font("Tahoma", Font.PLAIN, 16));
@@ -176,10 +213,5 @@ public class OptionWindowSchedules extends JFrame {
         }
         return btnReturn;
     }
-    
-    // ---- auxiliary methods ----
-    
-    
-    
-   
+
 }

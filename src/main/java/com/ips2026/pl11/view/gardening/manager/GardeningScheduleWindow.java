@@ -1,4 +1,4 @@
-package com.ips2026.pl11.view.schedule.manager;
+package com.ips2026.pl11.view.gardening.manager;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -46,6 +46,7 @@ import com.ips2026.pl11.controller.reservation.FacilityReservationController;
 import com.ips2026.pl11.controller.schedule.DayScheduleController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.data.gardening.GardeningSessionDAO;
+import com.ips2026.pl11.data.gardening.GardeningSessionEmployeeDAO;
 import com.ips2026.pl11.data.reservation.FacilityDAO;
 import com.ips2026.pl11.data.reservation.ReservationDAO;
 import com.ips2026.pl11.data.reservation.TeamUseDAO;
@@ -58,6 +59,7 @@ import com.ips2026.pl11.model.reservation.TimeSlot;
 import com.ips2026.pl11.model.schedule.WeeklyShift;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.ips2026.pl11.view.gardening.GardeningSessionWindow;
 import com.toedter.calendar.IDateEvaluator;
 import com.toedter.calendar.JDateChooser;
 
@@ -68,7 +70,7 @@ public class GardeningScheduleWindow extends JFrame {
 
     private List<Employee> gardenersList = new ArrayList<>();
 
-    private OptionWindowSchedules wsw;
+    private GardeningSessionWindow gsw;
     private HeaderPanel pnHeader;
     private JPanel pnFooter;
     private JLabel lblFooter;
@@ -112,7 +114,7 @@ public class GardeningScheduleWindow extends JFrame {
 
     private DayScheduleController dsController = new DayScheduleController(new DayScheduleDAO(), new WorkScheduleDAO());
     private GardeningSessionController gardeningSessionController = new GardeningSessionController(
-        new GardeningSessionDAO());
+        new GardeningSessionDAO(), new GardeningSessionEmployeeDAO());
 
     private JButton btnRemoveGardener;
     private GardenerDateEvaluator evaluator;
@@ -124,10 +126,10 @@ public class GardeningScheduleWindow extends JFrame {
     /**
      * Create the frame.
      */
-    public GardeningScheduleWindow(OptionWindowSchedules workScheduleWindow) {
+    public GardeningScheduleWindow(GardeningSessionWindow gardeningSessionWindow) {
         setResizable(false);
         setTitle("Football Club Management");
-        this.wsw = workScheduleWindow;
+        this.gsw = gardeningSessionWindow;
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 629, 638);
@@ -141,7 +143,7 @@ public class GardeningScheduleWindow extends JFrame {
         contentPane.add(getLblFooter(), BorderLayout.SOUTH);
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         rootPane.setDefaultButton(btnSchedule);
-        setLocationRelativeTo(wsw);
+        setLocationRelativeTo(gsw);
 
     }
 
@@ -644,8 +646,12 @@ public class GardeningScheduleWindow extends JFrame {
                 }
             }
 
+            List<Long> gardenerIds = new ArrayList<>();
+            for (int i = 0; i < gardenersModel.getRowCount(); i++) {
+                gardenerIds.add(((Number) gardenersModel.getValueAt(i, 0)).longValue());
+            }
             gardeningSessionController.scheduleGardeningSession(
-                new GardeningSession(0L, facilityId, description, sessionType, date, startTime, endTime));
+                new GardeningSession(0L, facilityId, description, sessionType, date, startTime, endTime), gardenerIds);
 
             JOptionPane.showMessageDialog(this,
                 "Gardening session scheduled successfully!\n\n" + "Facility ID: " + facilityId + "\n" + "Description: "

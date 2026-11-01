@@ -272,6 +272,21 @@ create table if not exists gardening_session(
 	type				text not null check (type in ('Interior', 'Exterior')),
 	foreign key (facility_id) references facility(id)
 );
+
+CREATE TABLE IF NOT EXISTS gardening_session_employee (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    gardening_session_id INTEGER NOT NULL,
+    employee_id INTEGER NOT NULL,
+
+    FOREIGN KEY (gardening_session_id)
+        REFERENCES gardening_session(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (employee_id)
+        REFERENCES employees(id),
+
+    UNIQUE (gardening_session_id, employee_id)
+);
 -- Season tickets sold. PROVISIONAL table: there is no user story to sell
 -- season tickets yet; it exists so they can be seen in the sales history.
 -- season: for example '2026/27'.

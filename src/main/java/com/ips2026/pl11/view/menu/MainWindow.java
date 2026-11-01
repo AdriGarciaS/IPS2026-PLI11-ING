@@ -38,6 +38,7 @@ import com.ips2026.pl11.view.campaign.CampaignsDialog;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
+import com.ips2026.pl11.view.gardening.GardeningSessionWindow;
 import com.ips2026.pl11.view.interview.InterviewHubDialog;
 import com.ips2026.pl11.view.matches.ScheduleMatchDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
@@ -75,6 +76,7 @@ public class MainWindow extends JFrame {
     private JButton selectedButton;
 
     private ScheduleWindow workScheduleWindow = new ScheduleWindow(this);
+    private MenuCardButton btnOption11;
 
     public MainWindow() {
         setTitle("Football Club Management");
@@ -114,6 +116,7 @@ public class MainWindow extends JFrame {
             pnButtons.add(getBtnOption8());
             pnButtons.add(getBtnOption9());
             pnButtons.add(getBtnOption10());
+            pnButtons.add(getBtnOption11());
         }
         return pnButtons;
     }
@@ -231,6 +234,28 @@ public class MainWindow extends JFrame {
             btnOption10.addActionListener(event -> openScheduleMatch());
         }
         return btnOption10;
+    }
+    
+    private MenuCardButton getBtnOption11() {
+        if (btnOption11 == null) {
+            btnOption11 = new MenuCardButton("Gardening Sessions", "for the club's facilities");
+            btnOption11.setFont(new Font("Tahoma", Font.PLAIN, 16));
+            btnOption11.setMnemonic('G');
+            btnOption11.addActionListener(event -> openGardeningSession());
+        }
+        return btnOption11;
+    }
+
+    private Object openGardeningSession() {
+        try {
+            GardeningSessionWindow dialog = new GardeningSessionWindow(this);
+            dialog.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error opening Gardening Session dialog: " + ex.getMessage(),
+                    "Gardening Session Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return null;
     }
 
     public void openScheduleMatch() {
@@ -351,4 +376,5 @@ public class MainWindow extends JFrame {
         }
         return lblFooter;
     }
+    
 }

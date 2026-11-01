@@ -47,4 +47,24 @@ public class GardeningSessionDAO {
         }
     }
 
+    public List<GardeningSession> findByGardenerId(int gardenerId) throws SQLException {
+        String sql = "SELECT gs.* FROM gardening_session gs JOIN gardening_session_employee gse ON gs.id = gse.gardening_session_id WHERE gse.employee_id = ?";
+
+        try (Connection connection = ConexionBD.obtenerConexion();
+            PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, gardenerId);
+            var resultSet = statement.executeQuery();
+            List<GardeningSession> sessions = new java.util.ArrayList<>();
+
+            while (resultSet.next()) {
+                GardeningSession session = new GardeningSession(resultSet.getLong("id"),
+                    resultSet.getLong("facility_id"), resultSet.getString("description"), resultSet.getString("type"),
+                    resultSet.getString("date"), resultSet.getString("start_time"), resultSet.getString("end_time"));
+
+                sessions.add(session);
+            }
+            return sessions;
+        }
+    }
+
 }

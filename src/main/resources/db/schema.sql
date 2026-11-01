@@ -143,7 +143,7 @@ create table if not exists day_schedule(
     start_time      	text not null,
     end_time        	text not null,
 
-	unique(work_schedule_id, date, start_time, end_time)
+	unique(work_schedule_id, date, start_time, end_time),
     foreign key (work_schedule_id) references work_schedule(id)
 );
 
@@ -271,7 +271,7 @@ create table if not exists gardening_session(
 	-- type: Interior (inside the facility), Exterior (outside the facility), Field (soccer field maintenance)
 	type				text not null check (type in ('Interior', 'Exterior')),
 	foreign key (facility_id) references facility(id)
-
+);
 -- Season tickets sold. PROVISIONAL table: there is no user story to sell
 -- season tickets yet; it exists so they can be seen in the sales history.
 -- season: for example '2026/27'.

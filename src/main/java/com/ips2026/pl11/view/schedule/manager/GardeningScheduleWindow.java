@@ -239,6 +239,7 @@ public class GardeningScheduleWindow extends JFrame {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     addGardeningSession();
+                    btnSchedule.setEnabled(false);
                     txtaDescrption.setText("");
                     txtSelectedTimeslot.setText("");
                     timeslotsModel.setRowCount(0);

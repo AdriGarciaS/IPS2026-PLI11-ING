@@ -1,13 +1,16 @@
 package com.ips2026.pl11.view.shareholder;
 
+import com.ips2026.pl11.controller.market.ShareMarketController;
 import com.ips2026.pl11.controller.shareholder.ShareholderPortalController;
 import com.ips2026.pl11.controller.shareholder.SharesWalletController;
+import com.ips2026.pl11.data.market.MarketDAO;
 import com.ips2026.pl11.data.shareholder.MarketPriceDAO;
 import com.ips2026.pl11.data.shareholder.ShareHoldingDAO;
 import com.ips2026.pl11.model.shareholder.Shareholder;
 import com.ips2026.pl11.model.shareholder.SharesWallet;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.ips2026.pl11.view.market.ShareMarketDialog;
 import com.ips2026.pl11.view.menu.MenuCardButton;
 
 import java.awt.BorderLayout;
@@ -258,9 +261,11 @@ public class ShareholderPortalDialog extends JDialog {
 
     private MenuCardButton getBtnOption3() {
         if (btnOption3 == null) {
-            btnOption3 = new MenuCardButton("Option 3", COMING_SOON);
+            btnOption3 = new MenuCardButton("Share Market", "Buy shares sold by other shareholders");
             btnOption3.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnOption3.setMnemonic('M');
             btnOption3.setEnabled(false);
+            btnOption3.addActionListener(event -> openMarket());
         }
         return btnOption3;
     }
@@ -313,6 +318,7 @@ public class ShareholderPortalDialog extends JDialog {
     private void showSelected() {
         Shareholder selected = controller.getSelected();
         getBtnWallet().setEnabled(selected != null);
+        getBtnOption3().setEnabled(selected != null);
         if (selected == null) {
             getLblSelected().setForeground(Branding.TEXT_MUTED);
             getLblSelected().setText("No shareholder chosen: type your national ID or search your name.");
@@ -337,5 +343,22 @@ public class ShareholderPortalDialog extends JDialog {
             return;
         }
         new SharesWalletDialog(wallet, this).setVisible(true);
+    }
+
+    /** The share market for the chosen shareholder (their own sales are not listed). */
+    private void openMarket() {
+        Shareholder selected = controller.getSelected();
+        if (selected == null) {
+            return;
+        }
+        ShareMarketController marketController = new ShareMarketController(new MarketDAO(), selected);
+        try {
+            marketController.load();
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this, "The share market could not be loaded:\n" + exception.getMessage(),
+                    "Share Market", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        new ShareMarketDialog(marketController, this).setVisible(true);
     }
 }

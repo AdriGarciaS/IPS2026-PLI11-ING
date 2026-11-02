@@ -40,11 +40,16 @@ import javax.swing.table.TableColumn;
 
 import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.controller.gardening.GardeningSessionController;
+import com.ips2026.pl11.controller.reservation.FacilityReservationController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.data.gardening.GardeningSessionDAO;
 import com.ips2026.pl11.data.gardening.GardeningSessionEmployeeDAO;
+import com.ips2026.pl11.data.reservation.FacilityDAO;
+import com.ips2026.pl11.data.reservation.ReservationDAO;
+import com.ips2026.pl11.data.reservation.TeamUseDAO;
 import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.gardening.GardeningSession;
+import com.ips2026.pl11.model.reservation.Facility;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.gardening.GardeningSessionWindow;
@@ -110,6 +115,7 @@ public class ViewGardeningSessions extends JFrame {
 
     private GardeningSessionController gardeningSessionController = new GardeningSessionController(
         new GardeningSessionDAO(), new GardeningSessionEmployeeDAO());
+    private JScrollPane scrollPane;
 
     /**
      * Create the frame.
@@ -180,7 +186,6 @@ public class ViewGardeningSessions extends JFrame {
             pnButtons.add(getSeparator());
             pnButtons.add(getLblWeekSessions());
             pnButtons.add(getCbWeekSessions());
-            pnButtons.add(getTxtaDescription());
             pnButtons.add(getLblSelectedSessionInfo());
             pnButtons.add(getTxtFacility());
             pnButtons.add(getTxtSessionType());
@@ -192,6 +197,7 @@ public class ViewGardeningSessions extends JFrame {
             pnButtons.add(getLblDateInfo());
             pnButtons.add(getLblSessionType());
             pnButtons.add(getLblFacility());
+            pnButtons.add(getScrollPane());
         }
         return pnButtons;
     }
@@ -242,6 +248,8 @@ public class ViewGardeningSessions extends JFrame {
             tableGardeners = new JTable();
             tableGardeners.setModel(gardenersModel);
             tableGardeners.getSelectionModel().addListSelectionListener(e -> {
+                cbWeekSessions.setEnabled(false);
+                
                 if (e.getValueIsAdjusting()) {
                     return;
                 }
@@ -250,6 +258,7 @@ public class ViewGardeningSessions extends JFrame {
                     return;
                 }
 
+                clearSessionInfo();
                 txtGardenerId.setText(tableGardeners.getValueAt(row, 0).toString());
                 dateSession.setEnabled(true);
                 refreshCalendar();
@@ -268,6 +277,12 @@ public class ViewGardeningSessions extends JFrame {
     private JDateChooser getDateSession() {
         if (dateSession == null) {
             dateSession = new JDateChooser();
+            dateSession.getCalendarButton().addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    cbWeekSessions.setEnabled(true);
+                }
+            });
             dateSession.setFont(new Font("Tahoma", Font.PLAIN, 13));
             evaluator = new GardenerDateEvaluator();
             dateSession.addPropertyChangeListener("date", new PropertyChangeListener() {
@@ -282,10 +297,11 @@ public class ViewGardeningSessions extends JFrame {
                             .getGardenerWeeklySessions(gardenerId, date);
                         List<String> sessionDescriptions = new ArrayList<>();
                         for (GardeningSession session : sessions) {
-                            sessionDescriptions.add(sessions.indexOf(session) + 1 + ": " + session.getDescription());
+                            sessionDescriptions.add(sessions.indexOf(session) + 1 + ": " + session.getDate());
                         }
 
                         cbWeekSessions.setModel(new DefaultComboBoxModel<>(sessionDescriptions.toArray(new String[0])));
+                        updateCbWeeks();
                     } catch (SQLException | NumberFormatException e) {
                         showError("Sessions could not be loaded:\n" + e.getMessage());
                     }
@@ -358,6 +374,13 @@ public class ViewGardeningSessions extends JFrame {
     private JComboBox getCbWeekSessions() {
         if (cbWeekSessions == null) {
             cbWeekSessions = new JComboBox();
+            cbWeekSessions.setEnabled(false);
+            cbWeekSessions.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    updateCbWeeks();
+                }
+            });
             cbWeekSessions.setBounds(143, 337, 210, 27);
         }
         return cbWeekSessions;
@@ -366,9 +389,10 @@ public class ViewGardeningSessions extends JFrame {
     private JTextArea getTxtaDescription() {
         if (txtaDescription == null) {
             txtaDescription = new JTextArea();
+            txtaDescription.setWrapStyleWord(true);
+            txtaDescription.setLineWrap(true);
             txtaDescription.setFont(new Font("Tahoma", Font.PLAIN, 13));
             txtaDescription.setEditable(false);
-            txtaDescription.setBounds(398, 239, 434, 125);
         }
         return txtaDescription;
     }
@@ -406,7 +430,7 @@ public class ViewGardeningSessions extends JFrame {
             txtDate = new JTextField();
             txtDate.setEditable(false);
             txtDate.setColumns(10);
-            txtDate.setBounds(471, 130, 104, 27);
+            txtDate.setBounds(471, 130, 63, 27);
         }
         return txtDate;
     }
@@ -414,9 +438,10 @@ public class ViewGardeningSessions extends JFrame {
     private JTextField getTxtStartTime() {
         if (txtStartTime == null) {
             txtStartTime = new JTextField();
+            txtStartTime.setHorizontalAlignment(SwingConstants.CENTER);
             txtStartTime.setEditable(false);
             txtStartTime.setColumns(10);
-            txtStartTime.setBounds(471, 167, 104, 27);
+            txtStartTime.setBounds(471, 167, 63, 27);
         }
         return txtStartTime;
     }
@@ -424,9 +449,10 @@ public class ViewGardeningSessions extends JFrame {
     private JTextField getTxtEndTime() {
         if (txtEndTime == null) {
             txtEndTime = new JTextField();
+            txtEndTime.setHorizontalAlignment(SwingConstants.CENTER);
             txtEndTime.setEditable(false);
             txtEndTime.setColumns(10);
-            txtEndTime.setBounds(617, 167, 104, 27);
+            txtEndTime.setBounds(565, 167, 63, 27);
         }
         return txtEndTime;
     }
@@ -435,7 +461,7 @@ public class ViewGardeningSessions extends JFrame {
         if (lblTo == null) {
             lblTo = new JLabel("to");
             lblTo.setHorizontalAlignment(SwingConstants.CENTER);
-            lblTo.setBounds(581, 168, 32, 26);
+            lblTo.setBounds(531, 168, 32, 26);
         }
         return lblTo;
     }
@@ -501,6 +527,56 @@ public class ViewGardeningSessions extends JFrame {
             JOptionPane.showMessageDialog(this, "Gardeners could not be loaded:\n" + exception.getMessage(),
                 "Gardening Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void updateCbWeeks() {
+        LocalDate date = LocalDate.ofInstant(dateSession.getDate().toInstant(), ZoneId.systemDefault())
+            .with(DayOfWeek.MONDAY);
+        long gardenerId = Long.parseLong(txtGardenerId.getText());
+        List<GardeningSession> sessions;
+        try {
+            sessions = gardeningSessionController.getGardenerWeeklySessions(gardenerId, date);
+        } catch (SQLException e) {
+            showError("Sessions could not be loaded:\n" + e.getMessage());
+            return;
+        }
+
+        long sessionId = sessions.get(cbWeekSessions.getSelectedIndex()).getId();
+        for (GardeningSession session : sessions) {
+            if (session.getId() == sessionId) {
+
+                FacilityReservationController frc = new FacilityReservationController(new FacilityDAO(),
+                    new TeamUseDAO(), new ReservationDAO());
+                try {
+                    frc.loadFacilities();
+                } catch (SQLException e) {
+                    showError("Facilities could not be loaded:\n" + e.getMessage());
+                    return;
+                }
+                List<Facility> facilities = frc.getFacilities();
+                for (Facility facility : facilities) {
+                    if (facility.getId() == session.getFacilityId()) {
+                        txtFacility.setText(facility.getName());
+                        break;
+                    }
+                }
+
+                txtSessionType.setText(session.getSessionType());
+                txtDate.setText(session.getDate());
+                txtStartTime.setText(session.getStartTime());
+                txtEndTime.setText(session.getEndTime());
+                txtaDescription.setText(session.getDescription());
+            }
+        }
+    }
+    
+    private void clearSessionInfo() {
+        txtFacility.setText("");
+        txtSessionType.setText("");
+        txtDate.setText("");
+        txtStartTime.setText("");
+        txtEndTime.setText("");
+        txtaDescription.setText("");
     }
 
     class GardenerDateEvaluator implements IDateEvaluator {
@@ -589,5 +665,14 @@ public class ViewGardeningSessions extends JFrame {
         public String getInvalidTooltip() {
             return null;
         }
+    }
+
+    private JScrollPane getScrollPane() {
+        if (scrollPane == null) {
+            scrollPane = new JScrollPane();
+            scrollPane.setBounds(400, 234, 434, 125);
+            scrollPane.setViewportView(getTxtaDescription());
+        }
+        return scrollPane;
     }
 }

@@ -122,6 +122,7 @@ public class GardeningScheduleWindow extends JFrame {
     private JLabel lblSelectedTimeslot;
     private JTextArea txtaDescrption;
     private JLabel lblDescription;
+    private JScrollPane scrollPane;
 
     /**
      * Create the frame.
@@ -201,8 +202,8 @@ public class GardeningScheduleWindow extends JFrame {
             pnButtons.add(getBtnRemoveGardener());
             pnButtons.add(getTxtSelectedTimeslot());
             pnButtons.add(getLblSelectedTimeslot());
-            pnButtons.add(getTxtaDescrption());
             pnButtons.add(getLblDescription());
+            pnButtons.add(getScrollPane());
         }
         return pnButtons;
     }
@@ -514,8 +515,9 @@ public class GardeningScheduleWindow extends JFrame {
     private JTextArea getTxtaDescrption() {
         if (txtaDescrption == null) {
             txtaDescrption = new JTextArea();
+            txtaDescrption.setWrapStyleWord(true);
+            txtaDescrption.setLineWrap(true);
             txtaDescrption.setFont(new Font("Tahoma", Font.PLAIN, 13));
-            txtaDescrption.setBounds(21, 390, 561, 64);
         }
         return txtaDescrption;
     }
@@ -832,5 +834,12 @@ public class GardeningScheduleWindow extends JFrame {
             return null;
         }
     }
-
+    private JScrollPane getScrollPane() {
+        if (scrollPane == null) {
+        	scrollPane = new JScrollPane();
+        	scrollPane.setBounds(21, 398, 561, 64);
+        	scrollPane.setViewportView(getTxtaDescrption());
+        }
+        return scrollPane;
+    }
 }

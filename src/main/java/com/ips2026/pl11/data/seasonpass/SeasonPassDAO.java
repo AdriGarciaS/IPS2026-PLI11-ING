@@ -168,4 +168,32 @@ public class SeasonPassDAO {
         }
         return grid;
     }
+    
+    public String[] getMemberRegularSeat(String memberDni, String teamName) throws SQLException {
+        String sql = "SELECT sp.grandstand, sp.section, sp.row_num, sp.seat_num " +
+                     "FROM SEASON_PASS sp " +
+                     "JOIN FAN f ON sp.fan_id = f.id " +
+                     "JOIN TEAM t ON sp.team_id = t.id " +
+                     "WHERE UPPER(TRIM(f.dni)) = UPPER(TRIM(?)) " +
+                     "AND UPPER(TRIM(t.name)) = UPPER(TRIM(?)) LIMIT 1";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, memberDni);
+            stmt.setString(2, teamName);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new String[] {
+                        rs.getString("grandstand"),
+                        rs.getString("section"),
+                        String.valueOf(rs.getInt("row_num")),
+                        String.valueOf(rs.getInt("seat_num"))
+                    };
+                }
+            }
+        }
+        return null;
+    }
 }

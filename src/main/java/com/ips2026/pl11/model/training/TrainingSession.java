@@ -1,15 +1,18 @@
 package com.ips2026.pl11.model.training;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 public class TrainingSession {
     private long id;
     private long facilityId;
     private long coachId;
     private long teamId;
-    private String date;
-    private String startTime;
-    private String endTime;
+    private LocalDate date;
+    private LocalTime startTime;
+    private LocalTime endTime;
     
-    public TrainingSession(long id, String date, String startTime, String endTime, long facilityId, long coachId, long teamId) {
+    public TrainingSession(long id, LocalDate date, LocalTime startTime, LocalTime endTime, long facilityId, long coachId, long teamId) {
         this.id = id;
         this.date = date;
         this.startTime = startTime;
@@ -23,15 +26,15 @@ public class TrainingSession {
         return id;
     }
     
-    public String getDate() {
+    public LocalDate getDate() {
         return date;
     }
     
-    public String getStartTime() {
+    public LocalTime getStartTime() {
         return startTime;
     }
     
-    public String getEndTime() {
+    public LocalTime getEndTime() {
         return endTime;
     }
     

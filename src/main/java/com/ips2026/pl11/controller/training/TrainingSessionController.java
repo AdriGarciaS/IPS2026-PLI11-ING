@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.training;
 
+import java.util.List;
+
 import com.ips2026.pl11.data.training.TrainingSessionDAO;
 import com.ips2026.pl11.model.training.TrainingSession;
 
@@ -21,20 +23,15 @@ public class TrainingSessionController {
         if(session.getTeam() < 0) {
             throw new IllegalArgumentException("Team ID is required.");
         }
-        if (session.getDate() == null || session.getDate().isBlank()) {
-            throw new IllegalArgumentException("Date is required.");
-        }
-        if (session.getStartTime() == null || session.getStartTime().isBlank()) {
-            throw new IllegalArgumentException("Start time is required.");
-        }
-        if (session.getEndTime() == null || session.getEndTime().isBlank()) {
-            throw new IllegalArgumentException("End time is required.");
-        }
         if(session.getStartTime().compareTo(session.getEndTime()) >= 0) {
             throw new IllegalArgumentException("Start time must be before end time.");
         }
 
         trainingSessionDAO.insert(session);
+    }
+    
+    public List<TrainingSession> getAllTrainingSessions() throws Exception {
+        return trainingSessionDAO.findAll();
     }
     
 }

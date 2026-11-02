@@ -9,9 +9,15 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -28,13 +34,15 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
-import javax.swing.table.DefaultTableModel;
 
 import com.ips2026.pl11.controller.employee.EmployeeController;
+import com.ips2026.pl11.controller.gardening.GardeningSessionController;
 import com.ips2026.pl11.controller.reservation.FacilityReservationController;
 import com.ips2026.pl11.controller.team.TeamController;
 import com.ips2026.pl11.controller.training.TrainingSessionController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
+import com.ips2026.pl11.data.gardening.GardeningSessionDAO;
+import com.ips2026.pl11.data.gardening.GardeningSessionEmployeeDAO;
 import com.ips2026.pl11.data.reservation.FacilityDAO;
 import com.ips2026.pl11.data.reservation.ReservationDAO;
 import com.ips2026.pl11.data.reservation.TeamUseDAO;
@@ -42,6 +50,7 @@ import com.ips2026.pl11.data.team.TeamDAO;
 import com.ips2026.pl11.data.team.TeamDAO.TeamItem;
 import com.ips2026.pl11.data.training.TrainingSessionDAO;
 import com.ips2026.pl11.model.employee.Employee;
+import com.ips2026.pl11.model.gardening.GardeningSession;
 import com.ips2026.pl11.model.reservation.Facility;
 import com.ips2026.pl11.model.training.TrainingSession;
 import com.ips2026.pl11.view.common.Branding;
@@ -62,7 +71,6 @@ public class TrainingSessionWindow extends JFrame {
     private JLabel lblTeam;
     private JButton btnReturn;
     private JButton btnSchedule;
-    private JDateChooser date;
 
     private EmployeeController employeeController = new EmployeeController(new EmployeeDAO());
     private TeamController teamController = new TeamController(new TeamDAO());
@@ -70,22 +78,9 @@ public class TrainingSessionWindow extends JFrame {
         new TrainingSessionDAO());
     private FacilityReservationController facilityController = new FacilityReservationController(new FacilityDAO(),
         new TeamUseDAO(), new ReservationDAO());
+    private GardeningSessionController gardeningSessionController = new GardeningSessionController(
+        new GardeningSessionDAO(), new GardeningSessionEmployeeDAO());
 
-    private DefaultTableModel timeslotsModel = new DefaultTableModel(new Object[][] {},
-        new String[] { "Start", "End" }) {
-        @Override
-        public boolean isCellEditable(int row, int column) {
-            return false;
-        }
-    };
-
-    private DefaultTableModel gardenersModel = new DefaultTableModel(new Object[][] {},
-        new String[] { "ID", "Name", "Surname" }) {
-        @Override
-        public boolean isCellEditable(int row, int column) {
-            return false;
-        }
-    };
     private JLabel lblDate;
     private JComboBox cbTeams;
     private JComboBox cbFacilities;
@@ -217,10 +212,6 @@ public class TrainingSessionWindow extends JFrame {
             btnSchedule.setBounds(334, 339, 85, 27);
         }
         return btnSchedule;
-    }
-
-    private void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     private JLabel getLblDate() {
@@ -408,25 +399,113 @@ public class TrainingSessionWindow extends JFrame {
     }
 
     private void addTrainingSession() {
-        String date = new SimpleDateFormat("yyyy-MM-dd").format(getDate().getDate());
-        String startTime = new SimpleDateFormat("HH:mm").format(getSpStart().getValue());
-        String endTime = new SimpleDateFormat("HH:mm").format(getSpEnd().getValue());
+        LocalDate date = getDate().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalTime startTime = ((Date) getSpStart().getValue()).toInstant().atZone(ZoneId.systemDefault()).toLocalTime();
+        LocalTime endTime = ((Date) getSpEnd().getValue()).toInstant().atZone(ZoneId.systemDefault()).toLocalTime();
 
         long facilityId = getFacilityIdFromCb();
         long coachId = getCoachIdFromCb();
         long teamId = getTeamIdFromCb();
 
         TrainingSession session = new TrainingSession(0L, date, startTime, endTime, facilityId, coachId, teamId);
+
+        boolean canAdd = checkTimeConflict(session);
         try {
-            trainingSessionController.scheduleTrainingSession(session);
+            if (canAdd) {
+                trainingSessionController.scheduleTrainingSession(session);
+                JOptionPane.showMessageDialog(this, "Training session scheduled successfully!",
+                    "Training Session Scheduling", JOptionPane.INFORMATION_MESSAGE);
+
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error scheduling training session:\n" + e.getMessage(),
                 "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
             return;
         }
+    }
 
-        JOptionPane.showMessageDialog(this, "Training session scheduled successfully!", "Training Session Scheduling",
-            JOptionPane.INFORMATION_MESSAGE);
+    private boolean checkTimeConflict(TrainingSession session) {
+        try {
+            Facility facility = facilityController.getFacilities().stream()
+                .filter(f -> f.getId() == session.getFacility()).findFirst().orElse(null);
+            facilityController.selectDay(facility, session.getDate());
+
+            boolean fits = facilityController.getAvailability().getFreePeriods().stream()
+                .anyMatch(slot -> !slot.getStart().isAfter(session.getStartTime())
+                    && !slot.getEnd().isBefore(session.getEndTime()));
+
+            if (!fits && !findTimeConflict(session)) {
+                return false;
+            }
+
+            List<GardeningSession> overlapping = gardeningSessionController.getAllGardeningSessions().stream()
+                .filter(g -> LocalDate.parse(g.getDate()).equals(session.getDate()))
+                .filter(g -> session.getStartTime().isBefore(LocalTime.parse(g.getEndTime()))
+                    && session.getEndTime().isAfter(LocalTime.parse(g.getStartTime())))
+                .toList();
+
+            if (!overlapping.isEmpty()) {
+                String msg = overlapping.stream()
+                    .map(g -> g.getDescription() + " (" + g.getStartTime() + " - " + g.getEndTime() + ")")
+                    .collect(Collectors.joining("\n"));
+
+                int option = JOptionPane.showConfirmDialog(this,
+                    "The following gardening session will be cancelled:\n" + msg + "\n\nContinue?",
+                    "Training Session Scheduling", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                if (option != JOptionPane.YES_OPTION) {
+                    return false;
+                }
+                overlapping.forEach(g -> gardeningSessionController.cancelGardeningSession(g.getId()));
+            }
+            return true;
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error checking for time conflicts:\n" + e.getMessage(),
+                "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
+
+    private boolean findTimeConflict(TrainingSession session) {
+        try {
+            Optional<String> problem = facilityController.findTimeProblem(session.getStartTime(),
+                Duration.between(session.getStartTime(), session.getEndTime()).toHoursPart());
+
+            if (problem.isPresent()) {
+                if (canCancelReservation(problem)) {
+
+                    int option = JOptionPane.showConfirmDialog(this,
+                        "The following reservation will be cancelled:\n" + problem.get() + "\n\nContinue?",
+                        "Training Session Scheduling", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
+                    if (option != JOptionPane.YES_OPTION) {
+                        return false;
+                    }
+
+                    facilityController.cancelReservation(session.getDate(), session.getStartTime());
+                    return true;
+                } else {
+                    JOptionPane.showMessageDialog(this, "The following time conflict was found:\n" + problem.get(),
+                        "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
+                    return false;
+                }
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error loading facility availability:\n" + e.getMessage(),
+                "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
+        return false;
+    }
+
+    private boolean canCancelReservation(Optional<String> problem) {
+        boolean a = problem.get().contains("A reservation must last at least ");
+        boolean b = problem.get().contains("That day has already passed.");
+        boolean c = problem.get().contains("Reservations can only be made until ");
+        boolean d = problem.get().contains("Facilities can be booked from ");
+        boolean e = problem.get().contains("A reservation must end at ");
+        
+        return !(a || b || c || d || e);
     }
 
     private long getTeamIdFromCb() {

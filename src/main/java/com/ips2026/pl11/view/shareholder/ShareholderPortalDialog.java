@@ -95,6 +95,7 @@ public class ShareholderPortalDialog extends JDialog {
         contentPane.add(getPnBody(), BorderLayout.CENTER);
         Branding.setInitialSize(this, 1200, 760, owner);
 
+        searchChanged(); // with no text yet, it shows every shareholder
         showSelected();
     }
 

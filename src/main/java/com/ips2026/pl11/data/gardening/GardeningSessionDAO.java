@@ -2,7 +2,9 @@ package com.ips2026.pl11.data.gardening;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.ips2026.pl11.data.ConexionBD;
@@ -10,7 +12,7 @@ import com.ips2026.pl11.model.gardening.GardeningSession;
 
 public class GardeningSessionDAO {
 
-    public void insert(GardeningSession gardeningSession) throws SQLException {
+    public long insert(GardeningSession gardeningSession) throws SQLException {
         String sql = "insert into gardening_session (facility_id, description, type, date, start_time, end_time) values (?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = ConexionBD.obtenerConexion();
@@ -24,6 +26,12 @@ public class GardeningSessionDAO {
             statement.setString(6, gardeningSession.getEndTime());
 
             statement.executeUpdate();
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getLong(1);
+                }
+            }
+            throw new SQLException("Could not obtain the generated session id.");
         }
     }
 
@@ -47,14 +55,14 @@ public class GardeningSessionDAO {
         }
     }
 
-    public List<GardeningSession> findByGardenerId(int gardenerId) throws SQLException {
-        String sql = "SELECT gs.* FROM gardening_session gs JOIN gardening_session_employee gse ON gs.id = gse.gardening_session_id WHERE gse.employee_id = ?";
+    public List<GardeningSession> findByGardenerId(long gardenerId) throws SQLException {
+        String sql = "SELECT * FROM gardening_session gs JOIN gardening_session_employee gse ON gs.id = gse.gardening_session_id WHERE gse.employee_id = ?";
+        List<GardeningSession> sessions = new ArrayList<>();
 
         try (Connection connection = ConexionBD.obtenerConexion();
             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, gardenerId);
+            statement.setLong(1, gardenerId);
             var resultSet = statement.executeQuery();
-            List<GardeningSession> sessions = new java.util.ArrayList<>();
 
             while (resultSet.next()) {
                 GardeningSession session = new GardeningSession(resultSet.getLong("id"),

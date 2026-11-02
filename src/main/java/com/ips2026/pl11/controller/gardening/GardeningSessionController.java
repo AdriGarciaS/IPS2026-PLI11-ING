@@ -1,6 +1,8 @@
 package com.ips2026.pl11.controller.gardening;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.ips2026.pl11.data.gardening.GardeningSessionDAO;
@@ -33,9 +35,9 @@ public class GardeningSessionController {
             throw new IllegalArgumentException("End time is required.");
         }
 
-        gardeningSessionDAO.insert(session);
+        long sessionId = gardeningSessionDAO.insert(session);
         for (Long gardenerId : gardenerIds) {
-            gardeningSessionEmployeeDAO.insert(session.getId(), gardenerId);
+            gardeningSessionEmployeeDAO.insert(sessionId, gardenerId);
         }
     }
 
@@ -43,8 +45,21 @@ public class GardeningSessionController {
         return gardeningSessionDAO.findAll();
     }
 
-    public List<GardeningSession> getGardeningSessionsByGardenerId(int gardenerId) throws SQLException {
+    public List<GardeningSession> getGardeningSessionsByGardenerId(long gardenerId) throws SQLException {
         return gardeningSessionDAO.findByGardenerId(gardenerId);
+    }
+
+    public List<GardeningSession> getGardenerWeeklySessions(long gardenerId, LocalDate monday) throws SQLException {
+        List<GardeningSession> sessions = getGardeningSessionsByGardenerId(gardenerId);
+        List<GardeningSession> weeklySessions = new ArrayList<>();
+        
+        for(GardeningSession session : sessions) {
+            LocalDate sessionDate = LocalDate.parse(session.getDate());
+            if (!sessionDate.isBefore(monday) && !sessionDate.isAfter(monday.plusDays(6))) {
+                weeklySessions.add(session);
+            }
+        }
+        return weeklySessions;
     }
 
 }

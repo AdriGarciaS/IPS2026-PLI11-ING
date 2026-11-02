@@ -6,11 +6,20 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.sql.SQLException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -30,18 +39,24 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
 import com.ips2026.pl11.controller.employee.EmployeeController;
+import com.ips2026.pl11.controller.gardening.GardeningSessionController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
+import com.ips2026.pl11.data.gardening.GardeningSessionDAO;
+import com.ips2026.pl11.data.gardening.GardeningSessionEmployeeDAO;
 import com.ips2026.pl11.model.employee.Employee;
+import com.ips2026.pl11.model.gardening.GardeningSession;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.gardening.GardeningSessionWindow;
+import com.toedter.calendar.IDateEvaluator;
+import com.toedter.calendar.JCalendar;
 import com.toedter.calendar.JDateChooser;
 
 public class ViewGardeningSessions extends JFrame {
 
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
-    
+
     private List<Employee> gardenersList = new ArrayList<>();
 
     private GardeningSessionWindow gsw;
@@ -50,23 +65,19 @@ public class ViewGardeningSessions extends JFrame {
     private JLabel lblFooter;
     private JPanel pnButtons;
     private JTextField txtGardenerId;
+    private GardenerDateEvaluator evaluator;
 
     private JLabel lblGardeners;
     private JButton btnReturn;
-    
-    private DefaultTableModel shiftsModel = new DefaultTableModel(
-        new Object[][] {
-        },
-        new String[] {
-            "ID","Date", "Day", "Start", "End"
-        }
-    ) {
+
+    private DefaultTableModel shiftsModel = new DefaultTableModel(new Object[][] {},
+        new String[] { "ID", "Date", "Day", "Start", "End" }) {
         @Override
         public boolean isCellEditable(int row, int column) {
             return false;
         }
     };
-    
+
     private DefaultTableModel gardenersModel = new DefaultTableModel(new Object[][] {},
         new String[] { "ID", "Name", "Surname" }) {
         @Override
@@ -74,7 +85,7 @@ public class ViewGardeningSessions extends JFrame {
             return false;
         }
     };
-    
+
     private JLabel lblCurrentShifts;
     private JScrollPane spnGardeners;
     private JTable tableGardeners;
@@ -83,7 +94,7 @@ public class ViewGardeningSessions extends JFrame {
     private JLabel lblDate;
     private JSeparator separator;
     private JLabel lblWeekSessions;
-    private JComboBox comboBox;
+    private JComboBox<String> cbWeekSessions;
     private JTextArea txtaDescription;
     private JLabel lblSelectedSessionInfo;
     private JTextField txtFacility;
@@ -96,7 +107,9 @@ public class ViewGardeningSessions extends JFrame {
     private JLabel lblDateInfo;
     private JLabel lblSessionType;
     private JLabel lblFacility;
-    
+
+    private GardeningSessionController gardeningSessionController = new GardeningSessionController(
+        new GardeningSessionDAO(), new GardeningSessionEmployeeDAO());
 
     /**
      * Create the frame.
@@ -120,12 +133,12 @@ public class ViewGardeningSessions extends JFrame {
         setLocationRelativeTo(gsw);
 
     }
-    
+
     //
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
-            pnHeader = new HeaderPanel("View Gardening Sessions",
-                    "View your weekly assigned gardening sessions", false);
+            pnHeader = new HeaderPanel("View Gardening Sessions", "View your weekly assigned gardening sessions",
+                false);
             pnHeader.setMinimumSize(new Dimension(564, 76));
             pnHeader.setPreferredSize(new Dimension(564, 76));
         }
@@ -166,7 +179,7 @@ public class ViewGardeningSessions extends JFrame {
             pnButtons.add(getLblDate());
             pnButtons.add(getSeparator());
             pnButtons.add(getLblWeekSessions());
-            pnButtons.add(getComboBox());
+            pnButtons.add(getCbWeekSessions());
             pnButtons.add(getTxtaDescription());
             pnButtons.add(getLblSelectedSessionInfo());
             pnButtons.add(getTxtFacility());
@@ -221,19 +234,27 @@ public class ViewGardeningSessions extends JFrame {
     }
 
     private void showError(String message) {
-        JOptionPane.showMessageDialog(this, message,
-            "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
-    
+
     private JTable getTableGardeners() {
         if (tableGardeners == null) {
             tableGardeners = new JTable();
             tableGardeners.setModel(gardenersModel);
             tableGardeners.getSelectionModel().addListSelectionListener(e -> {
-                txtGardenerId.setText(tableGardeners.getValueAt(tableGardeners.getSelectedRow(), 0).toString());
-                
+                if (e.getValueIsAdjusting()) {
+                    return;
+                }
+                int row = tableGardeners.getSelectedRow();
+                if (row < 0) {
+                    return;
+                }
+
+                txtGardenerId.setText(tableGardeners.getValueAt(row, 0).toString());
+                dateSession.setEnabled(true);
+                refreshCalendar();
             });
-            
+
             TableColumn first = tableGardeners.getColumnModel().getColumn(0);
             first.setMaxWidth(50);
             first.setPreferredWidth(50);
@@ -243,20 +264,45 @@ public class ViewGardeningSessions extends JFrame {
         }
         return tableGardeners;
     }
-    
+
     private JDateChooser getDateSession() {
         if (dateSession == null) {
             dateSession = new JDateChooser();
             dateSession.setFont(new Font("Tahoma", Font.PLAIN, 13));
+            evaluator = new GardenerDateEvaluator();
+            dateSession.addPropertyChangeListener("date", new PropertyChangeListener() {
+                @Override
+                public void propertyChange(PropertyChangeEvent evt) {
+                    try {
+                        LocalDate date = LocalDate.ofInstant(dateSession.getDate().toInstant(), ZoneId.systemDefault())
+                            .with(DayOfWeek.MONDAY);
+                        long gardenerId = Long.parseLong(txtGardenerId.getText());
+
+                        List<GardeningSession> sessions = gardeningSessionController
+                            .getGardenerWeeklySessions(gardenerId, date);
+                        List<String> sessionDescriptions = new ArrayList<>();
+                        for (GardeningSession session : sessions) {
+                            sessionDescriptions.add(sessions.indexOf(session) + 1 + ": " + session.getDescription());
+                        }
+
+                        cbWeekSessions.setModel(new DefaultComboBoxModel<>(sessionDescriptions.toArray(new String[0])));
+                    } catch (SQLException | NumberFormatException e) {
+                        showError("Sessions could not be loaded:\n" + e.getMessage());
+                    }
+                }
+            });
+            dateSession.getJCalendar().getDayChooser().addDateEvaluator(evaluator);
             dateSession.setDateFormatString("yyyy-MM-dd");
             dateSession.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Branding.BORDER, 1, true),
-
-                            BorderFactory.createEmptyBorder(2, 2, 2, 2)));
+                BorderFactory.createEmptyBorder(2, 2, 2, 2)));
             dateSession.setBackground(Color.WHITE);
             dateSession.setBounds(143, 294, 181, 38);
+
+            dateSession.setEnabled(false);
         }
         return dateSession;
     }
+
     private JLabel getLblDate() {
         if (lblDate == null) {
             lblDate = new JLabel("Date:");
@@ -264,23 +310,24 @@ public class ViewGardeningSessions extends JFrame {
         }
         return lblDate;
     }
-    
+
     private JLabel getLblCurrentShifts() {
         if (lblCurrentShifts == null) {
-        	lblCurrentShifts = new JLabel("Session description:");
-        	lblCurrentShifts.setBounds(398, 215, 201, 14);
+            lblCurrentShifts = new JLabel("Session description:");
+            lblCurrentShifts.setBounds(398, 215, 201, 14);
         }
         return lblCurrentShifts;
     }
+
     private JScrollPane getSpnGardeners() {
         if (spnGardeners == null) {
-        	spnGardeners = new JScrollPane();
-        	spnGardeners.setBounds(31, 49, 322, 192);
-        	spnGardeners.setViewportView(getTableGardeners());
+            spnGardeners = new JScrollPane();
+            spnGardeners.setBounds(31, 49, 322, 192);
+            spnGardeners.setViewportView(getTableGardeners());
         }
         return spnGardeners;
     }
-    
+
     private JLabel getLblSelectedGardenerId() {
         if (lblSelectedGardenerId == null) {
             lblSelectedGardenerId = new JLabel("Selected Gardener ID:");
@@ -289,145 +336,258 @@ public class ViewGardeningSessions extends JFrame {
         }
         return lblSelectedGardenerId;
     }
+
     private JSeparator getSeparator() {
         if (separator == null) {
-        	separator = new JSeparator();
-        	separator.setOrientation(SwingConstants.VERTICAL);
-        	separator.setForeground(new Color(126, 126, 126));
-        	separator.setBounds(374, 23, 8, 346);
+            separator = new JSeparator();
+            separator.setOrientation(SwingConstants.VERTICAL);
+            separator.setForeground(new Color(126, 126, 126));
+            separator.setBounds(374, 23, 8, 346);
         }
         return separator;
     }
-    
+
+    private JLabel getLblWeekSessions() {
+        if (lblWeekSessions == null) {
+            lblWeekSessions = new JLabel("Week's sessions:");
+            lblWeekSessions.setBounds(31, 343, 108, 14);
+        }
+        return lblWeekSessions;
+    }
+
+    private JComboBox getCbWeekSessions() {
+        if (cbWeekSessions == null) {
+            cbWeekSessions = new JComboBox();
+            cbWeekSessions.setBounds(143, 337, 210, 27);
+        }
+        return cbWeekSessions;
+    }
+
+    private JTextArea getTxtaDescription() {
+        if (txtaDescription == null) {
+            txtaDescription = new JTextArea();
+            txtaDescription.setFont(new Font("Tahoma", Font.PLAIN, 13));
+            txtaDescription.setEditable(false);
+            txtaDescription.setBounds(398, 239, 434, 125);
+        }
+        return txtaDescription;
+    }
+
+    private JLabel getLblSelectedSessionInfo() {
+        if (lblSelectedSessionInfo == null) {
+            lblSelectedSessionInfo = new JLabel("Selected session info:");
+            lblSelectedSessionInfo.setBounds(398, 23, 201, 14);
+        }
+        return lblSelectedSessionInfo;
+    }
+
+    private JTextField getTxtFacility() {
+        if (txtFacility == null) {
+            txtFacility = new JTextField();
+            txtFacility.setEditable(false);
+            txtFacility.setColumns(10);
+            txtFacility.setBounds(471, 55, 172, 27);
+        }
+        return txtFacility;
+    }
+
+    private JTextField getTxtSessionType() {
+        if (txtSessionType == null) {
+            txtSessionType = new JTextField();
+            txtSessionType.setEditable(false);
+            txtSessionType.setColumns(10);
+            txtSessionType.setBounds(471, 93, 172, 27);
+        }
+        return txtSessionType;
+    }
+
+    private JTextField getTxtDate() {
+        if (txtDate == null) {
+            txtDate = new JTextField();
+            txtDate.setEditable(false);
+            txtDate.setColumns(10);
+            txtDate.setBounds(471, 130, 104, 27);
+        }
+        return txtDate;
+    }
+
+    private JTextField getTxtStartTime() {
+        if (txtStartTime == null) {
+            txtStartTime = new JTextField();
+            txtStartTime.setEditable(false);
+            txtStartTime.setColumns(10);
+            txtStartTime.setBounds(471, 167, 104, 27);
+        }
+        return txtStartTime;
+    }
+
+    private JTextField getTxtEndTime() {
+        if (txtEndTime == null) {
+            txtEndTime = new JTextField();
+            txtEndTime.setEditable(false);
+            txtEndTime.setColumns(10);
+            txtEndTime.setBounds(617, 167, 104, 27);
+        }
+        return txtEndTime;
+    }
+
+    private JLabel getLblTo() {
+        if (lblTo == null) {
+            lblTo = new JLabel("to");
+            lblTo.setHorizontalAlignment(SwingConstants.CENTER);
+            lblTo.setBounds(581, 168, 32, 26);
+        }
+        return lblTo;
+    }
+
+    private JLabel getLblFrom() {
+        if (lblFrom == null) {
+            lblFrom = new JLabel("From");
+            lblFrom.setHorizontalAlignment(SwingConstants.CENTER);
+            lblFrom.setBounds(398, 168, 63, 26);
+        }
+        return lblFrom;
+    }
+
+    private JLabel getLblDateInfo() {
+        if (lblDateInfo == null) {
+            lblDateInfo = new JLabel("Date:");
+            lblDateInfo.setHorizontalAlignment(SwingConstants.CENTER);
+            lblDateInfo.setBounds(398, 131, 63, 26);
+        }
+        return lblDateInfo;
+    }
+
+    private JLabel getLblSessionType() {
+        if (lblSessionType == null) {
+            lblSessionType = new JLabel("Type:");
+            lblSessionType.setHorizontalAlignment(SwingConstants.CENTER);
+            lblSessionType.setBounds(398, 94, 63, 26);
+        }
+        return lblSessionType;
+    }
+
+    private JLabel getLblFacility() {
+        if (lblFacility == null) {
+            lblFacility = new JLabel("Facility:");
+            lblFacility.setHorizontalAlignment(SwingConstants.CENTER);
+            lblFacility.setBounds(401, 57, 71, 26);
+        }
+        return lblFacility;
+    }
+
     // ---- auxiliary methods ----
-    
+
+    public void refreshCalendar() {
+        if (evaluator != null) {
+            evaluator.clearMap();
+        }
+        JCalendar jc = dateSession.getJCalendar();
+        jc.getDayChooser().setMonth(jc.getMonthChooser().getMonth());
+    }
+
     public void loadGardeners() {
+
+        gardenersModel.setRowCount(0);
         EmployeeController controller = new EmployeeController(new EmployeeDAO());
         try {
             gardenersList = controller.getEmployeesByRole("Gardener");
             for (Employee gardener : gardenersList) {
-                gardenersModel.addRow(new Object[] { gardener.getId(), gardener.getFirstName(), gardener.getLastName() });
+                gardenersModel
+                    .addRow(new Object[] { gardener.getId(), gardener.getFirstName(), gardener.getLastName() });
             }
-            
+
         } catch (SQLException exception) {
             JOptionPane.showMessageDialog(this, "Gardeners could not be loaded:\n" + exception.getMessage(),
                 "Gardening Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private JLabel getLblWeekSessions() {
-        if (lblWeekSessions == null) {
-        	lblWeekSessions = new JLabel("Week's sessions:");
-        	lblWeekSessions.setBounds(31, 343, 108, 14);
+    class GardenerDateEvaluator implements IDateEvaluator {
+
+        private final Map<String, Boolean> availabilityCache = new HashMap<>();
+
+        private boolean errorShown = false;
+
+        public void clearMap() {
+            availabilityCache.clear();
+            errorShown = false;
         }
-        return lblWeekSessions;
-    }
-    private JComboBox getComboBox() {
-        if (comboBox == null) {
-        	comboBox = new JComboBox();
-        	comboBox.setBounds(143, 337, 210, 27);
+
+        @Override
+        public boolean isInvalid(Date date) {
+            LocalDate day = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            if (day.isBefore(LocalDate.now()) || gardenersModel.getRowCount() == 0) {
+                return true;
+            }
+
+            try {
+                String gardener = txtGardenerId.getText();
+                if (gardener == null || gardener.isBlank()) {
+                    return true;
+                }
+
+                long gardenerId = Long.parseLong(gardener);
+
+                LocalDate monday = day.with(DayOfWeek.MONDAY);
+                String cacheKey = gardenerId + "|" + monday;
+
+                Boolean available = availabilityCache.get(cacheKey);
+
+                if (available == null) {
+                    List<GardeningSession> sessions = gardeningSessionController.getGardenerWeeklySessions(gardenerId,
+                        monday);
+
+                    available = !sessions.isEmpty();
+                    availabilityCache.put(cacheKey, available);
+                }
+
+                return !available;
+
+            } catch (SQLException | NumberFormatException e) {
+                if (!errorShown) {
+                    errorShown = true;
+                    showError("Availability could not be loaded:\n" + e.getMessage());
+                }
+
+                return true;
+            }
         }
-        return comboBox;
-    }
-    private JTextArea getTxtaDescription() {
-        if (txtaDescription == null) {
-        	txtaDescription = new JTextArea();
-        	txtaDescription.setFont(new Font("Tahoma", Font.PLAIN, 13));
-        	txtaDescription.setEditable(false);
-        	txtaDescription.setBounds(398, 239, 434, 125);
+
+        @Override
+        public boolean isSpecial(Date date) {
+            return false;
         }
-        return txtaDescription;
-    }
-    private JLabel getLblSelectedSessionInfo() {
-        if (lblSelectedSessionInfo == null) {
-        	lblSelectedSessionInfo = new JLabel("Selected session info:");
-        	lblSelectedSessionInfo.setBounds(398, 23, 201, 14);
+
+        @Override
+        public Color getSpecialForegroundColor() {
+            return null;
         }
-        return lblSelectedSessionInfo;
-    }
-    private JTextField getTxtFacility() {
-        if (txtFacility == null) {
-        	txtFacility = new JTextField();
-        	txtFacility.setEditable(false);
-        	txtFacility.setColumns(10);
-        	txtFacility.setBounds(471, 55, 172, 27);
+
+        @Override
+        public Color getSpecialBackroundColor() {
+            return null;
         }
-        return txtFacility;
-    }
-    private JTextField getTxtSessionType() {
-        if (txtSessionType == null) {
-        	txtSessionType = new JTextField();
-        	txtSessionType.setEditable(false);
-        	txtSessionType.setColumns(10);
-        	txtSessionType.setBounds(471, 93, 172, 27);
+
+        @Override
+        public String getSpecialTooltip() {
+            return null;
         }
-        return txtSessionType;
-    }
-    private JTextField getTxtDate() {
-        if (txtDate == null) {
-        	txtDate = new JTextField();
-        	txtDate.setEditable(false);
-        	txtDate.setColumns(10);
-        	txtDate.setBounds(471, 130, 104, 27);
+
+        @Override
+        public Color getInvalidForegroundColor() {
+            return null;
         }
-        return txtDate;
-    }
-    private JTextField getTxtStartTime() {
-        if (txtStartTime == null) {
-        	txtStartTime = new JTextField();
-        	txtStartTime.setEditable(false);
-        	txtStartTime.setColumns(10);
-        	txtStartTime.setBounds(471, 167, 104, 27);
+
+        @Override
+        public Color getInvalidBackroundColor() {
+            return null;
         }
-        return txtStartTime;
-    }
-    private JTextField getTxtEndTime() {
-        if (txtEndTime == null) {
-        	txtEndTime = new JTextField();
-        	txtEndTime.setEditable(false);
-        	txtEndTime.setColumns(10);
-        	txtEndTime.setBounds(617, 167, 104, 27);
+
+        @Override
+        public String getInvalidTooltip() {
+            return null;
         }
-        return txtEndTime;
-    }
-    private JLabel getLblTo() {
-        if (lblTo == null) {
-        	lblTo = new JLabel("to");
-        	lblTo.setHorizontalAlignment(SwingConstants.CENTER);
-        	lblTo.setBounds(581, 168, 32, 26);
-        }
-        return lblTo;
-    }
-    private JLabel getLblFrom() {
-        if (lblFrom == null) {
-        	lblFrom = new JLabel("From");
-        	lblFrom.setHorizontalAlignment(SwingConstants.CENTER);
-        	lblFrom.setBounds(398, 168, 63, 26);
-        }
-        return lblFrom;
-    }
-    private JLabel getLblDateInfo() {
-        if (lblDateInfo == null) {
-        	lblDateInfo = new JLabel("Date:");
-        	lblDateInfo.setHorizontalAlignment(SwingConstants.CENTER);
-        	lblDateInfo.setBounds(398, 131, 63, 26);
-        }
-        return lblDateInfo;
-    }
-    private JLabel getLblSessionType() {
-        if (lblSessionType == null) {
-        	lblSessionType = new JLabel("Type:");
-        	lblSessionType.setHorizontalAlignment(SwingConstants.CENTER);
-        	lblSessionType.setBounds(398, 94, 63, 26);
-        }
-        return lblSessionType;
-    }
-    private JLabel getLblFacility() {
-        if (lblFacility == null) {
-        	lblFacility = new JLabel("Facility:");
-        	lblFacility.setHorizontalAlignment(SwingConstants.CENTER);
-        	lblFacility.setBounds(401, 57, 71, 26);
-        }
-        return lblFacility;
     }
 }

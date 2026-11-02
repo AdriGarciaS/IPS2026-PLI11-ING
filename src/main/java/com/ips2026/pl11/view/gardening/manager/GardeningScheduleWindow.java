@@ -654,7 +654,7 @@ public class GardeningScheduleWindow extends JFrame {
                 new GardeningSession(0L, facilityId, description, sessionType, date, startTime, endTime), gardenerIds);
 
             JOptionPane.showMessageDialog(this,
-                "Gardening session scheduled successfully!\n\n" + "Facility ID: " + facilityId + "\n" + "Description: "
+                "Gardening session scheduled successfully!\n\n" + "Facility ID: " + facilityId + "\n" + "Session type: "
                     + sessionType + "\n" + "Date: " + date + "\n" + "Start Time: " + startTime + "\n" + "End Time: "
                     + endTime,
                 "Gardening Session Scheduled", JOptionPane.INFORMATION_MESSAGE);

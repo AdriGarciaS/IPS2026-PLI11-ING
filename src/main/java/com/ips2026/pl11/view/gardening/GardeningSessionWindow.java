@@ -191,6 +191,7 @@ public class GardeningSessionWindow extends JFrame {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     viewGardeningSessions.loadGardeners();
+                    viewGardeningSessions.refreshCalendar();
                     viewGardeningSessions.setVisible(true);
         	    }
         	});

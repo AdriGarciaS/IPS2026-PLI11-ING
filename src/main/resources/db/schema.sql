@@ -143,7 +143,7 @@ create table if not exists day_schedule(
     start_time      	text not null,
     end_time        	text not null,
 
-	unique(work_schedule_id, date, start_time, end_time)
+	unique(work_schedule_id, date, start_time, end_time),
     foreign key (work_schedule_id) references work_schedule(id)
 );
 
@@ -259,6 +259,34 @@ CREATE TABLE IF NOT EXISTS MATCH_TICKET (
     UNIQUE (match_id, grandstand, section, row_num, seat_num)
 );
 
+
+-- Gardening sessions for the club facilities
+create table if not exists gardening_session(
+	id              	integer primary key autoincrement,
+	facility_id     	integer not null,
+	description     	text not null,
+	date 		 		text not null,	
+	start_time      	text not null,
+	end_time        	text not null,
+	-- type: Interior (inside the facility), Exterior (outside the facility), Field (soccer field maintenance)
+	type				text not null check (type in ('Interior', 'Exterior')),
+	foreign key (facility_id) references facility(id)
+);
+
+CREATE TABLE IF NOT EXISTS gardening_session_employee (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    gardening_session_id INTEGER NOT NULL,
+    employee_id INTEGER NOT NULL,
+
+    FOREIGN KEY (gardening_session_id)
+        REFERENCES gardening_session(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (employee_id)
+        REFERENCES employees(id),
+
+    UNIQUE (gardening_session_id, employee_id)
+);
 -- Season tickets sold. PROVISIONAL table: there is no user story to sell
 -- season tickets yet; it exists so they can be seen in the sales history.
 -- season: for example '2026/27'.
@@ -294,4 +322,5 @@ CREATE TABLE IF NOT EXISTS FAN (
     full_name   VARCHAR(100) NOT NULL,
     email       VARCHAR(100) NOT NULL,
     created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+
 );

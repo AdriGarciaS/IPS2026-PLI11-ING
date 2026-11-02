@@ -5,8 +5,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
@@ -26,7 +24,6 @@ import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.controller.reservation.FacilityReservationController;
 import com.ips2026.pl11.controller.shareholder.ShareholderPortalController;
 import com.ips2026.pl11.controller.slots.InterviewSlotsController;
-import com.ips2026.pl11.controller.store.StoreSalesController;
 import com.ips2026.pl11.controller.team.TeamCreationController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.data.reservation.FacilityDAO;
@@ -34,8 +31,6 @@ import com.ips2026.pl11.data.reservation.ReservationDAO;
 import com.ips2026.pl11.data.reservation.TeamUseDAO;
 import com.ips2026.pl11.data.shareholder.ShareholderDAO;
 import com.ips2026.pl11.data.slots.InterviewSlotDAO;
-import com.ips2026.pl11.data.store.MerchandiseDAO;
-import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
 import com.ips2026.pl11.data.team.SportsEmployeeDAO;
 import com.ips2026.pl11.data.team.TeamDAO;
 import com.ips2026.pl11.model.employee.Employee;
@@ -43,15 +38,16 @@ import com.ips2026.pl11.view.campaign.CampaignsDialog;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
+import com.ips2026.pl11.view.gardening.GardeningSessionWindow;
 import com.ips2026.pl11.view.interview.InterviewHubDialog;
 import com.ips2026.pl11.view.matches.ScheduleMatchDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.sale.SalesMenuDialog;
-import com.ips2026.pl11.view.schedule.WorkScheduleWindow;
+import com.ips2026.pl11.view.schedule.ScheduleWindow;
 import com.ips2026.pl11.view.seasonpass.PurchaseSeasonPassDialog;
 import com.ips2026.pl11.view.shareholder.ShareholderPortalDialog;
-import com.ips2026.pl11.view.store.StoreSalesWindow;
 import com.ips2026.pl11.view.team.TeamCreationWindow;
+import com.ips2026.pl11.view.training.TrainingSessionWindow;
 
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
@@ -72,6 +68,7 @@ public class MainWindow extends JFrame {
     private MenuCardButton btnOption7;
     private MenuCardButton btnOption8;
     private MenuCardButton btnOption9;
+
     private MenuCardButton btnOption10;
     private MenuCardButton btnScheduleMatch; // Nuevo botón de la US 35775
 
@@ -79,7 +76,9 @@ public class MainWindow extends JFrame {
     private JLabel lblFooter;
     private JButton selectedButton;
 
-    private WorkScheduleWindow workScheduleWindow = new WorkScheduleWindow(this);
+    private ScheduleWindow workScheduleWindow = new ScheduleWindow(this);
+    private MenuCardButton btnOption11;
+    private MenuCardButton btnOption12;
 
     public MainWindow() {
         setTitle("Football Club Management");
@@ -119,6 +118,8 @@ public class MainWindow extends JFrame {
             pnButtons.add(getBtnOption8());
             pnButtons.add(getBtnOption9());
             pnButtons.add(getBtnOption10());
+            pnButtons.add(getBtnOption11());
+            pnButtons.add(getBtnOption12());
         }
         return pnButtons;
     }
@@ -236,6 +237,50 @@ public class MainWindow extends JFrame {
             btnOption10.addActionListener(event -> openScheduleMatch());
         }
         return btnOption10;
+    }
+    
+    private MenuCardButton getBtnOption11() {
+        if (btnOption11 == null) {
+            btnOption11 = new MenuCardButton("Gardening Sessions", "for the club's facilities");
+            btnOption11.setFont(new Font("Tahoma", Font.PLAIN, 16));
+            btnOption11.setMnemonic('G');
+            btnOption11.addActionListener(event -> openGardeningSession());
+        }
+        return btnOption11;
+    }
+    
+    private MenuCardButton getBtnOption12() {
+        if (btnOption12 == null) {
+            btnOption12 = new MenuCardButton("Training Sessions", "Schedule and manage training sessions for the team");
+            btnOption12.setMnemonic('T');
+            btnOption12.setFont(new Font("Tahoma", Font.PLAIN, 16));
+            btnOption12.addActionListener(event -> openTrainingSession());
+        }
+        return btnOption12;
+    }
+
+    private Object openGardeningSession() {
+        try {
+            GardeningSessionWindow dialog = new GardeningSessionWindow(this);
+            dialog.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error opening Gardening Session dialog: " + ex.getMessage(),
+                    "Gardening Session Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return null;
+    }
+    
+    private Object openTrainingSession() {
+        try {
+            TrainingSessionWindow dialog = new TrainingSessionWindow(this);
+            dialog.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error opening Gardening Session dialog: " + ex.getMessage(),
+                    "Gardening Session Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return null;
     }
 
     public void openScheduleMatch() {
@@ -356,4 +401,6 @@ public class MainWindow extends JFrame {
         }
         return lblFooter;
     }
+    
+    
 }

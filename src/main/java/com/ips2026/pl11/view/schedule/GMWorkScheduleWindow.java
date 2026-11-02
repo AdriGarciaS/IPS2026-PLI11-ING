@@ -53,7 +53,7 @@ public class GMWorkScheduleWindow extends JFrame {
     private List<WorkSchedule> schedulesList = new ArrayList<>();
     private List<Employee> workersList = new ArrayList<>();
 
-    private WorkScheduleWindow wsw;
+    private ScheduleWindow wsw;
     private HeaderPanel pnHeader;
     private JPanel pnFooter;
     private JLabel lblFooter;
@@ -106,7 +106,7 @@ public class GMWorkScheduleWindow extends JFrame {
     /**
      * Create the frame.
      */
-    public GMWorkScheduleWindow(WorkScheduleWindow workScheduleWindow) {
+    public GMWorkScheduleWindow(ScheduleWindow workScheduleWindow) {
         setResizable(false);
         setTitle("Football Club Management");
         this.wsw = workScheduleWindow;

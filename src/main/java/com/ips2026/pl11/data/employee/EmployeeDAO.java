@@ -94,4 +94,33 @@ public class EmployeeDAO {
             statement.executeUpdate();
         }
     }
+
+    public List<Employee> getEmployeesByRole(String string) throws SQLException {
+        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender "
+                   + "FROM employees WHERE position = ? ORDER BY id";
+        List<Employee> employees = new ArrayList<>();
+
+        try (Connection connection = ConexionBD.obtenerConexion();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, string);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    employees.add(new Employee(
+                            resultSet.getInt("id"),
+                            resultSet.getString("first_name"),
+                            resultSet.getString("last_name"),
+                            resultSet.getString("national_id"),
+                            LocalDate.parse(resultSet.getString("birth_date")),
+                            resultSet.getString("phone_number"),
+                            resultSet.getString("category"),
+                            resultSet.getString("position"),
+                            resultSet.getDouble("gross_annual_salary"),
+                            resultSet.getString("gender")
+                    ));
+                }
+            }
+        }
+        return employees;
+    }
 }

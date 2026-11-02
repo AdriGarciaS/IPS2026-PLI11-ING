@@ -8,7 +8,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.time.LocalTime;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -18,20 +21,29 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerDateModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
 
+import com.ips2026.pl11.controller.employee.EmployeeController;
+import com.ips2026.pl11.controller.reservation.FacilityReservationController;
+import com.ips2026.pl11.controller.team.TeamController;
+import com.ips2026.pl11.controller.training.TrainingSessionController;
+import com.ips2026.pl11.data.employee.EmployeeDAO;
+import com.ips2026.pl11.data.reservation.FacilityDAO;
+import com.ips2026.pl11.data.reservation.ReservationDAO;
+import com.ips2026.pl11.data.reservation.TeamUseDAO;
+import com.ips2026.pl11.data.team.TeamDAO;
+import com.ips2026.pl11.data.team.TeamDAO.TeamItem;
+import com.ips2026.pl11.data.training.TrainingSessionDAO;
+import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.reservation.Facility;
+import com.ips2026.pl11.model.training.TrainingSession;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.menu.MainWindow;
@@ -47,12 +59,17 @@ public class TrainingSessionWindow extends JFrame {
     private JPanel pnFooter;
     private JLabel lblFooter;
     private JPanel pnButtons;
-    private JLabel lblGardeners;
+    private JLabel lblTeam;
     private JButton btnReturn;
     private JButton btnSchedule;
-    private JScrollPane spnTimeslots;
-    private JTable tableTimeslots;
     private JDateChooser date;
+
+    private EmployeeController employeeController = new EmployeeController(new EmployeeDAO());
+    private TeamController teamController = new TeamController(new TeamDAO());
+    private TrainingSessionController trainingSessionController = new TrainingSessionController(
+        new TrainingSessionDAO());
+    private FacilityReservationController facilityController = new FacilityReservationController(new FacilityDAO(),
+        new TeamUseDAO(), new ReservationDAO());
 
     private DefaultTableModel timeslotsModel = new DefaultTableModel(new Object[][] {},
         new String[] { "Start", "End" }) {
@@ -69,28 +86,17 @@ public class TrainingSessionWindow extends JFrame {
             return false;
         }
     };
-
-    private JLabel lblTimeslots;
-    private JScrollPane spGardeners;
-    private JTable tableGardeners;
     private JLabel lblDate;
-    private JComboBox cbGardeners;
-    private JButton btnAddGardener;
+    private JComboBox cbTeams;
     private JComboBox cbFacilities;
     private JLabel lblFacility;
-    private JComboBox<String> cbSessionType;
-    private JLabel lblType;
-    private JLabel lblAddedGardeners;
     private JDateChooser dateSession;
-    private JSeparator separator;
-
-    private JButton btnRemoveGardener;
-    
-    private JTextField txtSelectedTimeslot;
-    private JLabel lblSelectedTimeslot;
-    private JTextArea txtaDescrption;
-    private JLabel lblDescription;
-    private JScrollPane scrollPane;
+    private JComboBox<String> cbCoaches;
+    private JLabel lblCoach;
+    private JLabel lblEnd;
+    private JLabel lblStart;
+    private JSpinner spStart;
+    private JSpinner spEnd;
 
     /**
      * Create the frame.
@@ -101,7 +107,7 @@ public class TrainingSessionWindow extends JFrame {
         this.mw = mainWindow;
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setBounds(100, 100, 629, 638);
+        setBounds(100, 100, 494, 531);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
@@ -119,8 +125,9 @@ public class TrainingSessionWindow extends JFrame {
     //
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
-            pnHeader = new HeaderPanel("Specific Work Schedule Management",
-                "Modify specific days from non sporting employees", false);
+            pnHeader = new HeaderPanel("Training session scheduling",
+                "Add training sessions as a General Manager for the team", false);
+            pnHeader.setBackground(new Color(7, 51, 117));
             pnHeader.setMinimumSize(new Dimension(564, 76));
             pnHeader.setPreferredSize(new Dimension(564, 76));
         }
@@ -151,38 +158,32 @@ public class TrainingSessionWindow extends JFrame {
         if (pnButtons == null) {
             pnButtons = new JPanel();
             pnButtons.setLayout(null);
-            pnButtons.add(getLblGardeners());
+            pnButtons.add(getLblTeam());
             pnButtons.add(getBtnReturn());
             pnButtons.add(getBtnSchedule());
-            pnButtons.add(getSpnTimeslots());
-            pnButtons.add(getLblTimeslots());
-            pnButtons.add(getSpGardeners());
             pnButtons.add(getLblDate());
-            pnButtons.add(getCbGardeners());
-            pnButtons.add(getBtnAddGardener());
+            pnButtons.add(getCbTeams());
             pnButtons.add(getCbFacilities());
             pnButtons.add(getLblFacility());
-            pnButtons.add(getCbSessionType());
-            pnButtons.add(getLblType());
-            pnButtons.add(getLblAddedGardeners());
             pnButtons.add(getDate());
-            pnButtons.add(getSeparator());
-            pnButtons.add(getBtnRemoveGardener());
-            pnButtons.add(getTxtSelectedTimeslot());
-            pnButtons.add(getLblSelectedTimeslot());
-            pnButtons.add(getLblDescription());
-            pnButtons.add(getScrollPane());
+            pnButtons.add(getCbCoaches());
+            pnButtons.add(getLblCoach());
+            pnButtons.add(getLblEnd());
+            pnButtons.add(getLblStart());
+            pnButtons.add(getSpStart());
+            pnButtons.add(getSpEnd());
         }
         return pnButtons;
     }
 
-    private JLabel getLblGardeners() {
-        if (lblGardeners == null) {
-            lblGardeners = new JLabel("Gardeners:");
-            lblGardeners.setLabelFor(getSpGardeners());
-            lblGardeners.setBounds(21, 114, 176, 23);
+    private JLabel getLblTeam() {
+        if (lblTeam == null) {
+            lblTeam = new JLabel("Team:");
+            lblTeam.setForeground(new Color(0, 64, 128));
+            lblTeam.setFont(new Font("Tahoma", Font.BOLD, 16));
+            lblTeam.setBounds(63, 93, 176, 23);
         }
-        return lblGardeners;
+        return lblTeam;
     }
 
     private JButton getBtnReturn() {
@@ -197,7 +198,7 @@ public class TrainingSessionWindow extends JFrame {
             });
             btnReturn.setBackground(new Color(240, 240, 240));
             btnReturn.setFont(new Font("Tahoma", Font.PLAIN, 11));
-            btnReturn.setBounds(408, 463, 85, 27);
+            btnReturn.setBounds(232, 339, 85, 27);
         }
         return btnReturn;
     }
@@ -205,11 +206,15 @@ public class TrainingSessionWindow extends JFrame {
     private JButton getBtnSchedule() {
         if (btnSchedule == null) {
             btnSchedule = new JButton("Schedule");
-            btnSchedule.setEnabled(false);
-
+            btnSchedule.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    checkAllFilled();
+                }
+            });
             btnSchedule.setFont(new Font("Tahoma", Font.BOLD, 11));
             btnSchedule.setBackground(UIManager.getColor("Button.background"));
-            btnSchedule.setBounds(503, 463, 85, 27);
+            btnSchedule.setBounds(334, 339, 85, 27);
         }
         return btnSchedule;
     }
@@ -218,114 +223,25 @@ public class TrainingSessionWindow extends JFrame {
         JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
-    private JScrollPane getSpnTimeslots() {
-        if (spnTimeslots == null) {
-            spnTimeslots = new JScrollPane();
-            spnTimeslots.setBounds(407, 98, 181, 236);
-            spnTimeslots.setViewportView(getTableTimeslots());
-        }
-        return spnTimeslots;
-    }
-
-    private JTable getTableTimeslots() {
-        if (tableTimeslots == null) {
-            tableTimeslots = new JTable();
-            tableTimeslots.setModel(timeslotsModel);
-            tableTimeslots.getSelectionModel().addListSelectionListener(e -> {
-                if (!e.getValueIsAdjusting()) {
-                    btnSchedule.setEnabled(true);
-                    int row = tableTimeslots.getSelectedRow();
-
-                    if (row != -1) {
-                        String start = ((LocalTime) tableTimeslots.getValueAt(row, 0)).toString();
-                        String end = ((LocalTime) tableTimeslots.getValueAt(row, 1)).toString();
-                        getTxtSelectedTimeslot().setText(String.valueOf(start + " - " + end));
-                    }
-                }
-            });
-
-            tableTimeslots.getTableHeader().setResizingAllowed(false);
-            tableTimeslots.getTableHeader().setEnabled(false);
-
-        }
-        return tableTimeslots;
-    }
-
-    private JTable getTableGardeners() {
-        if (tableGardeners == null) {
-            tableGardeners = new JTable();
-            tableGardeners.setModel(gardenersModel);
-
-            TableColumn first = tableGardeners.getColumnModel().getColumn(0);
-            first.setMaxWidth(50);
-            first.setPreferredWidth(50);
-
-            tableGardeners.getTableHeader().setResizingAllowed(false);
-            tableGardeners.getTableHeader().setEnabled(false);
-
-        }
-        return tableGardeners;
-    }
-
-    private JLabel getLblTimeslots() {
-        if (lblTimeslots == null) {
-            lblTimeslots = new JLabel("Available timeslots:");
-            lblTimeslots.setDisplayedMnemonic('A');
-            lblTimeslots.setLabelFor(getSpnTimeslots());
-            lblTimeslots.setBounds(407, 84, 220, 14);
-        }
-        return lblTimeslots;
-    }
-
-    private JScrollPane getSpGardeners() {
-        if (spGardeners == null) {
-            spGardeners = new JScrollPane();
-            spGardeners.setBounds(21, 179, 331, 188);
-            spGardeners.setViewportView(getTableGardeners());
-        }
-        return spGardeners;
-    }
-
     private JLabel getLblDate() {
         if (lblDate == null) {
             lblDate = new JLabel("Date:");
-            lblDate.setBounds(407, 21, 48, 14);
+            lblDate.setForeground(new Color(0, 64, 128));
+            lblDate.setFont(new Font("Tahoma", Font.BOLD, 16));
+            lblDate.setBounds(63, 190, 102, 14);
         }
         return lblDate;
     }
 
-    private JComboBox<String> getCbGardeners() {
-        if (cbGardeners == null) {
-            cbGardeners = new JComboBox();
-            cbGardeners.setBounds(21, 135, 181, 27);
+    private JComboBox<String> getCbTeams() {
+        if (cbTeams == null) {
+            cbTeams = new JComboBox();
+            cbTeams.setBounds(237, 85, 181, 38);
         }
-        return cbGardeners;
+        return cbTeams;
     }
 
-    private JButton getBtnRemoveGardener() {
-        if (btnRemoveGardener == null) {
-            btnRemoveGardener = new JButton("Remove");
-           
-            btnRemoveGardener.setMnemonic('R');
-            btnRemoveGardener.setFont(new Font("Tahoma", Font.PLAIN, 11));
-            btnRemoveGardener.setBackground(UIManager.getColor("Button.background"));
-            btnRemoveGardener.setBounds(282, 135, 70, 27);
-        }
-        return btnRemoveGardener;
-    }
-
-    private JButton getBtnAddGardener() {
-        if (btnAddGardener == null) {
-            btnAddGardener = new JButton("Add");
-            btnAddGardener.setMnemonic('A');
-            btnAddGardener.setFont(new Font("Tahoma", Font.PLAIN, 11));
-            btnAddGardener.setBackground(UIManager.getColor("Button.background"));
-            btnAddGardener.setBounds(208, 135, 70, 27);
-        }
-        return btnAddGardener;
-    }
-
-    private JComboBox<Facility> getCbFacilities() {
+    private JComboBox<String> getCbFacilities() {
         if (cbFacilities == null) {
             cbFacilities = new JComboBox();
             cbFacilities.addActionListener(e -> {
@@ -333,43 +249,19 @@ public class TrainingSessionWindow extends JFrame {
                     dateSession.getJCalendar().getDayChooser().repaint();
                 }
             });
-            cbFacilities.setBounds(21, 39, 181, 27);
+            cbFacilities.setBounds(237, 39, 181, 38);
         }
         return cbFacilities;
     }
 
     private JLabel getLblFacility() {
         if (lblFacility == null) {
-            lblFacility = new JLabel("Facility:");
-            lblFacility.setBounds(21, 21, 85, 23);
+            lblFacility = new JLabel("Training facility:");
+            lblFacility.setForeground(new Color(0, 64, 128));
+            lblFacility.setFont(new Font("Tahoma", Font.BOLD, 16));
+            lblFacility.setBounds(63, 47, 162, 23);
         }
         return lblFacility;
-    }
-
-    private JComboBox getCbSessionType() {
-        if (cbSessionType == null) {
-            cbSessionType = new JComboBox();
-            cbSessionType.setBounds(21, 87, 181, 27);
-            cbSessionType.setModel(new DefaultComboBoxModel<>(new String[] { "Interior", "Exterior" }));
-        }
-        return cbSessionType;
-    }
-
-    private JLabel getLblType() {
-        if (lblType == null) {
-            lblType = new JLabel("Session type:");
-            lblType.setBounds(21, 65, 130, 23);
-        }
-        return lblType;
-    }
-
-    private JLabel getLblAddedGardeners() {
-        if (lblAddedGardeners == null) {
-            lblAddedGardeners = new JLabel("Added gardeners:");
-            lblAddedGardeners.setDisplayedMnemonic('W');
-            lblAddedGardeners.setBounds(21, 160, 176, 23);
-        }
-        return lblAddedGardeners;
     }
 
     private JDateChooser getDate() {
@@ -379,7 +271,6 @@ public class TrainingSessionWindow extends JFrame {
                 @Override
                 public void propertyChange(PropertyChangeEvent evt) {
 
-                    getTxtSelectedTimeslot().setText("");
                 }
             });
 
@@ -388,69 +279,204 @@ public class TrainingSessionWindow extends JFrame {
             dateSession.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Branding.BORDER, 1, true),
                 BorderFactory.createEmptyBorder(2, 2, 2, 2)));
             dateSession.setBackground(Color.WHITE);
-            dateSession.setBounds(407, 38, 181, 38);
+            dateSession.setBounds(237, 177, 181, 38);
         }
         return dateSession;
     }
 
-    private JSeparator getSeparator() {
-        if (separator == null) {
-            separator = new JSeparator();
-            separator.setOrientation(SwingConstants.VERTICAL);
-            separator.setForeground(new Color(126, 126, 126));
-            separator.setBounds(373, 21, 8, 346);
+    private JComboBox<String> getCbCoaches() {
+        if (cbCoaches == null) {
+            cbCoaches = new JComboBox();
+            cbCoaches.setBounds(237, 132, 181, 38);
         }
-        return separator;
+        return cbCoaches;
     }
 
-    private JTextField getTxtSelectedTimeslot() {
-        if (txtSelectedTimeslot == null) {
-            txtSelectedTimeslot = new JTextField();
-            txtSelectedTimeslot.setHorizontalAlignment(SwingConstants.CENTER);
-            txtSelectedTimeslot.setEditable(false);
-            txtSelectedTimeslot.setBounds(483, 340, 94, 27);
-            txtSelectedTimeslot.setColumns(10);
+    private JLabel getLblCoach() {
+        if (lblCoach == null) {
+            lblCoach = new JLabel("Coach:");
+            lblCoach.setForeground(new Color(0, 64, 128));
+            lblCoach.setFont(new Font("Tahoma", Font.BOLD, 16));
+            lblCoach.setBounds(63, 140, 176, 23);
         }
-        return txtSelectedTimeslot;
+        return lblCoach;
     }
 
-    private JLabel getLblSelectedTimeslot() {
-        if (lblSelectedTimeslot == null) {
-            lblSelectedTimeslot = new JLabel("Selected:");
-            lblSelectedTimeslot.setLabelFor(getTxtSelectedTimeslot());
-            lblSelectedTimeslot.setBounds(418, 341, 85, 26);
+    private JLabel getLblEnd() {
+        if (lblEnd == null) {
+            lblEnd = new JLabel("End time:");
+            lblEnd.setForeground(new Color(0, 64, 128));
+            lblEnd.setFont(new Font("Tahoma", Font.BOLD, 16));
+            lblEnd.setBounds(63, 276, 176, 23);
         }
-        return lblSelectedTimeslot;
+        return lblEnd;
     }
 
-    private JTextArea getTxtaDescrption() {
-        if (txtaDescrption == null) {
-            txtaDescrption = new JTextArea();
-            txtaDescrption.setWrapStyleWord(true);
-            txtaDescrption.setLineWrap(true);
-            txtaDescrption.setFont(new Font("Tahoma", Font.PLAIN, 13));
+    private JLabel getLblStart() {
+        if (lblStart == null) {
+            lblStart = new JLabel("Start time:");
+            lblStart.setForeground(new Color(0, 64, 128));
+            lblStart.setFont(new Font("Tahoma", Font.BOLD, 16));
+            lblStart.setBounds(63, 229, 176, 23);
         }
-        return txtaDescrption;
+        return lblStart;
     }
 
-    private JLabel getLblDescription() {
-        if (lblDescription == null) {
-            lblDescription = new JLabel("Task details: (Optional)");
-            lblDescription.setDisplayedMnemonic('T');
-            lblDescription.setLabelFor(getTxtaDescrption());
-            lblDescription.setBounds(21, 369, 257, 26);
+    private JSpinner getSpStart() {
+        if (spStart == null) {
+            spStart = new JSpinner(new SpinnerDateModel());
+            spStart.setEditor(new JSpinner.DateEditor(spStart, "HH:mm"));
+            spStart.setBounds(238, 222, 181, 38);
         }
-        return lblDescription;
+        return spStart;
     }
-    private JScrollPane getScrollPane() {
-        if (scrollPane == null) {
-            scrollPane = new JScrollPane();
-            scrollPane.setBounds(21, 398, 561, 64);
-            scrollPane.setViewportView(getTxtaDescrption());
+
+    private JSpinner getSpEnd() {
+        if (spEnd == null) {
+            spEnd = new JSpinner(new SpinnerDateModel());
+            spEnd.setEditor(new JSpinner.DateEditor(spEnd, "HH:mm"));
+            spEnd.setBounds(238, 268, 181, 38);
         }
-        return scrollPane;
+        return spEnd;
     }
 
     // ---- Auxiliary methods ----
+
+    public void initialize() {
+        loadFacilities();
+        loadCoaches();
+        loadTeams();
+    }
+
+    private void loadTeams() {
+        try {
+            List<TeamItem> teams = teamController.getTeams();
+            List<String> teamNames = new ArrayList<>();
+            for (TeamItem team : teams) {
+                teamNames.add(team.getName());
+            }
+            getCbTeams().setModel(new DefaultComboBoxModel<String>(teamNames.toArray(new String[0])));
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this, "Teams could not be loaded:\n" + exception.getMessage(),
+                "Training Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }
+
+    private void loadCoaches() {
+        try {
+            List<Employee> coaches = employeeController.getEmployeesByRole("Coach");
+            List<String> names = new ArrayList<>();
+            for (Employee e : coaches) {
+                names.add(e.getFirstName() + " " + e.getLastName());
+            }
+            getCbCoaches().setModel(new DefaultComboBoxModel<String>(names.toArray(new String[0])));
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this, "Coaches could not be loaded:\n" + exception.getMessage(),
+                "Training Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }
+
+    private void loadFacilities() {
+
+        try {
+            facilityController.loadFacilities();
+            List<Facility> facilities = facilityController.getFacilities();
+            List<String> training = new ArrayList<>();
+            for (Facility f : facilities) {
+                if (f.getName().contains("Training")) {
+                    training.add(f.getName());
+                }
+            }
+            getCbFacilities().setModel(new DefaultComboBoxModel<>(training.toArray(new String[0])));
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this, "Facilities could not be loaded:\n" + exception.getMessage(),
+                "Gardening Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void checkAllFilled() {
+        if (getCbTeams().getSelectedItem() == null || getCbFacilities().getSelectedItem() == null
+            || getCbCoaches().getSelectedItem() == null || getDate().getDate() == null) {
+            JOptionPane.showMessageDialog(this, "Please fill all fields before scheduling a training session.",
+                "Training Session Scheduling", JOptionPane.WARNING_MESSAGE);
+        } else {
+            addTrainingSession();
+
+        }
+    }
+
+    private void addTrainingSession() {
+        String date = new SimpleDateFormat("yyyy-MM-dd").format(getDate().getDate());
+        String startTime = new SimpleDateFormat("HH:mm").format(getSpStart().getValue());
+        String endTime = new SimpleDateFormat("HH:mm").format(getSpEnd().getValue());
+
+        long facilityId = getFacilityIdFromCb();
+        long coachId = getCoachIdFromCb();
+        long teamId = getTeamIdFromCb();
+
+        TrainingSession session = new TrainingSession(0L, date, startTime, endTime, facilityId, coachId, teamId);
+        try {
+            trainingSessionController.scheduleTrainingSession(session);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error scheduling training session:\n" + e.getMessage(),
+                "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        JOptionPane.showMessageDialog(this, "Training session scheduled successfully!", "Training Session Scheduling",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private long getTeamIdFromCb() {
+        try {
+            String selectedTeamName = (String) getCbTeams().getSelectedItem();
+            List<TeamItem> teams = teamController.getTeams();
+            for (TeamItem t : teams) {
+                if (t.getName().equals(selectedTeamName)) {
+                    return t.getId();
+                }
+            }
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this, "Teams could not be loaded:\n" + exception.getMessage(),
+                "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
+        return -1;
+    }
+
+    private long getCoachIdFromCb() {
+        try {
+            String selectedCoachName = (String) getCbCoaches().getSelectedItem();
+            List<Employee> coaches = employeeController.getEmployeesByRole("Coach");
+            for (Employee e : coaches) {
+                String fullName = e.getFirstName() + " " + e.getLastName();
+                if (fullName.equals(selectedCoachName)) {
+                    return e.getId();
+                }
+            }
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this, "Coaches could not be loaded:\n" + exception.getMessage(),
+                "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
+        return -1;
+    }
+
+    private long getFacilityIdFromCb() {
+        try {
+            String selectedFacilityName = (String) getCbFacilities().getSelectedItem();
+            facilityController.loadFacilities();
+            List<Facility> facilities = facilityController.getFacilities();
+            for (Facility f : facilities) {
+                if (f.getName().equals(selectedFacilityName)) {
+                    return f.getId();
+                }
+            }
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this, "Facilities could not be loaded:\n" + exception.getMessage(),
+                "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
+        return -1;
+    }
 
 }

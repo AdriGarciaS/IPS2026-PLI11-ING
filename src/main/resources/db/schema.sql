@@ -287,6 +287,19 @@ CREATE TABLE IF NOT EXISTS gardening_session_employee (
 
     UNIQUE (gardening_session_id, employee_id)
 );
+
+CREATE TABLE IF NOT EXISTS training_session (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	team_id INTEGER NOT NULL,
+	facility_id INTEGER NOT NULL,
+	coach_id INTEGER NOT NULL,
+	training_date TEXT NOT NULL, -- YYYY-MM-DD
+	start_time TEXT NOT NULL, -- HH:MM
+	end_time TEXT NOT NULL, -- HH:MM
+	FOREIGN KEY (team_id) REFERENCES TEAM(id),
+	FOREIGN KEY (facility_id) REFERENCES FACILITY(id),
+	FOREIGN KEY (coach_id) REFERENCES employees(id)
+);
 -- Season tickets sold. PROVISIONAL table: there is no user story to sell
 -- season tickets yet; it exists so they can be seen in the sales history.
 -- season: for example '2026/27'.

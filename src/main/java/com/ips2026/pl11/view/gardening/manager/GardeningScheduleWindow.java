@@ -151,8 +151,8 @@ public class GardeningScheduleWindow extends JFrame {
     //
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
-            pnHeader = new HeaderPanel("Specific Work Schedule Management",
-                "Modify specific days from non sporting employees", false);
+            pnHeader = new HeaderPanel("Gardening Sessions Scheduling",
+                "Assign gardening sessions to available facilities", false);
             pnHeader.setMinimumSize(new Dimension(564, 76));
             pnHeader.setPreferredSize(new Dimension(564, 76));
         }

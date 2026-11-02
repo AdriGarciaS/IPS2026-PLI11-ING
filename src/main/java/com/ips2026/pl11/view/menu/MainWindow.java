@@ -47,6 +47,7 @@ import com.ips2026.pl11.view.schedule.ScheduleWindow;
 import com.ips2026.pl11.view.seasonpass.PurchaseSeasonPassDialog;
 import com.ips2026.pl11.view.shareholder.ShareholderPortalDialog;
 import com.ips2026.pl11.view.team.TeamCreationWindow;
+import com.ips2026.pl11.view.training.TrainingSessionWindow;
 
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
@@ -77,6 +78,7 @@ public class MainWindow extends JFrame {
 
     private ScheduleWindow workScheduleWindow = new ScheduleWindow(this);
     private MenuCardButton btnOption11;
+    private MenuCardButton btnOption12;
 
     public MainWindow() {
         setTitle("Football Club Management");
@@ -117,6 +119,7 @@ public class MainWindow extends JFrame {
             pnButtons.add(getBtnOption9());
             pnButtons.add(getBtnOption10());
             pnButtons.add(getBtnOption11());
+            pnButtons.add(getBtnOption12());
         }
         return pnButtons;
     }
@@ -245,10 +248,32 @@ public class MainWindow extends JFrame {
         }
         return btnOption11;
     }
+    
+    private MenuCardButton getBtnOption12() {
+        if (btnOption12 == null) {
+            btnOption12 = new MenuCardButton("Training Sessions", "Schedule and manage training sessions for the team");
+            btnOption12.setMnemonic('T');
+            btnOption12.setFont(new Font("Tahoma", Font.PLAIN, 16));
+            btnOption12.addActionListener(event -> openTrainingSession());
+        }
+        return btnOption12;
+    }
 
     private Object openGardeningSession() {
         try {
             GardeningSessionWindow dialog = new GardeningSessionWindow(this);
+            dialog.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error opening Gardening Session dialog: " + ex.getMessage(),
+                    "Gardening Session Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return null;
+    }
+    
+    private Object openTrainingSession() {
+        try {
+            TrainingSessionWindow dialog = new TrainingSessionWindow(this);
             dialog.setVisible(true);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
@@ -376,5 +401,6 @@ public class MainWindow extends JFrame {
         }
         return lblFooter;
     }
+    
     
 }

@@ -33,14 +33,11 @@ public class ShareholderPortalController {
     /**
      * Shareholders whose national ID or name contains {@code text}, ignoring
      * upper/lower case and accents ("perez" finds "Pérez"). An empty text
-     * finds nobody.
+     * finds everybody.
      */
     public List<Shareholder> search(String text) {
         String search = normalize(text);
         List<Shareholder> result = new ArrayList<>();
-        if (search.isEmpty()) {
-            return result;
-        }
         for (Shareholder shareholder : shareholders) {
             if (normalize(shareholder.getNationalId()).contains(search)
                     || normalize(shareholder.getFullName()).contains(search)) {

@@ -113,10 +113,13 @@ class ShareholderDAOsTest {
     }
 
     @Test
-    @DisplayName("the database allows only one holding per shareholder and campaign")
-    void oneHoldingPerCampaign() {
-        assertThrows(SQLException.class, () -> TestDatabase.execute("INSERT INTO SHARE_HOLDING "
-                + "(shareholder_id, campaign_id, purchase_date, purchase_price) VALUES (1, 1, '2023-03-01', 9.8)"));
+    @DisplayName("a shareholder can have several holdings of the same campaign (for example bought in the market)")
+    void severalHoldingsPerCampaign() throws SQLException {
+        TestDatabase.execute("INSERT INTO SHARE_HOLDING (id, shareholder_id, campaign_id, purchase_date, purchase_price) "
+                + "VALUES (13, 1, 1, '2026-10-29 19:20:00', 11.8)");
+        TestDatabase.execute("INSERT INTO SHARE (id, holding_id) VALUES (40, 13)");
+
+        assertEquals(3, new ShareHoldingDAO().findByShareholder(1).size());
     }
 
     @Test

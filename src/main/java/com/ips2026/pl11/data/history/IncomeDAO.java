@@ -47,11 +47,15 @@ public class IncomeDAO {
             + "r.start_time, r.total_price AS amount FROM FACILITY_RESERVATION r JOIN FACILITY f ON f.id = r.facility_id "
             + "WHERE r.created_at >= ? AND r.created_at < ?";
 
-    // Share purchases: the amount is the number of shares x the price of one share.
+    // Share purchases in a campaign: the amount is the number of shares bought x the price of one share.
+    // The shares bought are the ones the holding has now plus the ones sold later in the market.
+    // The holdings created by a market purchase are not income of the club (the money goes to the seller).
     private static final String SQL_CAMPAIGNS = "SELECT h.id, h.purchase_date AS moment, c.name, "
-            + "COUNT(s.id) AS shares, h.purchase_price FROM SHARE_HOLDING h "
-            + "JOIN SHARE_CAMPAIGN c ON c.id = h.campaign_id JOIN SHARE s ON s.holding_id = h.id "
-            + "WHERE h.purchase_date >= ? AND h.purchase_date < ? GROUP BY h.id, h.purchase_date, c.name, h.purchase_price";
+            + "(SELECT COUNT(*) FROM SHARE s WHERE s.holding_id = h.id) "
+            + "+ (SELECT COUNT(*) FROM SHARE_TRANSFER t WHERE t.from_holding_id = h.id) AS shares, "
+            + "h.purchase_price FROM SHARE_HOLDING h JOIN SHARE_CAMPAIGN c ON c.id = h.campaign_id "
+            + "WHERE h.purchase_date >= ? AND h.purchase_date < ? "
+            + "AND NOT EXISTS (SELECT 1 FROM SHARE_TRANSFER t WHERE t.to_holding_id = h.id)";
 
     private static final String SQL_SALE_LINES = "SELECT m.name, s.units_sold, s.total_price FROM MERCHANDISING_SALE s "
             + "JOIN MERCHANDISING m ON m.id = s.merch_id WHERE s.sale_number = ? ORDER BY s.id";

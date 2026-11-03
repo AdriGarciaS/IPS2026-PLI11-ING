@@ -214,9 +214,11 @@ CREATE TABLE IF NOT EXISTS SHARE_CAMPAIGN (
 -- Only one campaign can be open (not FINISHED) at a time.
 CREATE UNIQUE INDEX IF NOT EXISTS ux_share_campaign_one_open ON SHARE_CAMPAIGN ((status <> 'FINISHED')) WHERE status <> 'FINISHED';
 
--- Shares that a shareholder bought in one campaign (one row per shareholder
--- and campaign). The shares themselves, each one with its own ID, are in SHARE:
--- the quantity is the number of shares of the holding.
+-- Shares that a shareholder bought together: in a campaign, or in the share
+-- market from other shareholders (a market purchase creates one holding per
+-- campaign of the shares bought; see SHARE_TRANSFER). A shareholder can have
+-- several holdings of the same campaign. The shares themselves, each one with
+-- its own ID, are in SHARE: the quantity is the number of shares it has now.
 -- purchase_price: price of ONE share when it was bought.
 -- purchase_date: moment of the purchase (YYYY-MM-DD HH:MM:SS, local time).
 CREATE TABLE IF NOT EXISTS SHARE_HOLDING (
@@ -224,8 +226,7 @@ CREATE TABLE IF NOT EXISTS SHARE_HOLDING (
     shareholder_id INTEGER NOT NULL REFERENCES SHAREHOLDER (id),
     campaign_id    INTEGER NOT NULL REFERENCES SHARE_CAMPAIGN (id),
     purchase_date  TEXT    NOT NULL,
-    purchase_price REAL    NOT NULL CHECK (purchase_price > 0),
-    UNIQUE (shareholder_id, campaign_id)
+    purchase_price REAL    NOT NULL CHECK (purchase_price > 0)
 );
 
 -- Every single share of the club: its id is the share ID (share number),
@@ -234,6 +235,54 @@ CREATE TABLE IF NOT EXISTS SHARE_HOLDING (
 CREATE TABLE IF NOT EXISTS SHARE (
     id         INTEGER PRIMARY KEY,
     holding_id INTEGER NOT NULL REFERENCES SHARE_HOLDING (id)
+);
+
+-- ---------------------------------------------------------------------------
+-- Share market (US 35750 buy shares; the listings are created in US 35749).
+-- ---------------------------------------------------------------------------
+
+-- Shares that a shareholder puts up for sale.
+-- price_per_share: price of one share bought individually (required).
+-- pack_price: price of all the shares together (optional); it only applies
+-- while no share of the listing has been sold.
+-- listed_at: moment of the listing (YYYY-MM-DD HH:MM:SS, local time).
+CREATE TABLE IF NOT EXISTS SHARE_LISTING (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    seller_id       INTEGER NOT NULL REFERENCES SHAREHOLDER (id),
+    price_per_share REAL    NOT NULL CHECK (price_per_share > 0),
+    pack_price      REAL    CHECK (pack_price IS NULL OR pack_price > 0),
+    listed_at       TEXT    NOT NULL
+);
+
+-- The shares of each listing. A share is still available while it has no
+-- SHARE_TRANSFER for that listing.
+CREATE TABLE IF NOT EXISTS SHARE_LISTING_ITEM (
+    listing_id INTEGER NOT NULL REFERENCES SHARE_LISTING (id),
+    share_id   INTEGER NOT NULL REFERENCES SHARE (id),
+    PRIMARY KEY (listing_id, share_id)
+);
+
+-- Change of owner of a share sold in the market (one row per share).
+-- purchase_number: the shares bought in the same checkout share it.
+-- sale_type: PACK (the whole listing at its pack price) or SINGLE.
+-- price: price paid for this share (for a pack, pack price / its shares).
+-- from_holding_id / to_holding_id: holding of the seller it left and holding
+-- of the buyer it went to.
+-- transferred_at: moment of the purchase (YYYY-MM-DD HH:MM:SS, local time).
+CREATE TABLE IF NOT EXISTS SHARE_TRANSFER (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    purchase_number INTEGER NOT NULL,
+    listing_id      INTEGER NOT NULL REFERENCES SHARE_LISTING (id),
+    share_id        INTEGER NOT NULL REFERENCES SHARE (id),
+    seller_id       INTEGER NOT NULL REFERENCES SHAREHOLDER (id),
+    buyer_id        INTEGER NOT NULL REFERENCES SHAREHOLDER (id),
+    from_holding_id INTEGER NOT NULL REFERENCES SHARE_HOLDING (id),
+    to_holding_id   INTEGER NOT NULL REFERENCES SHARE_HOLDING (id),
+    sale_type       TEXT    NOT NULL CHECK (sale_type IN ('PACK', 'SINGLE')),
+    price           REAL    NOT NULL CHECK (price > 0),
+    transferred_at  TEXT    NOT NULL,
+    UNIQUE (listing_id, share_id),
+    CHECK (seller_id <> buyer_id)
 );
 
 -- Market price of one share of the club, one row per day (YYYY-MM-DD).

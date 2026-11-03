@@ -38,6 +38,9 @@ public final class TestDatabase {
         execute("DELETE FROM TEAM_MEMBER");
         execute("DELETE FROM TEAM");
         execute("DELETE FROM employees");
+        execute("DELETE FROM SHARE_TRANSFER");
+        execute("DELETE FROM SHARE_LISTING_ITEM");
+        execute("DELETE FROM SHARE_LISTING");
         execute("DELETE FROM SHARE");
         execute("DELETE FROM SHARE_HOLDING");
         execute("DELETE FROM SHARE_CAMPAIGN");

@@ -140,4 +140,31 @@ public class MatchTicketDAO {
         }
         return grid;
     }
+    
+    public boolean bookSpecificSeat(int matchId, String grandstand, String section, int rowNum, int seatNum, double price) throws SQLException {
+        String nextNumberSql = "SELECT COALESCE(MAX(purchase_number), 0) + 1 FROM MATCH_TICKET";
+        String insertSql = "INSERT INTO MATCH_TICKET (purchase_number, match_id, grandstand, section, row_num, seat_num, price) " +
+                           "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement nextNumber = conn.prepareStatement(nextNumberSql);
+             PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+
+            int purchaseNumber;
+            try (ResultSet rs = nextNumber.executeQuery()) {
+                rs.next();
+                purchaseNumber = rs.getInt(1);
+            }
+
+            pstmt.setInt(1, purchaseNumber);
+            pstmt.setInt(2, matchId);
+            pstmt.setString(3, grandstand.trim());
+            pstmt.setString(4, section.trim());
+            pstmt.setInt(5, rowNum);
+            pstmt.setInt(6, seatNum);
+            pstmt.setDouble(7, price);
+
+            return pstmt.executeUpdate() > 0;
+        }
+    }
 }

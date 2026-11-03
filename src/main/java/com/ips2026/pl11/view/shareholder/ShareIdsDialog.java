@@ -25,9 +25,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
 /**
- * List of the IDs of the shares of one holding, one below the other. The
- * first ID after a gap (when the numbers are not consecutive) is shown in
- * bold with the numbers that are missing, so gaps are easy to see.
+ * List of the IDs of the shares of one holding, one below the other, with
+ * a summary of them as ranges.
  *
  * <p>It is a small modal dialog owned by the shares wallet.</p>
  */
@@ -127,20 +126,6 @@ public class ShareIdsDialog extends JDialog {
                 public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                         boolean isSelected, boolean cellHasFocus) {
                     super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                    int id = (Integer) value;
-                    boolean afterGap = index > 0 && ids.get(index - 1) != id - 1;
-                    if (afterGap) {
-                        int missingFrom = ids.get(index - 1) + 1;
-                        int missingTo = id - 1;
-                        String missing = missingFrom == missingTo ? String.valueOf(missingFrom) : missingFrom + " - " + missingTo;
-                        setText(id + "      (gap: " + missing + " not in this holding)");
-                        setFont(getFont().deriveFont(Font.BOLD));
-                        if (!isSelected) {
-                            setForeground(Branding.ERROR);
-                        }
-                    } else {
-                        setText(String.valueOf(id));
-                    }
                     setBorder(new EmptyBorder(0, 8, 0, 8));
                     return this;
                 }

@@ -117,7 +117,7 @@ class ShareMarketControllerTest {
         controller.addPack(LAURA);
         controller.addShares(MARCOS, List.of(1301));
 
-        MarketPurchase purchase = controller.checkout(" 44444444a ", VALID_CARD);
+        MarketPurchase purchase = controller.checkout(VALID_CARD);
 
         assertEquals(7, purchase.getPurchaseNumber());
         assertEquals(4, dao.buyerId);
@@ -130,31 +130,21 @@ class ShareMarketControllerTest {
     @Test
     @DisplayName("an empty cart cannot be bought")
     void emptyCart() {
-        assertThrows(IllegalArgumentException.class, () -> controller.checkout("44444444A", VALID_CARD));
+        assertThrows(IllegalArgumentException.class, () -> controller.checkout(VALID_CARD));
         assertNull(dao.boughtItems);
     }
 
     @Test
-    @DisplayName("the ID must be the one of the shareholder of the portal, and the card valid: every problem at once")
-    void wrongIdAndCard() {
+    @DisplayName("the card is required and must be valid: nothing is bought and the cart is kept to correct it")
+    void wrongCard() {
         controller.addShares(MARCOS, List.of(1301));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> controller.checkout("11111111H", "1234"));
-        assertEquals(2, exception.getMessage().lines().count(), exception.getMessage());
-        assertTrue(exception.getMessage().contains("Javier Ortega Lima"));
+        assertThrows(IllegalArgumentException.class, () -> controller.checkout(""));
+        assertThrows(IllegalArgumentException.class, () -> controller.checkout(null));
+        assertThrows(IllegalArgumentException.class, () -> controller.checkout("1234"));
+        assertThrows(IllegalArgumentException.class, () -> controller.checkout("4111 1111 1111 1112"));
         assertNull(dao.boughtItems, "nothing is bought");
-        assertEquals(1, controller.getCart().getItemCount(), "the cart is kept to correct the data");
-    }
-
-    @Test
-    @DisplayName("the ID is required and the card must pass the check digit")
-    void idRequiredAndCardChecked() {
-        controller.addShares(MARCOS, List.of(1301));
-
-        assertThrows(IllegalArgumentException.class, () -> controller.checkout("  ", VALID_CARD));
-        assertThrows(IllegalArgumentException.class, () -> controller.checkout("44444444A", "4111 1111 1111 1112"));
-        assertNull(dao.boughtItems);
+        assertEquals(1, controller.getCart().getItemCount());
     }
 
     @Test
@@ -164,7 +154,7 @@ class ShareMarketControllerTest {
         dao.shareAlreadySold = true;
 
         IllegalStateException exception = assertThrows(IllegalStateException.class,
-                () -> controller.checkout("44444444A", VALID_CARD));
+                () -> controller.checkout(VALID_CARD));
         assertTrue(exception.getMessage().contains("no longer available"));
         assertTrue(exception.getMessage().contains("Nothing has been bought"));
         assertTrue(controller.getCart().isEmpty());

@@ -30,8 +30,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
 /**
- * Checkout of the share market: summary of the cart and payment with the
- * shareholder ID and a credit card. After a purchase, {@link #getPurchase()}
+ * Checkout of the share market: summary of the cart and payment with a
+ * credit card. After a purchase, {@link #getPurchase()}
  * gives what was bought (null if nothing was bought).
  *
  * <p>It is a modal dialog. It follows the lazy WindowBuilder style of the
@@ -54,8 +54,6 @@ public class CheckoutDialog extends JDialog {
     private JLabel lblItems;
     private JLabel lblTotal;
     private JPanel pnPayment;
-    private JLabel lblNationalId;
-    private JTextField txtNationalId;
     private JLabel lblCard;
     private JTextField txtCard;
     private JPanel pnButtons;
@@ -72,7 +70,7 @@ public class CheckoutDialog extends JDialog {
 
         setTitle(TITLE);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        setMinimumSize(new Dimension(480, 420));
+        setMinimumSize(new Dimension(480, 380));
         contentPane = new JPanel();
         contentPane.setLayout(new BorderLayout(0, 0));
         setContentPane(contentPane);
@@ -80,7 +78,7 @@ public class CheckoutDialog extends JDialog {
         contentPane.add(getPnHeader(), BorderLayout.NORTH);
         contentPane.add(getPnBody(), BorderLayout.CENTER);
         getRootPane().setDefaultButton(getBtnConfirm());
-        Branding.setInitialSize(this, 560, 480, owner); // small: only a summary and two fields
+        Branding.setInitialSize(this, 560, 430, owner); // small: only a summary and one field
     }
 
     /** What was bought, or null if the window was closed without buying. */
@@ -160,27 +158,9 @@ public class CheckoutDialog extends JDialog {
             pnPayment = new JPanel();
             pnPayment.setBorder(BorderFactory.createCompoundBorder(titled("Payment"), new EmptyBorder(8, 12, 8, 12)));
             pnPayment.setLayout(new GridBagLayout());
-            addRow(pnPayment, 0, getLblNationalId(), getTxtNationalId());
-            addRow(pnPayment, 1, getLblCard(), getTxtCard());
+            addRow(pnPayment, 0, getLblCard(), getTxtCard());
         }
         return pnPayment;
-    }
-
-    private JLabel getLblNationalId() {
-        if (lblNationalId == null) {
-            lblNationalId = new JLabel("Shareholder ID:");
-            lblNationalId.setDisplayedMnemonic('I');
-            lblNationalId.setLabelFor(getTxtNationalId());
-        }
-        return lblNationalId;
-    }
-
-    private JTextField getTxtNationalId() {
-        if (txtNationalId == null) {
-            txtNationalId = new JTextField(20);
-            txtNationalId.setToolTipText("Your national ID (the shareholder chosen in the portal)");
-        }
-        return txtNationalId;
     }
 
     private JLabel getLblCard() {
@@ -263,9 +243,9 @@ public class CheckoutDialog extends JDialog {
 
     private void confirm() {
         try {
-            purchase = controller.checkout(getTxtNationalId().getText(), getTxtCard().getText());
+            purchase = controller.checkout(getTxtCard().getText());
         } catch (IllegalArgumentException exception) {
-            // Wrong ID or card: the window stays open to correct them
+            // Wrong card: the window stays open to correct it
             JOptionPane.showMessageDialog(this, exception.getMessage(), TITLE, JOptionPane.WARNING_MESSAGE);
             return;
         } catch (IllegalStateException exception) {

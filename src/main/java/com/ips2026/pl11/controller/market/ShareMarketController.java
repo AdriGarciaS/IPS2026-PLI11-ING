@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 /**
  * Controller of the share market: a shareholder sees the shares that the
  * other shareholders sell, filters them, adds packs or individual shares
- * to a cart and buys them with their national ID and a card.
+ * to a cart and buys them with a card.
  */
 public class ShareMarketController {
 
@@ -103,32 +103,22 @@ public class ShareMarketController {
     // ------------------------------------------------------------------
 
     /**
-     * Buys the cart: the shares change their owner to the buyer. Then the
-     * cart is emptied and the listings are read again.
+     * Buys the cart: the shares change their owner to the buyer (the
+     * shareholder chosen in the portal). Then the cart is emptied and the
+     * listings are read again.
      *
-     * @param nationalId national ID typed by the buyer: it must be the one of the shareholder of the portal
      * @param cardNumber credit card number
-     * @throws IllegalArgumentException if the cart is empty, the national ID or the card are wrong; the
-     *                                  message has one line per problem
+     * @throws IllegalArgumentException if the cart is empty or the card is wrong
      * @throws IllegalStateException    if a share is no longer available (nothing is bought; the cart is
      *                                  emptied and the listings are read again)
      */
-    public MarketPurchase checkout(String nationalId, String cardNumber) throws SQLException {
+    public MarketPurchase checkout(String cardNumber) throws SQLException {
         if (cart.isEmpty()) {
             throw new IllegalArgumentException("The cart is empty.");
         }
-        List<String> problems = new ArrayList<>();
-        String id = nationalId == null ? "" : nationalId.strip();
-        if (id.isEmpty()) {
-            problems.add("The shareholder ID is required.");
-        } else if (!id.equalsIgnoreCase(buyer.getNationalId())) {
-            problems.add("The shareholder ID does not match the shareholder chosen in the portal ("
-                    + buyer.getFullName() + ").");
-        }
         Optional<String> cardProblem = CardValidator.findProblem(cardNumber == null ? "" : cardNumber);
-        cardProblem.ifPresent(problems::add);
-        if (!problems.isEmpty()) {
-            throw new IllegalArgumentException(String.join(System.lineSeparator(), problems));
+        if (cardProblem.isPresent()) {
+            throw new IllegalArgumentException(cardProblem.get());
         }
 
         MarketPurchase purchase;

@@ -63,11 +63,11 @@ class ShareholderPortalControllerTest {
     }
 
     @Test
-    @DisplayName("an empty search finds nobody, and a search without matches is empty")
+    @DisplayName("an empty search finds every shareholder, and a search without matches is empty")
     void emptySearch() {
-        assertTrue(controller.search("").isEmpty());
-        assertTrue(controller.search("   ").isEmpty());
-        assertTrue(controller.search(null).isEmpty());
+        assertEquals(List.of(IRENE, LAURA, MARCOS), controller.search(""));
+        assertEquals(List.of(IRENE, LAURA, MARCOS), controller.search("   "));
+        assertEquals(List.of(IRENE, LAURA, MARCOS), controller.search(null));
         assertTrue(controller.search("zzz").isEmpty());
     }
 

@@ -1,41 +1,40 @@
 package com.ips2026.pl11.controller.matches;
 
-import java.sql.SQLException;
-import com.ips2026.pl11.data.matches.MatchPriceDAO;
 import com.ips2026.pl11.data.ticket.MatchDAO;
+import com.ips2026.pl11.data.ticket.MatchTicketDAO;
 
 public class ScheduleMatchController {
 
-    private final MatchDAO matchDAO = new MatchDAO();
+    private final MatchDAO matchDAO;
+    private final MatchTicketDAO ticketDAO;
 
-    public void scheduleMatch(int teamId, String rival, String date, String startTime, 
-                              boolean isSpecial, String selectedGrandstand, String selectedSection, double basePrice) throws SQLException {
-        
-        if (date == null || !date.matches("\\d{4}-\\d{2}-\\d{2}")) {
-            throw new IllegalArgumentException("Invalid match date format. Use YYYY-MM-DD.");
-        }
-        if (startTime == null || !startTime.matches("\\d{2}:\\d{2}")) {
-            throw new IllegalArgumentException("Invalid start time format. Use HH:MM.");
-        }
-        if (basePrice <= 0) {
-            throw new IllegalArgumentException("Base price must be greater than zero.");
-        }
-
-        String endTime = calculateEndTime(startTime);
-        int facilityId = 1;
-
-        // Inserta el partido y cancela reservas/entrenamientos conflictivos
-        matchDAO.createHomeMatchWithConflictsCleared(
-                teamId, rival, date, startTime, endTime, isSpecial, facilityId);
+    public ScheduleMatchController() {
+        this.matchDAO = new MatchDAO();
+        this.ticketDAO = new MatchTicketDAO();
     }
 
-    private String calculateEndTime(String startTime) {
-        try {
-            String[] parts = startTime.split(":");
-            int hour = Integer.parseInt(parts[0]) + 2;
-            return String.format("%02d:%s", hour, parts[1]);
-        } catch (Exception e) {
-            return "20:00";
-        }
+    public void scheduleMatch(int teamId, String rival, String date, String startTime, 
+                              boolean isSpecial, String grandstand, String section, double price, int facilityId) throws Exception {
+        
+        // Fixed match window duration: 2 hours (120 minutes)
+        String endTime = calculateEndTime(startTime, 120);
+
+        // Schedule match and enforce training conflict validation
+        int matchId = matchDAO.createHomeMatchWithConflictsCleared(teamId, rival, date, startTime, endTime, isSpecial, facilityId);
+
+        // Batch initialize tickets with base price
+        ticketDAO.initializeMatchTicketsWithPrice(matchId, grandstand, section, price);
+    }
+
+    private String calculateEndTime(String startTime, int durationMinutes) {
+        String[] parts = startTime.split(":");
+        int hours = Integer.parseInt(parts[0]);
+        int minutes = Integer.parseInt(parts[1]) + durationMinutes;
+
+        hours += minutes / 60;
+        minutes = minutes % 60;
+        hours = hours % 24;
+
+        return String.format("%02d:%02d", hours, minutes);
     }
 }

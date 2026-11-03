@@ -238,16 +238,16 @@ WHERE national_id IN ('P0000009T', 'P0000010T', 'P0000011T', 'P0000012T', 'P0000
 -- 1 Main Pitch, 2 Training Pitch 1, 3 Training Pitch 2, 4 Gym, 5 Indoor Court.
 -- Trainings and home matches block the facility (and 1 h 30 min after them).
 WITH RECURSIVE days(n) AS (SELECT 0 UNION ALL SELECT n + 1 FROM days WHERE n < 31)
-INSERT INTO trainings (team_id, training_date, start_time, end_time, facility_id, coach_id)
-SELECT (SELECT id FROM TEAM WHERE name = 'First Team'), date('now', 'localtime', '+' || n || ' days'), '10:00', '12:00', 2, (SELECT id FROM employees WHERE first_name = 'Pep' AND last_name = 'Guardiola') FROM days
+INSERT INTO trainings (team_id, training_date, start_time, end_time, facility_id)
+SELECT (SELECT id FROM TEAM WHERE name = 'First Team'), date('now', 'localtime', '+' || n || ' days'), '10:00', '12:00', 2 FROM days
 UNION ALL
-SELECT (SELECT id FROM TEAM WHERE name = 'First Team'), date('now', 'localtime', '+' || n || ' days'), '09:00', '10:30', 4, (SELECT id FROM employees WHERE first_name = 'Pep' AND last_name = 'Guardiola') FROM days WHERE n % 2 = 1
+SELECT (SELECT id FROM TEAM WHERE name = 'First Team'), date('now', 'localtime', '+' || n || ' days'), '09:00', '10:30', 4 FROM days WHERE n % 2 = 1
 UNION ALL
-SELECT (SELECT id FROM TEAM WHERE name = 'Juvenil A'), date('now', 'localtime', '+' || n || ' days'), '18:00', '20:00', 2, (SELECT id FROM employees WHERE first_name = 'Pep' AND last_name = 'Guardiola') FROM days
+SELECT (SELECT id FROM TEAM WHERE name = 'Juvenil A'), date('now', 'localtime', '+' || n || ' days'), '18:00', '20:00', 2 FROM days
 UNION ALL
-SELECT (SELECT id FROM TEAM WHERE name = 'Women''s First Team'), date('now', 'localtime', '+' || n || ' days'), '17:00', '19:00', 3, (SELECT id FROM employees WHERE first_name = 'Pep' AND last_name = 'Guardiola') FROM days
+SELECT (SELECT id FROM TEAM WHERE name = 'Women''s First Team'), date('now', 'localtime', '+' || n || ' days'), '17:00', '19:00', 3 FROM days
 UNION ALL
-SELECT (SELECT id FROM TEAM WHERE name = 'Women''s First Team'), date('now', 'localtime', '+' || n || ' days'), '16:00', '17:30', 4, (SELECT id FROM employees WHERE first_name = 'Pep' AND last_name = 'Guardiola') FROM days WHERE n % 2 = 0;
+SELECT (SELECT id FROM TEAM WHERE name = 'Women''s First Team'), date('now', 'localtime', '+' || n || ' days'), '16:00', '17:30', 4 FROM days WHERE n % 2 = 0;
 
 WITH RECURSIVE days(n) AS (SELECT 0 UNION ALL SELECT n + 1 FROM days WHERE n < 31)
 INSERT INTO matches (team_id, match_date, start_time, end_time, rival, is_home, facility_id)
@@ -269,8 +269,8 @@ FROM days WHERE n % 7 = 3;
 
 -- Training added by the interviews user story (it was stored by player_id):
 -- player 1 (Lamine) belongs to the First Team, so it is a First Team training.
-INSERT INTO trainings (team_id, training_date, start_time, end_time, facility_id, coach_id)
-    VALUES ((SELECT id FROM TEAM WHERE name = 'First Team'), '2026-10-15', '09:00', '11:00', 5, (SELECT id FROM employees WHERE first_name = 'Pep' AND last_name = 'Guardiola'));
+INSERT INTO trainings (team_id, training_date, start_time, end_time, facility_id)
+    VALUES ((SELECT id FROM TEAM WHERE name = 'First Team'), '2026-10-15', '09:00', '11:00', 5);
 
 -- Sample shareholders (US 35747).
 INSERT INTO SHAREHOLDER (first_name, last_name, national_id) VALUES
@@ -363,6 +363,7 @@ INSERT INTO SEASON_TICKET (season, holder_name, price, created_at) VALUES
 INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reservation_date, start_time, end_time, hours, total_price, created_at) VALUES
     (4, 'Mario Blanco', '**** **** **** 2222', date('now', 'localtime', '+3 days'), '10:00', '12:00', 2, 100.0, datetime('now', 'localtime', 'start of day', '-5 days', '+16 hours', '+5 minutes')),
     (5, 'Ana Torres', '**** **** **** 3333', date('now', 'localtime', '-18 days'), '18:00', '19:00', 1, 50.0, datetime('now', 'localtime', 'start of day', '-20 days', '+11 hours', '+35 minutes'));
+    
 
 -- ---------------------------------------------------------------------------
 -- Sample share market (US 35750): listings of Laura, Marcos and Irene (each

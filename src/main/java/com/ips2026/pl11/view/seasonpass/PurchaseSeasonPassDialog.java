@@ -59,7 +59,7 @@ public class PurchaseSeasonPassDialog extends JDialog {
         super(parent, "Season Pass Holder Site", true);
         this.controller = new SeasonPassController();
 
-        setSize(1150, 720); // Expanded size for optimal 10x15 cell visibility
+        setSize(1500, 720);
         setLocationRelativeTo(parent);
         setLayout(new BorderLayout(10, 10));
 

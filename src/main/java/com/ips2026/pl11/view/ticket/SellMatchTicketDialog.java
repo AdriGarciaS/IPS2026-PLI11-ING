@@ -160,7 +160,7 @@ public class SellMatchTicketDialog extends JDialog {
 
         add(bottomActionPanel, BorderLayout.SOUTH);
 
-        setPreferredSize(new Dimension(880, 560));
+        setPreferredSize(new Dimension(1000, 560));
         pack();
         setLocationRelativeTo(getParent());
     }

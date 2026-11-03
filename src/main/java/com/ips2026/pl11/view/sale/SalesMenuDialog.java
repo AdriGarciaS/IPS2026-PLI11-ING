@@ -6,6 +6,7 @@ import com.ips2026.pl11.controller.ticket.MatchTicketController;
 import com.ips2026.pl11.data.history.IncomeDAO;
 import com.ips2026.pl11.data.store.MerchandiseDAO;
 import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
+import com.ips2026.pl11.data.ticket.MatchDAO;
 import com.ips2026.pl11.model.history.SalesHistory;
 import com.ips2026.pl11.model.ticket.HomeMatch;
 import com.ips2026.pl11.view.common.Branding;
@@ -182,7 +183,7 @@ public class SalesMenuDialog extends JDialog {
 
     private void openTicketSale() {
         try {
-            List<HomeMatch> homeMatches = new MatchTicketController().getHomeMatches();
+        	List<HomeMatch> homeMatches = new MatchDAO().getHomeMatches();
             if (homeMatches.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "There are no home matches available for ticket sales.",
                         "Ticket Sale", JOptionPane.WARNING_MESSAGE);

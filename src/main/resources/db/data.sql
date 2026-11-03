@@ -363,3 +363,4 @@ INSERT INTO SEASON_TICKET (season, holder_name, price, created_at) VALUES
 INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reservation_date, start_time, end_time, hours, total_price, created_at) VALUES
     (4, 'Mario Blanco', '**** **** **** 2222', date('now', 'localtime', '+3 days'), '10:00', '12:00', 2, 100.0, datetime('now', 'localtime', 'start of day', '-5 days', '+16 hours', '+5 minutes')),
     (5, 'Ana Torres', '**** **** **** 3333', date('now', 'localtime', '-18 days'), '18:00', '19:00', 1, 50.0, datetime('now', 'localtime', 'start of day', '-20 days', '+11 hours', '+35 minutes'));
+    

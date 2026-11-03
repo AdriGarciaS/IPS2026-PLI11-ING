@@ -4,121 +4,24 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.ips2026.pl11.data.ConexionBD;
-import com.ips2026.pl11.data.matches.MatchPriceDAO;
-import com.ips2026.pl11.model.ticket.MatchTicket;
 
+/**
+ * Data Access Object for handling MATCH_TICKET records and seat allocations.
+ */
 public class MatchTicketDAO {
 
-    public List<MatchTicket> bookContiguousSeats(int matchId, String grandstand, String section, int quantity, double price) throws SQLException {
-        if (quantity < 1 || quantity > 15) {
-            throw new IllegalArgumentException("You can only request between 1 and 15 seats.");
-        }
-
-        boolean[][] occupied = new boolean[11][16];
-        
-        String sqlOccupied = "SELECT row_num, seat_num FROM MATCH_TICKET " +
-                             "WHERE match_id = ? AND UPPER(TRIM(grandstand)) = UPPER(TRIM(?)) " +
-                             "AND UPPER(TRIM(section)) = UPPER(TRIM(?))";
-
-        try (Connection conn = ConexionBD.obtenerConexion();
-             PreparedStatement pstmt = conn.prepareStatement(sqlOccupied)) {
-            
-            pstmt.setInt(1, matchId);
-            pstmt.setString(2, grandstand);
-            pstmt.setString(3, section);
-
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    int rowIndex = rs.getInt("row_num");
-                    int colIndex = rs.getInt("seat_num");
-                    
-                    if (rowIndex >= 1 && rowIndex <= 10 && colIndex >= 1 && colIndex <= 15) {
-                        occupied[rowIndex][colIndex] = true;
-                    }
-                }
-            }
-        }
-
-        List<Integer> validRows = new ArrayList<>();
-        List<Integer> startingSeats = new ArrayList<>();
-
-        for (int rowIndex = 1; rowIndex <= 10; rowIndex++) {
-            int consecutiveFree = 0;
-            for (int colIndex = 1; colIndex <= 15; colIndex++) {
-                if (!occupied[rowIndex][colIndex]) {
-                    consecutiveFree++;
-                    
-                    if (consecutiveFree == quantity) {
-                        int startSeat = colIndex - quantity + 1;
-                        validRows.add(rowIndex);
-                        startingSeats.add(startSeat);
-                        break;
-                    }
-                } else {
-                    consecutiveFree = 0;
-                }
-            }
-        }
-
-        if (validRows.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        int randomIndex = (int) (Math.random() * validRows.size());
-        int chosenRow = validRows.get(randomIndex);
-        int startSeat = startingSeats.get(randomIndex);
-
-        double ticketPrice = (price > 0) ? price : 30.0;
-
-        List<MatchTicket> purchasedTickets = new ArrayList<>();
-        String nextNumberSql = "SELECT COALESCE(MAX(purchase_number), 0) + 1 FROM MATCH_TICKET";
-        String insertSql = "INSERT INTO MATCH_TICKET (purchase_number, match_id, grandstand, section, row_num, seat_num, price) " +
-                           "VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = ConexionBD.obtenerConexion();
-             PreparedStatement nextNumber = conn.prepareStatement(nextNumberSql);
-             PreparedStatement pstmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-
-            int purchaseNumber;
-            try (ResultSet rs = nextNumber.executeQuery()) {
-                rs.next();
-                purchaseNumber = rs.getInt(1);
-            }
-
-            for (int i = 0; i < quantity; i++) {
-                int seatNum = startSeat + i;
-                pstmt.setInt(1, purchaseNumber);
-                pstmt.setInt(2, matchId);
-                pstmt.setString(3, grandstand.trim());
-                pstmt.setString(4, section.trim());
-                pstmt.setInt(5, chosenRow);
-                pstmt.setInt(6, seatNum);
-                pstmt.setDouble(7, ticketPrice);
-                pstmt.executeUpdate();
-
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        int ticketId = generatedKeys.getInt(1);
-                        purchasedTickets.add(new MatchTicket(ticketId, matchId, grandstand, section, chosenRow, seatNum, ticketPrice));
-                    }
-                }
-            }
-        }
-
-        return purchasedTickets;
-    }
-    
+    /**
+     * Retrieves a 10x15 matrix grid representing occupied seats sold for a specific match, grandstand, and section.
+     */
     public boolean[][] getOccupiedSeats(int matchId, String grandstand, String section) throws SQLException {
         boolean[][] grid = new boolean[10][15];
-
         String sql = "SELECT row_num, seat_num FROM MATCH_TICKET " +
-                     "WHERE match_id = ? AND grandstand = ? AND section = ?";
+                     "WHERE match_id = ? AND UPPER(TRIM(grandstand)) = UPPER(TRIM(?)) " +
+                     "AND UPPER(TRIM(section)) = UPPER(TRIM(?))";
 
         try (Connection conn = ConexionBD.obtenerConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -129,16 +32,66 @@ public class MatchTicketDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    int rowIndex = rs.getInt("row_num") - 1;
-                    int colIndex = rs.getInt("seat_num") - 1;
-
-                    if (rowIndex >= 0 && rowIndex < 10 && colIndex >= 0 && colIndex < 15) {
-                        grid[rowIndex][colIndex] = true;
+                    int r = rs.getInt("row_num") - 1;
+                    int c = rs.getInt("seat_num") - 1;
+                    if (r >= 0 && r < 10 && c >= 0 && c < 15) {
+                        grid[r][c] = true;
                     }
                 }
             }
         }
         return grid;
+    }
+
+    /**
+     * Books a contiguous block of seats in a specific row and section (US 35082).
+     * Shares a single generated purchase_number across all tickets in the transaction.
+     */
+    public List<int[]> bookContiguousSeats(int matchId, String grandstand, String section, 
+                                          int rowNum, int startSeatNum, int quantity, double price) throws SQLException {
+        List<int[]> bookedSeats = new ArrayList<>();
+
+        String nextNumberSql = "SELECT COALESCE(MAX(purchase_number), 0) + 1 FROM MATCH_TICKET";
+        String insertSql = "INSERT INTO MATCH_TICKET (purchase_number, match_id, grandstand, section, row_num, seat_num, price) " +
+                           "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = ConexionBD.obtenerConexion()) {
+            conn.setAutoCommit(false);
+
+            try {
+                int purchaseNumber;
+                try (PreparedStatement nextStmt = conn.prepareStatement(nextNumberSql);
+                     ResultSet rs = nextStmt.executeQuery()) {
+                    rs.next();
+                    purchaseNumber = rs.getInt(1);
+                }
+
+                try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+                    for (int i = 0; i < quantity; i++) {
+                        int currentSeat = startSeatNum + i;
+
+                        pstmt.setInt(1, purchaseNumber);
+                        pstmt.setInt(2, matchId);
+                        pstmt.setString(3, grandstand.trim());
+                        pstmt.setString(4, section.trim());
+                        pstmt.setInt(5, rowNum);
+                        pstmt.setInt(6, currentSeat);
+                        pstmt.setDouble(7, price);
+                        pstmt.addBatch();
+
+                        bookedSeats.add(new int[]{rowNum, currentSeat});
+                    }
+                    pstmt.executeBatch();
+                }
+
+                conn.commit();
+                return bookedSeats;
+
+            } catch (SQLException ex) {
+                conn.rollback();
+                throw ex;
+            }
+        }
     }
     
     public boolean bookSpecificSeat(int matchId, String grandstand, String section, int rowNum, int seatNum, double price) throws SQLException {
@@ -165,6 +118,32 @@ public class MatchTicketDAO {
             pstmt.setDouble(7, price);
 
             return pstmt.executeUpdate() > 0;
+        }
+    }
+    
+    public void initializeMatchTicketsWithPrice(int matchId, String grandstand, String section, double price) throws SQLException {
+        String sql = "INSERT INTO MATCH_TICKET (purchase_number, match_id, grandstand, section, row_num, seat_num, price) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            int purchaseNumber = 1;
+
+            // Iterate over standard stadium layout (10 rows x 15 seats)
+            for (int r = 1; r <= 10; r++) {
+                for (int c = 1; c <= 15; c++) {
+                    pstmt.setInt(1, purchaseNumber++);
+                    pstmt.setInt(2, matchId);
+                    pstmt.setString(3, grandstand);
+                    pstmt.setString(4, section);
+                    pstmt.setInt(5, r);
+                    pstmt.setInt(6, c);
+                    pstmt.setDouble(7, price);
+                    pstmt.addBatch();
+                }
+            }
+            pstmt.executeBatch();
         }
     }
 }

@@ -19,33 +19,38 @@ import java.util.Date;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 
 import com.toedter.calendar.JDateChooser;
 
 import com.ips2026.pl11.controller.matches.ScheduleMatchController;
 import com.ips2026.pl11.data.seasonpass.SeasonPassDAO;
 import com.ips2026.pl11.data.team.TeamDAO;
+import com.ips2026.pl11.data.ticket.MatchDAO;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 
 /**
  * Dialog for scheduling home matches (US 35775).
- * Features fixture details with JCalendar date selection and JSpinner time picker, 
- * seating section pricing, a dynamic stadium preview grid, and automatic conflict cancellation.
+ * Features fixture details with facility selection (Main Pitch, Training Pitch 1, Training Pitch 2),
+ * JCalendar integration, JSpinner time picker, and rounded titled section borders.
  */
 public class ScheduleMatchDialog extends JDialog {
 
@@ -53,54 +58,59 @@ public class ScheduleMatchDialog extends JDialog {
 
     private final ScheduleMatchController controller;
     private final SeasonPassDAO seasonPassDAO;
+    private final MatchDAO matchDAO;
 
-    // Section 1: Fixture Details UI Controls
+    // Section 1 UI Controls
     private JComboBox<TeamDAO.TeamItem> cbLocalTeam;
     private JTextField txtAwayTeam;
+    private JComboBox<String> cbFacility;
     private JDateChooser dateChooserMatchDate;
-    private JSpinner spinnerStartTime; // Cambiado de JTextField a JSpinner
-    private JCheckBox chkSpecialMatch;
+    private JSpinner spinnerStartTime;
+    private JRadioButton rbSpecialYes;
+    private JRadioButton rbSpecialNo;
+    
+    // Activities Table
+    private JTable tblActivities;
+    private DefaultTableModel modelActivities;
 
-    // Section 2: Seating & Prices UI Controls
+    // Section 2 UI Controls
     private JComboBox<String> cbGrandstand;
     private JComboBox<String> cbSection;
     private JTextField txtBasePrice;
 
-    // Section 3: Stadium Preview Controls
+    // Section 3 UI Controls
     private JPanel pnSeatGrid;
     private final JButton[][] seatButtons = new JButton[10][15];
 
-    /**
-     * Constructs the match scheduling dialog attached to the parent window.
-     *
-     * @param parent the parent frame anchoring this dialog
-     */
     public ScheduleMatchDialog(JFrame parent) {
         super(parent, "Schedule Home Match — US 35775", true);
         this.controller = new ScheduleMatchController();
         this.seasonPassDAO = new SeasonPassDAO();
+        this.matchDAO = new MatchDAO();
 
         Branding.applyTo(this);
-        Branding.setInitialSize(this, 1000, 680, parent);
+        Branding.setInitialSize(this, 1050, 720, parent);
         getContentPane().setLayout(new BorderLayout(0, 0));
 
-        // Header
         HeaderPanel header = new HeaderPanel("Schedule Home Match",
                 "Set up fixture details, pricing and auto-cancel facility conflicts", true);
         getContentPane().add(header, BorderLayout.NORTH);
 
-        // Main split container (Left: Form Panels, Right: Seat Map Preview)
         JPanel pnMain = new JPanel(new GridLayout(1, 2, 15, 15));
         pnMain.setBorder(new EmptyBorder(15, 15, 15, 15));
         pnMain.setOpaque(false);
 
-        JPanel pnLeft = new JPanel(new GridLayout(2, 1, 10, 10));
+        JPanel pnLeft = new JPanel(new BorderLayout(0, 10));
         pnLeft.setOpaque(false);
-        pnLeft.add(createFixtureDetailsPanel());
-        pnLeft.add(createSeatingPricesPanel());
+        pnLeft.add(createFixtureDetailsPanel(), BorderLayout.CENTER);
+
+        JPanel pnRight = new JPanel(new BorderLayout(0, 10));
+        pnRight.setOpaque(false);
+        pnRight.add(createSeatingPricesPanel(), BorderLayout.NORTH);
+        pnRight.add(createSeatPreviewPanel(), BorderLayout.CENTER);
 
         pnMain.add(pnLeft);
-        pnMain.add(createSeatPreviewPanel());
+        pnMain.add(pnRight);
 
         getContentPane().add(pnMain, BorderLayout.CENTER);
 
@@ -121,66 +131,97 @@ public class ScheduleMatchDialog extends JDialog {
         getContentPane().add(pnFooter, BorderLayout.SOUTH);
 
         loadTeams();
+        updateActivitiesTable();
         updateSeatPreview();
     }
 
     /**
-     * Creates Section 1: Fixture details panel featuring JDateChooser for date and JSpinner for start time.
+     * Creates Section 1 with Fixture Details and Facility selection restricted to Main Pitch, Training Pitch 1, and Training Pitch 2.
      */
     private JPanel createFixtureDetailsPanel() {
-        JPanel pn = new JPanel(new GridLayout(6, 2, 8, 8));
-        pn.setOpaque(false);
-        pn.setBorder(new RoundedTitledBorder("SECTION 1: FIXTURE DETAILS", 16));
+        JPanel container = new JPanel(new BorderLayout(0, 10));
+        container.setOpaque(false);
+        container.setBorder(new RoundedTitledBorder("SECTION 1: FIXTURE DETAILS", 16));
 
-        pn.add(new JLabel("LOCAL TEAM:"));
+        JPanel pnlForm = new JPanel(new GridLayout(7, 2, 8, 6));
+        pnlForm.setOpaque(false);
+
+        pnlForm.add(new JLabel("LOCAL TEAM:"));
         cbLocalTeam = new JComboBox<>();
-        pn.add(cbLocalTeam);
+        pnlForm.add(cbLocalTeam);
 
-        pn.add(new JLabel("AWAY TEAM:"));
+        pnlForm.add(new JLabel("AWAY TEAM:"));
         txtAwayTeam = new JTextField();
-        pn.add(txtAwayTeam);
+        pnlForm.add(txtAwayTeam);
 
-        pn.add(new JLabel("MATCH DATE:"));
+        pnlForm.add(new JLabel("SELECT FACILITY:"));
+        cbFacility = new JComboBox<>(new String[]{"Main Pitch", "Training Pitch 1", "Training Pitch 2"});
+        cbFacility.addActionListener(e -> updateActivitiesTable());
+        pnlForm.add(cbFacility);
+
+        pnlForm.add(new JLabel("MATCH DATE:"));
         dateChooserMatchDate = new JDateChooser();
-        dateChooserMatchDate.setDateFormatString("yyyy-MM-dd");
+        dateChooserMatchDate.setDateFormatString("dd/MM/yyyy");
         dateChooserMatchDate.setDate(new Date());
-        pn.add(dateChooserMatchDate);
+        dateChooserMatchDate.addPropertyChangeListener("date", evt -> updateActivitiesTable());
+        pnlForm.add(dateChooserMatchDate);
 
-        pn.add(new JLabel("START TIME (HH:MM):"));
-        
-        // JSpinner configurado con SpinnerDateModel para seleccion de hora
+        pnlForm.add(new JLabel("START TIME:"));
         SpinnerDateModel timeModel = new SpinnerDateModel();
         spinnerStartTime = new JSpinner(timeModel);
         JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(spinnerStartTime, "HH:mm");
         spinnerStartTime.setEditor(timeEditor);
-        
-        // Hora por defecto: 18:00
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 18);
         cal.set(Calendar.MINUTE, 0);
         spinnerStartTime.setValue(cal.getTime());
-        
-        pn.add(spinnerStartTime);
+        pnlForm.add(spinnerStartTime);
 
-        pn.add(new JLabel("DURATION:"));
-        JLabel lblDuration = new JLabel("2 HOURS (Fixed Window)");
-        lblDuration.setFont(new Font(Branding.FONT_FAMILY, Font.ITALIC, 12));
-        pn.add(lblDuration);
+        pnlForm.add(new JLabel("DURATION:"));
+        JLabel lblDuration = new JLabel("2 HOURS");
+        lblDuration.setFont(new Font(Branding.FONT_FAMILY, Font.BOLD, 12));
+        pnlForm.add(lblDuration);
 
-        pn.add(new JLabel("SPECIAL MATCH?:"));
-        chkSpecialMatch = new JCheckBox("Mark as Special Match");
-        chkSpecialMatch.setOpaque(false);
-        chkSpecialMatch.addActionListener(e -> updateSeatPreview());
-        pn.add(chkSpecialMatch);
+        pnlForm.add(new JLabel("SPECIAL MATCH?:"));
+        JPanel pnlRadio = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        pnlRadio.setOpaque(false);
+        rbSpecialYes = new JRadioButton("YES");
+        rbSpecialNo = new JRadioButton("NO", true);
+        rbSpecialYes.setOpaque(false);
+        rbSpecialNo.setOpaque(false);
+        ButtonGroup group = new ButtonGroup();
+        group.add(rbSpecialYes);
+        group.add(rbSpecialNo);
+        ActionListener radioListener = e -> updateSeatPreview();
+        rbSpecialYes.addActionListener(radioListener);
+        rbSpecialNo.addActionListener(radioListener);
+        pnlRadio.add(rbSpecialYes);
+        pnlRadio.add(rbSpecialNo);
+        pnlForm.add(pnlRadio);
 
-        return pn;
+        container.add(pnlForm, BorderLayout.NORTH);
+
+        // ACTIVITIES FOR THAT DAY Table
+        JPanel pnlTable = new JPanel(new BorderLayout(0, 5));
+        pnlTable.setOpaque(false);
+        JLabel lblTableTitle = new JLabel("ACTIVITIES FOR THAT DAY:");
+        lblTableTitle.setFont(Branding.DEFAULT_FONT.deriveFont(Font.ITALIC, 11f));
+        pnlTable.add(lblTableTitle, BorderLayout.NORTH);
+
+        modelActivities = new DefaultTableModel(new String[]{"Activity", "Start", "End"}, 0);
+        tblActivities = new JTable(modelActivities);
+        tblActivities.setRowHeight(20);
+        JScrollPane scrollTable = new JScrollPane(tblActivities);
+        scrollTable.setPreferredSize(new Dimension(300, 120));
+        pnlTable.add(scrollTable, BorderLayout.CENTER);
+
+        container.add(pnlTable, BorderLayout.CENTER);
+
+        return container;
     }
 
-    /**
-     * Creates Section 2: Seating & prices selection panel with a custom rounded border.
-     */
     private JPanel createSeatingPricesPanel() {
-        JPanel pn = new JPanel(new GridLayout(4, 2, 8, 8));
+        JPanel pn = new JPanel(new GridLayout(3, 2, 8, 8));
         pn.setOpaque(false);
         pn.setBorder(new RoundedTitledBorder("SECTION 2: SEATING & PRICES", 16));
 
@@ -203,9 +244,6 @@ public class ScheduleMatchDialog extends JDialog {
         return pn;
     }
 
-    /**
-     * Creates Section 3: Stadium match seat preview grid with a custom rounded border.
-     */
     private JPanel createSeatPreviewPanel() {
         JPanel pn = new JPanel(new BorderLayout(5, 5));
         pn.setOpaque(false);
@@ -217,7 +255,7 @@ public class ScheduleMatchDialog extends JDialog {
         for (int r = 0; r < 10; r++) {
             for (int c = 0; c < 15; c++) {
                 JButton btn = new JButton();
-                btn.setPreferredSize(new Dimension(20, 20));
+                btn.setPreferredSize(new Dimension(18, 18));
                 btn.setEnabled(false);
                 btn.setContentAreaFilled(true);
                 btn.setOpaque(true);
@@ -227,17 +265,14 @@ public class ScheduleMatchDialog extends JDialog {
             }
         }
 
-        JLabel lblLegend = new JLabel("Green: Available / Red (O): Occupied by Season Pass", SwingConstants.CENTER);
-        lblLegend.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 11));
+        JLabel lblLegend = new JLabel("In case it is not a special match, some seats appear occupied (O)", SwingConstants.CENTER);
+        lblLegend.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 10));
 
         pn.add(pnSeatGrid, BorderLayout.CENTER);
         pn.add(lblLegend, BorderLayout.SOUTH);
         return pn;
     }
 
-    /**
-     * Loads available local teams into the dropdown selection box.
-     */
     private void loadTeams() {
         try {
             TeamDAO teamDAO = new TeamDAO();
@@ -246,16 +281,41 @@ public class ScheduleMatchDialog extends JDialog {
                 cbLocalTeam.addItem(team);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error loading local teams: " + e.getMessage(),
-                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error loading teams: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     /**
-     * Updates seat grid representation dynamically according to selected section and special match flag.
+     * Helper to map selected facility name to its respective database facility_id:
+     * 1: Main Pitch
+     * 2: Training Pitch 1
+     * 3: Training Pitch 2
      */
+    private int getSelectedFacilityId() {
+        int index = cbFacility.getSelectedIndex();
+        return index + 1; // Index 0 -> ID 1, Index 1 -> ID 2, Index 2 -> ID 3
+    }
+
+    private void updateActivitiesTable() {
+        if (dateChooserMatchDate == null || dateChooserMatchDate.getDate() == null || cbFacility == null) return;
+        
+        modelActivities.setRowCount(0);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String dateStr = sdf.format(dateChooserMatchDate.getDate());
+        int facilityId = getSelectedFacilityId();
+
+        try {
+            List<Object[]> activities = matchDAO.getActivitiesForDay(facilityId, dateStr);
+            for (Object[] act : activities) {
+                modelActivities.addRow(act);
+            }
+        } catch (SQLException ex) {
+            // Fallback table update
+        }
+    }
+
     private void updateSeatPreview() {
-        boolean isSpecial = chkSpecialMatch.isSelected();
+        boolean isSpecial = rbSpecialYes.isSelected();
         String grandstand = (String) cbGrandstand.getSelectedItem();
         String section = (String) cbSection.getSelectedItem();
 
@@ -265,7 +325,7 @@ public class ScheduleMatchDialog extends JDialog {
             try {
                 occupiedGrid = seasonPassDAO.getOccupiedSeasonPassSeats(grandstand, section);
             } catch (SQLException ex) {
-                // Fallback to empty grid on SQL exception
+                // Fallback
             }
         }
 
@@ -286,9 +346,6 @@ public class ScheduleMatchDialog extends JDialog {
         pnSeatGrid.repaint();
     }
 
-    /**
-     * Validates inputs, formats date from JDateChooser and time from JSpinner, schedules the home match, and auto-cancels facility conflicts.
-     */
     private void handleSaveAndSchedule() {
         try {
             TeamDAO.TeamItem selectedTeam = (TeamDAO.TeamItem) cbLocalTeam.getSelectedItem();
@@ -297,23 +354,23 @@ public class ScheduleMatchDialog extends JDialog {
             String rival = txtAwayTeam.getText().trim();
             if (rival.isEmpty()) throw new IllegalArgumentException("Please enter the away opponent name.");
 
-            // Formateo seguro de fecha desde JDateChooser
             Date selectedDate = dateChooserMatchDate.getDate();
             if (selectedDate == null) throw new IllegalArgumentException("Please select a valid match date.");
             SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd");
             String date = sdfDate.format(selectedDate);
 
-            // Formateo seguro de hora desde JSpinner
             Date selectedTime = (Date) spinnerStartTime.getValue();
             SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm");
             String startTime = sdfTime.format(selectedTime);
 
-            boolean isSpecial = chkSpecialMatch.isSelected();
+            boolean isSpecial = rbSpecialYes.isSelected();
             String grandstand = (String) cbGrandstand.getSelectedItem();
             String section = (String) cbSection.getSelectedItem();
             double price = Double.parseDouble(txtBasePrice.getText().trim());
 
-            controller.scheduleMatch(selectedTeam.getId(), rival, date, startTime, isSpecial, grandstand, section, price);
+            int facilityId = getSelectedFacilityId();
+
+            controller.scheduleMatch(selectedTeam.getId(), rival, date, startTime, isSpecial, grandstand, section, price, facilityId);
 
             JOptionPane.showMessageDialog(this,
                     "Home match scheduled successfully!\nFacility conflicts cleared automatically.",
@@ -327,9 +384,6 @@ public class ScheduleMatchDialog extends JDialog {
         }
     }
 
-    /**
-     * Custom Swing border class drawing smoothly antialiased rounded rectangles with top titles.
-     */
     private static class RoundedTitledBorder extends AbstractBorder {
         private static final long serialVersionUID = 1L;
         private final String title;

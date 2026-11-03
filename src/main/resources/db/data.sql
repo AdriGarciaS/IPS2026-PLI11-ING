@@ -364,3 +364,45 @@ INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reserva
     (4, 'Mario Blanco', '**** **** **** 2222', date('now', 'localtime', '+3 days'), '10:00', '12:00', 2, 100.0, datetime('now', 'localtime', 'start of day', '-5 days', '+16 hours', '+5 minutes')),
     (5, 'Ana Torres', '**** **** **** 3333', date('now', 'localtime', '-18 days'), '18:00', '19:00', 1, 50.0, datetime('now', 'localtime', 'start of day', '-20 days', '+11 hours', '+35 minutes'));
     
+
+-- ---------------------------------------------------------------------------
+-- Sample share market (US 35750): listings of Laura, Marcos and Irene (each
+-- shareholder only sees the listings of the others; Javier has no shares and
+-- sees all of them). Irene's listing of Founding shares has already sold 2
+-- shares individually to Marcos, so its pack price no longer applies.
+-- ---------------------------------------------------------------------------
+INSERT INTO SHARE_LISTING (id, seller_id, price_per_share, pack_price, listed_at) VALUES
+    (1, (SELECT id FROM SHAREHOLDER WHERE national_id = '11111111H'), 12.50, 230.00, datetime('now', 'localtime', 'start of day', '-6 days', '+10 hours', '+30 minutes')),
+    (2, (SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), 13.00, NULL, datetime('now', 'localtime', 'start of day', '-4 days', '+17 hours', '+15 minutes')),
+    (3, (SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), 11.80, 110.00, datetime('now', 'localtime', 'start of day', '-3 days', '+9 hours')),
+    (4, (SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), 14.90, 70.00, datetime('now', 'localtime', 'start of day', '-1 days', '+12 hours')),
+    (5, (SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), 15.20, NULL, datetime('now', 'localtime', 'start of day', '+8 hours', '+30 minutes'));
+
+-- The shares of each listing (listing, first ID, last ID).
+WITH RECURSIVE numbers(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM numbers WHERE n < 3000),
+ranges(listing_id, first_id, last_id) AS (
+    SELECT 1, 1001, 1020
+    UNION ALL SELECT 2, 1301, 1315
+    UNION ALL SELECT 3, 301, 310
+    UNION ALL SELECT 4, 2001, 2005
+    UNION ALL SELECT 5, 2251, 2253
+)
+INSERT INTO SHARE_LISTING_ITEM (listing_id, share_id)
+SELECT r.listing_id, n.n FROM ranges r JOIN numbers n ON n.n BETWEEN r.first_id AND r.last_id;
+
+-- Marcos bought shares 301 and 302 of listing 3 yesterday: his new holding,
+-- the change of owner of the shares and the record of the transfer.
+INSERT INTO SHARE_HOLDING (shareholder_id, campaign_id, purchase_date, purchase_price) VALUES
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'),
+     datetime('now', 'localtime', 'start of day', '-1 days', '+19 hours', '+20 minutes'), 11.80);
+
+INSERT INTO SHARE_TRANSFER (purchase_number, listing_id, share_id, seller_id, buyer_id, from_holding_id, to_holding_id, sale_type, price, transferred_at)
+SELECT 1, 3, s.id, seller.id, buyer.id, s.holding_id, new_holding.id, 'SINGLE', 11.80, new_holding.purchase_date
+FROM SHARE s
+JOIN SHAREHOLDER seller ON seller.national_id = '33333333P'
+JOIN SHAREHOLDER buyer ON buyer.national_id = '22222222J'
+JOIN SHARE_HOLDING new_holding ON new_holding.shareholder_id = buyer.id AND new_holding.purchase_price = 11.80
+WHERE s.id IN (301, 302);
+
+UPDATE SHARE SET holding_id = (SELECT to_holding_id FROM SHARE_TRANSFER WHERE share_id = SHARE.id)
+WHERE id IN (301, 302);

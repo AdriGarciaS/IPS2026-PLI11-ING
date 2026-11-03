@@ -75,4 +75,16 @@ public class GardeningSessionDAO {
         }
     }
 
+    public void delete(long id) {
+        String sql = "DELETE FROM gardening_session WHERE id = ?";
+        try (Connection connection = ConexionBD.obtenerConexion();
+            PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, id);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+    }
+
 }

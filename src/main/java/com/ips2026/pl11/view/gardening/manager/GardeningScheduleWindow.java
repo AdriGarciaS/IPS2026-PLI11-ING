@@ -29,6 +29,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -69,6 +70,8 @@ public class GardeningScheduleWindow extends JFrame {
     private JPanel contentPane;
 
     private List<Employee> gardenersList = new ArrayList<>();
+    private int maxHours = 1;
+    private int maxMinutes = 1;
 
     private GardeningSessionWindow gsw;
     private HeaderPanel pnHeader;
@@ -123,6 +126,12 @@ public class GardeningScheduleWindow extends JFrame {
     private JTextArea txtaDescrption;
     private JLabel lblDescription;
     private JScrollPane scrollPane;
+    private JLabel lblDuration;
+    private JSpinner spDuration;
+    private JComboBox<Integer> cbHours;
+    private JLabel lblH;
+    private JComboBox<Integer> cbMinutes;
+    private JLabel lblM;
 
     /**
      * Create the frame.
@@ -204,6 +213,12 @@ public class GardeningScheduleWindow extends JFrame {
             pnButtons.add(getLblSelectedTimeslot());
             pnButtons.add(getLblDescription());
             pnButtons.add(getScrollPane());
+            pnButtons.add(getLblDuration());
+            pnButtons.add(getCbHours());
+            pnButtons.add(getLblH());
+            pnButtons.add(getCbMinutes());
+            pnButtons.add(getLblM());
+
         }
         return pnButtons;
     }
@@ -263,7 +278,7 @@ public class GardeningScheduleWindow extends JFrame {
     private JScrollPane getSpnTimeslots() {
         if (spnTimeslots == null) {
             spnTimeslots = new JScrollPane();
-            spnTimeslots.setBounds(407, 98, 181, 236);
+            spnTimeslots.setBounds(407, 98, 181, 200);
             spnTimeslots.setViewportView(getTableTimeslots());
         }
         return spnTimeslots;
@@ -275,13 +290,13 @@ public class GardeningScheduleWindow extends JFrame {
             tableTimeslots.setModel(timeslotsModel);
             tableTimeslots.getSelectionModel().addListSelectionListener(e -> {
                 if (!e.getValueIsAdjusting()) {
-                    btnSchedule.setEnabled(true);
                     int row = tableTimeslots.getSelectedRow();
-
                     if (row != -1) {
-                        String start = ((LocalTime) tableTimeslots.getValueAt(row, 0)).toString();
-                        String end = ((LocalTime) tableTimeslots.getValueAt(row, 1)).toString();
-                        getTxtSelectedTimeslot().setText(String.valueOf(start + " - " + end));
+                        btnSchedule.setEnabled(true);
+                        cbHours.setEnabled(true);
+                        cbMinutes.setEnabled(true);
+                        setMaxHourAndMinutes();
+                        updateTimeslot(row);
                     }
                 }
             });
@@ -397,6 +412,7 @@ public class GardeningScheduleWindow extends JFrame {
                             break;
                         }
                     }
+                    getDate().setEnabled(true);
                 }
             });
             btnAddGardener.setMnemonic('A');
@@ -463,6 +479,7 @@ public class GardeningScheduleWindow extends JFrame {
     private JDateChooser getDate() {
         if (dateSession == null) {
             dateSession = new JDateChooser();
+            dateSession.setEnabled(false);
             dateSession.addPropertyChangeListener("date", new PropertyChangeListener() {
                 @Override
                 public void propertyChange(PropertyChangeEvent evt) {
@@ -495,9 +512,10 @@ public class GardeningScheduleWindow extends JFrame {
     private JTextField getTxtSelectedTimeslot() {
         if (txtSelectedTimeslot == null) {
             txtSelectedTimeslot = new JTextField();
+            txtSelectedTimeslot.setFont(new Font("Tahoma", Font.PLAIN, 13));
             txtSelectedTimeslot.setHorizontalAlignment(SwingConstants.CENTER);
             txtSelectedTimeslot.setEditable(false);
-            txtSelectedTimeslot.setBounds(483, 340, 94, 27);
+            txtSelectedTimeslot.setBounds(455, 340, 113, 27);
             txtSelectedTimeslot.setColumns(10);
         }
         return txtSelectedTimeslot;
@@ -507,7 +525,7 @@ public class GardeningScheduleWindow extends JFrame {
         if (lblSelectedTimeslot == null) {
             lblSelectedTimeslot = new JLabel("Selected:");
             lblSelectedTimeslot.setLabelFor(getTxtSelectedTimeslot());
-            lblSelectedTimeslot.setBounds(418, 341, 85, 26);
+            lblSelectedTimeslot.setBounds(404, 341, 85, 26);
         }
         return lblSelectedTimeslot;
     }
@@ -532,7 +550,112 @@ public class GardeningScheduleWindow extends JFrame {
         return lblDescription;
     }
 
+    private JScrollPane getScrollPane() {
+        if (scrollPane == null) {
+            scrollPane = new JScrollPane();
+            scrollPane.setBounds(21, 398, 561, 64);
+            scrollPane.setViewportView(getTxtaDescrption());
+        }
+        return scrollPane;
+    }
+
+    private JLabel getLblDuration() {
+        if (lblDuration == null) {
+            lblDuration = new JLabel("Duration:");
+            lblDuration.setBounds(403, 310, 70, 26);
+        }
+        return lblDuration;
+    }
+
+    private JComboBox getCbHours() {
+        if (cbHours == null) {
+            cbHours = new JComboBox();
+            cbHours.setEnabled(false);
+            cbHours.addItem(1);
+            cbHours.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (cbHours.getSelectedItem() == null || cbMinutes.getSelectedItem() == null) {
+                        return;
+                    }
+                    if (cbHours.getSelectedItem().equals(maxHours)) {
+                        maxMinutes = LocalTime
+                            .parse(tableTimeslots.getValueAt(tableTimeslots.getSelectedRow(), 1).toString())
+                            .getMinute();
+                        insertMinutes();
+                    } else {
+                        maxMinutes = 59;
+                        insertMinutes();
+                    }
+                    updateTimeslot(tableTimeslots.getSelectedRow());
+                }
+            });
+            cbHours.setBounds(456, 309, 47, 27);
+        }
+        return cbHours;
+    }
+
+    private JLabel getLblH() {
+        if (lblH == null) {
+            lblH = new JLabel("h");
+            lblH.setBounds(507, 309, 26, 26);
+        }
+        return lblH;
+    }
+
+    private JComboBox getCbMinutes() {
+        if (cbMinutes == null) {
+            cbMinutes = new JComboBox();
+            cbMinutes.setEnabled(false);
+            cbMinutes.addItem(0);
+            cbMinutes.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (cbHours.getSelectedItem() == null || cbMinutes.getSelectedItem() == null) {
+                        return;
+                    }
+                    updateTimeslot(tableTimeslots.getSelectedRow());
+                }
+            });
+            cbMinutes.setBounds(520, 309, 48, 27);
+        }
+        return cbMinutes;
+    }
+
+    private JLabel getLblM() {
+        if (lblM == null) {
+            lblM = new JLabel("min");
+            lblM.setBounds(572, 309, 26, 26);
+        }
+        return lblM;
+    }
+
     // ---- Auxiliary methods ----
+
+    private void setMaxHourAndMinutes() {
+        LocalTime start = LocalTime.parse(tableTimeslots.getValueAt(tableTimeslots.getSelectedRow(), 0).toString());
+        LocalTime end = LocalTime.parse(tableTimeslots.getValueAt(tableTimeslots.getSelectedRow(), 1).toString());
+
+        maxHours = end.getHour() - start.getHour();
+
+        insertHours();
+        insertMinutes();
+
+    }
+
+    private void insertHours() {
+        cbHours.removeAllItems();
+        for (int i = 1; i <= maxHours; i++) {
+            cbHours.addItem(i);
+        }
+    }
+
+    private void insertMinutes() {
+        cbMinutes.removeAllItems();
+        for (int i = 0; i <= maxMinutes; i += 5) {
+            cbMinutes.addItem(i);
+        }
+    }
 
     public void loadFacilities() {
         FacilityReservationController controller = new FacilityReservationController(new FacilityDAO(),
@@ -620,13 +743,25 @@ public class GardeningScheduleWindow extends JFrame {
         String sessionType = (String) cbSessionType.getSelectedItem();
         int facilityId = ((Facility) cbFacilities.getSelectedItem()).getId();
         String date = dateSession.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toString();
-        String startTime = tableTimeslots.getValueAt(tableTimeslots.getSelectedRow(), 0).toString();
-        String endTime = tableTimeslots.getValueAt(tableTimeslots.getSelectedRow(), 1).toString();
 
-        if (txtaDescrption.getText().trim().isEmpty()) {
-            txtaDescrption.setText("No description provided.");
+        LocalTime startTime = ((LocalTime) tableTimeslots.getValueAt(tableTimeslots.getSelectedRow(), 0));
+        LocalTime endTime = startTime
+            .plusMinutes((int) cbHours.getSelectedItem() * 60 + ((int) cbMinutes.getSelectedItem()));
+
+        String endTimeslot = tableTimeslots.getValueAt(tableTimeslots.getSelectedRow(), 1).toString();
+        if (endTime.isAfter(LocalTime.parse(endTimeslot))) {
+            JOptionPane.showMessageDialog(this,
+                "The selected duration exceeds the available timeslot. Please choose a shorter duration.",
+                "Gardening Session Scheduling", JOptionPane.ERROR_MESSAGE);
+            return;
         }
-        String description = txtaDescrption.getText().trim();
+
+        String description;
+        if (txtaDescrption.getText().trim().isEmpty()) {
+            description = "No description provided.";
+        } else {
+            description = txtaDescrption.getText().trim();
+        }
 
         try {
             List<GardeningSession> sessions = gardeningSessionController.getAllGardeningSessions();
@@ -634,13 +769,13 @@ public class GardeningScheduleWindow extends JFrame {
                 if (s.getFacilityId() == facilityId && s.getDate().equals(date)) {
                     LocalTime existingStart = LocalTime.parse(s.getStartTime());
                     LocalTime existingEnd = LocalTime.parse(s.getEndTime());
-                    LocalTime newStart = LocalTime.parse(startTime);
-                    LocalTime newEnd = LocalTime.parse(endTime);
+                    LocalTime newStart = startTime;
+                    LocalTime newEnd = endTime;
 
                     if ((newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart))) {
                         JOptionPane.showMessageDialog(this,
                             "The selected timeslot overlaps with an existing gardening session:\n"
-                                + "Existing session: " + existingStart + " - " + existingEnd,
+                                + "Existing session: " + existingStart + "  -  " + existingEnd,
                             "Gardening Session Scheduling", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
@@ -652,8 +787,8 @@ public class GardeningScheduleWindow extends JFrame {
             for (int i = 0; i < gardenersModel.getRowCount(); i++) {
                 gardenerIds.add(((Number) gardenersModel.getValueAt(i, 0)).longValue());
             }
-            gardeningSessionController.scheduleGardeningSession(
-                new GardeningSession(0L, facilityId, description, sessionType, date, startTime, endTime), gardenerIds);
+            gardeningSessionController.scheduleGardeningSession(new GardeningSession(0L, facilityId, description,
+                sessionType, date, startTime.toString(), endTime.toString()), gardenerIds);
 
             JOptionPane.showMessageDialog(this,
                 "Gardening session scheduled successfully!\n\n" + "Facility ID: " + facilityId + "\n" + "Session type: "
@@ -666,6 +801,13 @@ public class GardeningScheduleWindow extends JFrame {
                 "Gardening Session Scheduling", JOptionPane.ERROR_MESSAGE);
         }
 
+    }
+
+    private void updateTimeslot(int row) {
+        LocalTime start = ((LocalTime) tableTimeslots.getValueAt(row, 0));
+        LocalTime end = start.plusMinutes((int) cbHours.getSelectedItem() * 60 + ((int) cbMinutes.getSelectedItem()));
+
+        getTxtSelectedTimeslot().setText(String.valueOf(start + " - " + end));
     }
 
     List<TimeSlot> removeOccupiedSessions(LocalDate day, long facilityId, List<TimeSlot> commonPeriods)
@@ -787,7 +929,8 @@ public class GardeningScheduleWindow extends JFrame {
                     }
                 }
 
-                commonPeriods = removeOccupiedSessions(day, ((Facility) cbFacilities.getSelectedItem()).getId(), commonPeriods);
+                commonPeriods = removeOccupiedSessions(day, ((Facility) cbFacilities.getSelectedItem()).getId(),
+                    commonPeriods);
 
                 return !commonPeriods.isEmpty();
             } catch (SQLException e) {
@@ -834,12 +977,5 @@ public class GardeningScheduleWindow extends JFrame {
             return null;
         }
     }
-    private JScrollPane getScrollPane() {
-        if (scrollPane == null) {
-        	scrollPane = new JScrollPane();
-        	scrollPane.setBounds(21, 398, 561, 64);
-        	scrollPane.setViewportView(getTxtaDescrption());
-        }
-        return scrollPane;
-    }
+
 }

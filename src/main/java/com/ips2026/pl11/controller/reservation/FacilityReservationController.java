@@ -1,14 +1,5 @@
 package com.ips2026.pl11.controller.reservation;
 
-import com.ips2026.pl11.data.reservation.FacilityDAO;
-import com.ips2026.pl11.data.reservation.ReservationDAO;
-import com.ips2026.pl11.data.reservation.TeamUseDAO;
-import com.ips2026.pl11.model.reservation.CardValidator;
-import com.ips2026.pl11.model.reservation.DayAvailability;
-import com.ips2026.pl11.model.reservation.Facility;
-import com.ips2026.pl11.model.reservation.Reservation;
-import com.ips2026.pl11.model.reservation.ReservationRules;
-
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.Clock;
@@ -18,6 +9,15 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import com.ips2026.pl11.data.reservation.FacilityDAO;
+import com.ips2026.pl11.data.reservation.ReservationDAO;
+import com.ips2026.pl11.data.reservation.TeamUseDAO;
+import com.ips2026.pl11.model.reservation.CardValidator;
+import com.ips2026.pl11.model.reservation.DayAvailability;
+import com.ips2026.pl11.model.reservation.Facility;
+import com.ips2026.pl11.model.reservation.Reservation;
+import com.ips2026.pl11.model.reservation.ReservationRules;
 
 /**
  * Controller of the facility reservations window: loads the facilities and
@@ -143,5 +143,11 @@ public class FacilityReservationController {
         if (availability == null) {
             throw new IllegalStateException("Choose a facility and a day first");
         }
+    }
+    
+    public void cancelReservation(LocalDate date, LocalTime start) throws SQLException {
+        checkDaySelected();
+        reservationDAO.deleteByDateTime(facility.getId(), date, start);
+        selectDay(facility, date);
     }
 }

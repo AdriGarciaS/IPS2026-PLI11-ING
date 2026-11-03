@@ -1,11 +1,11 @@
 package com.ips2026.pl11.controller.employee;
 
-import com.ips2026.pl11.data.employee.EmployeeDAO;
-import com.ips2026.pl11.model.employee.Employee;
-
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+
+import com.ips2026.pl11.data.employee.EmployeeDAO;
+import com.ips2026.pl11.model.employee.Employee;
 
 public class EmployeeController {
 
@@ -15,14 +15,11 @@ public class EmployeeController {
         this.employeeDAO = employeeDAO;
     }
 
-    public void registerEmployee(String firstName, String lastName, String nationalId,
-                                 LocalDate birthDate, String phoneNumber,
-                                 String category, String position, double salary, String gender) throws Exception {
+    public void registerEmployee(String firstName, String lastName, String nationalId, LocalDate birthDate,
+        String phoneNumber, String category, String position, double salary, String gender) throws Exception {
 
-        if (firstName == null || firstName.isBlank()
-                || lastName == null || lastName.isBlank()
-                || nationalId == null || nationalId.isBlank()
-                || phoneNumber == null || phoneNumber.isBlank()) {
+        if (firstName == null || firstName.isBlank() || lastName == null || lastName.isBlank() || nationalId == null
+            || nationalId.isBlank() || phoneNumber == null || phoneNumber.isBlank()) {
             throw new IllegalArgumentException("All personal information fields are required.");
         }
 
@@ -32,34 +29,27 @@ public class EmployeeController {
 
         checkGender(gender);
 
-        Employee employee = new Employee(
-                null,
-                firstName.trim(),
-                lastName.trim(),
-                nationalId.trim(),
-                birthDate,
-                phoneNumber.trim(),
-                category,
-                position,
-                salary,
-                gender
-        );
+        Employee employee = new Employee(null, firstName.trim(), lastName.trim(), nationalId.trim(), birthDate,
+            phoneNumber.trim(), category, position, salary, gender);
 
-        // Business rule: Underage employees are only permitted for the 'Player' position
+        // Business rule: Underage employees are only permitted for the 'Player'
+        // position
         if (employee.isUnderage() && !position.equalsIgnoreCase("Player")) {
             throw new IllegalArgumentException("Only players can be under 18 years of age.");
         }
 
         employeeDAO.insert(employee);
     }
-    
+
     public List<Employee> getEmployees() throws SQLException {
         return employeeDAO.getAll();
     }
 
-    public void updateEmployee(int id, String firstName, String lastName, String nationalId,LocalDate birthDate, String phoneNumber, String category,String currentPosition, double salary, String gender) throws Exception {
+    public void updateEmployee(int id, String firstName, String lastName, String nationalId, LocalDate birthDate,
+        String phoneNumber, String category, String currentPosition, double salary, String gender) throws Exception {
 
-        if (firstName == null || firstName.isBlank()|| lastName == null || lastName.isBlank()|| nationalId == null || nationalId.isBlank()|| phoneNumber == null || phoneNumber.isBlank()) {
+        if (firstName == null || firstName.isBlank() || lastName == null || lastName.isBlank() || nationalId == null
+            || nationalId.isBlank() || phoneNumber == null || phoneNumber.isBlank()) {
             throw new IllegalArgumentException("All personal information fields are required.");
         }
 
@@ -69,7 +59,8 @@ public class EmployeeController {
 
         checkGender(gender);
 
-        Employee employee = new Employee(id,firstName.trim(),lastName.trim(),nationalId.trim(),birthDate,phoneNumber.trim(),category,currentPosition,salary,gender);
+        Employee employee = new Employee(id, firstName.trim(), lastName.trim(), nationalId.trim(), birthDate,
+            phoneNumber.trim(), category, currentPosition, salary, gender);
 
         if (employee.isUnderage() && !currentPosition.equalsIgnoreCase("Player")) {
             throw new IllegalArgumentException("Only players can be under 18 years of age.");
@@ -87,5 +78,10 @@ public class EmployeeController {
 
     public void deleteEmployee(int employeeId) throws SQLException {
         employeeDAO.delete(employeeId);
+    }
+
+    public List<Employee> getEmployeesByRole(String string) throws SQLException {
+        return employeeDAO.getEmployeesByRole(string);
+
     }
 }

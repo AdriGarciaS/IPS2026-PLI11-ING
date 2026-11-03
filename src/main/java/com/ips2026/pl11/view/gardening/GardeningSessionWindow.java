@@ -1,4 +1,4 @@
-package com.ips2026.pl11.view.schedule;
+package com.ips2026.pl11.view.gardening;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -27,6 +27,8 @@ import com.ips2026.pl11.data.store.MerchandiseDAO;
 import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.ips2026.pl11.view.gardening.gardener.ViewGardeningSessions;
+import com.ips2026.pl11.view.gardening.manager.GardeningScheduleWindow;
 import com.ips2026.pl11.view.menu.MainWindow;
 import com.ips2026.pl11.view.menu.MenuCardButton;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
@@ -47,7 +49,7 @@ import com.ips2026.pl11.view.store.StoreSalesWindow;
  * a su getter, asi que la ventana se puede seguir editando desde la pestana
  * Design de WindowBuilder.</p>
  */
-public class WorkScheduleWindow extends JFrame {
+public class GardeningSessionWindow extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
@@ -58,9 +60,8 @@ public class WorkScheduleWindow extends JFrame {
     private JButton selectedButton;
     
     private MainWindow mw;
-    private GMWorkScheduleWindow gmWorkScheduleWindow = new GMWorkScheduleWindow(this);
-    private ManagerWorkScheduleWindow managerWorkScheduleWindow = new ManagerWorkScheduleWindow(this);
-    private NSEWorkScheduleWindow nseWorkScheduleWindow = new NSEWorkScheduleWindow(this);
+    private GardeningScheduleWindow gardeningScheduleWindow = new GardeningScheduleWindow(this);
+    private ViewGardeningSessions viewGardeningSessions = new ViewGardeningSessions(this);
     
     private JPanel pnBody;
     private JPanel pnPositions;
@@ -69,7 +70,7 @@ public class WorkScheduleWindow extends JFrame {
     private JButton btnReturn;
     private MenuCardButton btnNonSportingEmp;
 
-    public WorkScheduleWindow(MainWindow mw) {
+    public GardeningSessionWindow(MainWindow mw) {
         setResizable(false);
         this.mw = mw;
         
@@ -91,7 +92,7 @@ public class WorkScheduleWindow extends JFrame {
     /** Cabecera del club, version grande (solo el menu principal). */
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
-            pnHeader = new HeaderPanel("Work Schedule Management",
+            pnHeader = new HeaderPanel("Gardening Sessions",
                     "Select your work position", false);
         }
         return pnHeader;
@@ -165,19 +166,18 @@ public class WorkScheduleWindow extends JFrame {
         	pnPositions.setLayout(new GridLayout(0, 1, 0, 0));
         	pnPositions.add(getBtnOption1_1());
         	pnPositions.add(getBtnOption2_1());
-        	pnPositions.add(getBtnOption2_1_1());
         }
         return pnPositions;
     }
     private MenuCardButton getBtnOption1_1() {
         if (btnGeneralManager == null) {
-        	btnGeneralManager = new MenuCardButton("General Manager\r\n", "Add recurring schedules to non sporting employees");
+        	btnGeneralManager = new MenuCardButton("Manager\r\n", "Schedule gardening sessions");
         	btnGeneralManager.addActionListener(new ActionListener() {
         	    @Override
                 public void actionPerformed(ActionEvent e) {
-        	        gmWorkScheduleWindow.refreshShiftsTable();
-        	        gmWorkScheduleWindow.refreshWorkersTable();
-        	        gmWorkScheduleWindow.setVisible(true);
+        	        gardeningScheduleWindow.loadFacilities();
+        	        gardeningScheduleWindow.loadGardeners();
+        	        gardeningScheduleWindow.setVisible(true);
         	    }
         	});
         	btnGeneralManager.setFont(new Font("Tahoma", Font.PLAIN, 16));
@@ -186,13 +186,13 @@ public class WorkScheduleWindow extends JFrame {
     }
     private MenuCardButton getBtnOption2_1() {
         if (btnManager == null) {
-        	btnManager = new MenuCardButton("Manager", "Add specific day schedules to non sporting employees");
+        	btnManager = new MenuCardButton("Gardener", "View your gardening sessions");
         	btnManager.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    managerWorkScheduleWindow.refreshShiftsTable();
-                    managerWorkScheduleWindow.refreshWorkersTable();
-        	        managerWorkScheduleWindow.setVisible(true);
+                    viewGardeningSessions.loadGardeners();
+                    viewGardeningSessions.refreshCalendar();
+                    viewGardeningSessions.setVisible(true);
         	    }
         	});
         	btnManager.setFont(new Font("Tahoma", Font.PLAIN, 16));
@@ -214,20 +214,5 @@ public class WorkScheduleWindow extends JFrame {
         }
         return btnReturn;
     }
-    private MenuCardButton getBtnOption2_1_1() {
-        if (btnNonSportingEmp == null) {
-        	btnNonSportingEmp = new MenuCardButton("Non-sporting Employee", "Consult any of your weekly schedules");
-        	btnNonSportingEmp.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    nseWorkScheduleWindow.refreshShiftsTable();
-                    nseWorkScheduleWindow.refreshWorkersTable();
-                    nseWorkScheduleWindow.setVisible(true);
-                }
-            });
-        	btnNonSportingEmp.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        	btnNonSportingEmp.setEnabled(true);
-        }
-        return btnNonSportingEmp;
-    }
+
 }

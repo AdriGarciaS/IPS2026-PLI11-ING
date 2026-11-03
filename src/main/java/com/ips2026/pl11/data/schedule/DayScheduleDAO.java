@@ -72,5 +72,27 @@ public class DayScheduleDAO {
         return daySchedules;
     }
 
-   
+    public List<DaySchedule> getSchedulesByEmployee(int gardenerId) {
+        String sql = "SELECT ds.id, ds.work_schedule_id, ds.date, ds.start_time, ds.end_time " + "FROM day_schedule ds "
+            + "JOIN work_schedule ws ON ds.work_schedule_id = ws.id " + "WHERE ws.employee_id = ? "
+            + "ORDER BY ds.date, ds.start_time";
+
+        List<DaySchedule> daySchedules = new ArrayList<>();
+        try (Connection conexion = ConexionBD.obtenerConexion();
+            PreparedStatement ps = conexion.prepareStatement(sql)) {
+            ps.setInt(1, gardenerId);
+            try (ResultSet resultado = ps.executeQuery()) {
+                while (resultado.next()) {
+                    daySchedules.add(new DaySchedule(resultado.getLong("id"), resultado.getLong("work_schedule_id"),
+                        LocalDate.parse(resultado.getString("date")),
+                        LocalTime.parse(resultado.getString("start_time")),
+                        LocalTime.parse(resultado.getString("end_time"))));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return daySchedules;
+    }
+
 }

@@ -48,7 +48,7 @@ import com.ips2026.pl11.model.schedule.WorkSchedule;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 
-public class ManagerWorkScheduleWindow extends JFrame {
+public class DayScheduleWindow extends JFrame {
 
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
@@ -70,7 +70,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
     private List<DaySchedule> daySchedulesList = new ArrayList<>();
     private List<Employee> workersList = new ArrayList<>();
 
-    private WorkScheduleWindow wsw;
+    private ScheduleWindow sw;
     private HeaderPanel pnHeader;
     private JPanel pnFooter;
     private JLabel lblFooter;
@@ -125,10 +125,10 @@ public class ManagerWorkScheduleWindow extends JFrame {
     /**
      * Create the frame.
      */
-    public ManagerWorkScheduleWindow(WorkScheduleWindow workScheduleWindow) {
+    public DayScheduleWindow(ScheduleWindow scheduleWindow) {
         setResizable(false);
         setTitle("Football Club Management");
-        this.wsw = workScheduleWindow;
+        this.sw = scheduleWindow;
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 1128, 559);
@@ -142,7 +142,7 @@ public class ManagerWorkScheduleWindow extends JFrame {
         contentPane.add(getLblFooter(), BorderLayout.SOUTH);
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         rootPane.setDefaultButton(btnModify);
-        setLocationRelativeTo(wsw);
+        setLocationRelativeTo(sw);
         
         initializeShiftsTable();
         initializeWorkersTable();

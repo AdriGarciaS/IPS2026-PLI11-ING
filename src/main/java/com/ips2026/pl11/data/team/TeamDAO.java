@@ -12,6 +12,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * SQL operations on the TEAM and TEAM_MEMBER tables.
@@ -88,5 +90,49 @@ public class TeamDAO {
         statement.setString(3, role);
         statement.setString(4, task);
         statement.executeUpdate();
+    }
+    
+    /**
+     * Retrieves all registered teams from the database for UI dropdowns.
+     */
+    public List<TeamItem> findAll() throws SQLException {
+        List<TeamItem> teams = new ArrayList<>();
+        String sql = "SELECT id, name FROM TEAM ORDER BY name ASC";
+
+        try (Connection connection = ConexionBD.obtenerConexion();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet result = statement.executeQuery()) {
+
+            while (result.next()) {
+                teams.add(new TeamItem(result.getInt("id"), result.getString("name")));
+            }
+        }
+        return teams;
+    }
+    
+    /**
+     * Lightweight DTO representing a saved team for Swing dropdowns (JComboBox).
+     */
+    public static class TeamItem {
+        private final int id;
+        private final String name;
+
+        public TeamItem(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String toString() {
+            return name; // Swing displays this in the JComboBox
+        }
     }
 }

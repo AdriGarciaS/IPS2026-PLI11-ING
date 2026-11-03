@@ -4,11 +4,15 @@ import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.ips2026.pl11.data.schedule.DayScheduleDAO;
 import com.ips2026.pl11.data.schedule.WorkScheduleDAO;
 import com.ips2026.pl11.model.schedule.DaySchedule;
+import com.ips2026.pl11.model.schedule.WeeklyShift;
 import com.ips2026.pl11.model.schedule.WorkSchedule;
 
 public class DayScheduleController {
@@ -72,7 +76,7 @@ public class DayScheduleController {
             } else {
                 boolean hasDaySchedules = false;
                 List<DaySchedule> dailySchedules = dayScheduleDAO.getSchedulesByDate(date);
-                
+
                 for (DaySchedule ds : dailySchedules) {
                     WorkSchedule ws = workScheduleDAO.getScheduleById(ds.getWorkScheduleId());
 
@@ -124,5 +128,60 @@ public class DayScheduleController {
 
     public List<DaySchedule> getAllSchedules() throws SQLException {
         return dayScheduleDAO.getAllSchedules();
+    }
+
+    public List<DaySchedule> getSchedulesByEmployee(int gardenerId) {
+        return dayScheduleDAO.getSchedulesByEmployee(gardenerId);
+    }
+
+    public List<WeeklyShift> getWeekShifts(long employeeId, LocalDate monday) throws SQLException {
+        List<WeeklyShift> result = new ArrayList<>();
+        List<WeeklyShift> allShifts = getAllWeekShifts(monday);
+        
+        for(WeeklyShift s : allShifts) {
+            WorkSchedule ws = workScheduleDAO.getScheduleById(s.getWorkScheduleId());
+            if(ws.getEmployeeId() == employeeId) {
+                result.add(s);
+            }
+        }
+
+        return result;
+    }
+    
+    public List<WeeklyShift> getAllWeekShifts(LocalDate monday) throws SQLException {
+        LocalDate sunday = monday.plusDays(6);
+
+        List<WorkSchedule> recurring = workScheduleDAO.getAllSchedules();
+        Set<Long> employeeScheduleIds = new HashSet<>();
+        for (WorkSchedule ws : recurring) {
+            employeeScheduleIds.add(ws.getId());
+        }
+
+        List<WeeklyShift> result = new ArrayList<>();
+        Set<Long> overridden = new HashSet<>();
+
+        for (DaySchedule ds : dayScheduleDAO.getAllSchedules()) {
+
+            WorkSchedule ws = workScheduleDAO.getScheduleById(ds.getWorkScheduleId());
+            boolean inWeek = !ds.getDate().isBefore(monday) && !ds.getDate().isAfter(sunday);
+            
+            int wsWeekDay = ws.getWeekDay();
+            int dsWeekDay = ds.getDate().getDayOfWeek().getValue();
+            if (inWeek && employeeScheduleIds.contains(ds.getWorkScheduleId())) {
+                result.add(new WeeklyShift(ds.getWorkScheduleId(), ds.getDate().getDayOfWeek().getValue(),
+                    ds.getStartTime(), ds.getEndTime(), true));
+                
+                if(wsWeekDay == dsWeekDay) {
+                    overridden.add(ds.getWorkScheduleId());                    
+                }
+            }         
+        }
+
+        for (WorkSchedule ws : recurring) {
+            if (!overridden.contains(ws.getId())) {
+                result.add(new WeeklyShift(ws.getId(), ws.getWeekDay(), ws.getStartTime(), ws.getEndTime(), false));
+            }
+        }
+        return result;
     }
 }

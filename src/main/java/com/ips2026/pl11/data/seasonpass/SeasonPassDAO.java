@@ -140,4 +140,60 @@ public class SeasonPassDAO {
         }
         throw new SQLException("Failed to retrieve or create Fan record.");
     }
+    
+    /**
+     * Retrieves a 10x15 boolean grid representing occupied season pass seats for a given grandstand and section.
+     */
+    public boolean[][] getOccupiedSeasonPassSeats(String grandstand, String section) throws SQLException {
+        boolean[][] grid = new boolean[10][15];
+        String sql = "SELECT row_num, seat_num FROM SEASON_PASS " +
+                     "WHERE UPPER(TRIM(grandstand)) = UPPER(TRIM(?)) " +
+                     "AND UPPER(TRIM(section)) = UPPER(TRIM(?))";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, grandstand);
+            pstmt.setString(2, section);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    int r = rs.getInt("row_num") - 1;
+                    int c = rs.getInt("seat_num") - 1;
+                    if (r >= 0 && r < 10 && c >= 0 && c < 15) {
+                        grid[r][c] = true;
+                    }
+                }
+            }
+        }
+        return grid;
+    }
+    
+    public String[] getMemberRegularSeat(String memberDni, String teamName) throws SQLException {
+        String sql = "SELECT sp.grandstand, sp.section, sp.row_num, sp.seat_num " +
+                     "FROM SEASON_PASS sp " +
+                     "JOIN FAN f ON sp.fan_id = f.id " +
+                     "JOIN TEAM t ON sp.team_id = t.id " +
+                     "WHERE UPPER(TRIM(f.dni)) = UPPER(TRIM(?)) " +
+                     "AND UPPER(TRIM(t.name)) = UPPER(TRIM(?)) LIMIT 1";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, memberDni);
+            stmt.setString(2, teamName);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new String[] {
+                        rs.getString("grandstand"),
+                        rs.getString("section"),
+                        String.valueOf(rs.getInt("row_num")),
+                        String.valueOf(rs.getInt("seat_num"))
+                    };
+                }
+            }
+        }
+        return null;
+    }
 }

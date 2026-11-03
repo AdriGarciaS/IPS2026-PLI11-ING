@@ -5,8 +5,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
@@ -26,16 +24,13 @@ import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.controller.reservation.FacilityReservationController;
 import com.ips2026.pl11.controller.shareholder.ShareholderPortalController;
 import com.ips2026.pl11.controller.slots.InterviewSlotsController;
-import com.ips2026.pl11.controller.store.StoreSalesController;
-import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.controller.team.TeamCreationController;
+import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.data.reservation.FacilityDAO;
 import com.ips2026.pl11.data.reservation.ReservationDAO;
 import com.ips2026.pl11.data.reservation.TeamUseDAO;
 import com.ips2026.pl11.data.shareholder.ShareholderDAO;
 import com.ips2026.pl11.data.slots.InterviewSlotDAO;
-import com.ips2026.pl11.data.store.MerchandiseDAO;
-import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
 import com.ips2026.pl11.data.team.SportsEmployeeDAO;
 import com.ips2026.pl11.data.team.TeamDAO;
 import com.ips2026.pl11.model.employee.Employee;
@@ -43,37 +38,23 @@ import com.ips2026.pl11.view.campaign.CampaignsDialog;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
+import com.ips2026.pl11.view.gardening.GardeningSessionWindow;
 import com.ips2026.pl11.view.interview.InterviewHubDialog;
+import com.ips2026.pl11.view.matches.ScheduleMatchDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.sale.SalesMenuDialog;
+import com.ips2026.pl11.view.schedule.ScheduleWindow;
+import com.ips2026.pl11.view.seasonpass.PurchaseSeasonPassDialog;
 import com.ips2026.pl11.view.shareholder.ShareholderPortalDialog;
-import com.ips2026.pl11.view.store.StoreSalesWindow;
-import com.ips2026.pl11.view.schedule.WorkScheduleWindow;
 import com.ips2026.pl11.view.team.TeamCreationWindow;
-import com.ips2026.pl11.view.ticket.SelectMatchDialog;
-import com.ips2026.pl11.view.ticket.SellMatchTicketDialog;
-import com.ips2026.pl11.view.seasonpass.PurchaseSeasonPassDialog; 
+import com.ips2026.pl11.view.training.TrainingSessionWindow;
 
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
- *
- * <p>Tiene la cabecera del club ({@link HeaderPanel}), cuatro
- * botones tipo "tarjeta" en una rejilla de 2x2 y un pie de pagina. Los
- * botones se iran conectando con las funcionalidades de cada sprint (el
- * boton 1 abre el registro de empleados, el boton 3 la venta de
- * merchandising y el boton 4 la reserva de instalaciones); mientras no
- * tengan funcionalidad se muestran deshabilitados.</p>
- *
- * <p>El codigo sigue la generacion "lazy" de Eclipse WindowBuilder: cada
- * componente es un atributo privado que se crea la primera vez que se llama
- * a su getter, asi que la ventana se puede seguir editando desde la pestana
- * Design de WindowBuilder.</p>
  */
 public class MainWindow extends JFrame {
 
     private static final long serialVersionUID = 1L;
-
-    private static final String COMING_SOON = "Coming soon";
 
     private JPanel contentPane;
     private HeaderPanel pnHeader;
@@ -82,16 +63,22 @@ public class MainWindow extends JFrame {
     private MenuCardButton btnOption2;
     private MenuCardButton btnOption3;
     private MenuCardButton btnOption4;
-    private JPanel pnFooter;
-    private JLabel lblFooter;
-    private JButton selectedButton;
     private MenuCardButton btnOption5;
     private MenuCardButton btnOption6;
     private MenuCardButton btnOption7;
     private MenuCardButton btnOption8;
     private MenuCardButton btnOption9;
-    
-    private WorkScheduleWindow workScheduleWindow = new WorkScheduleWindow(this);
+
+    private MenuCardButton btnOption10;
+    private MenuCardButton btnScheduleMatch; // Nuevo botón de la US 35775
+
+    private JPanel pnFooter;
+    private JLabel lblFooter;
+    private JButton selectedButton;
+
+    private ScheduleWindow workScheduleWindow = new ScheduleWindow(this);
+    private MenuCardButton btnOption11;
+    private MenuCardButton btnOption12;
 
     public MainWindow() {
         setTitle("Football Club Management");
@@ -104,10 +91,9 @@ public class MainWindow extends JFrame {
         contentPane.add(getPnHeader(), BorderLayout.NORTH);
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         contentPane.add(getPnFooter(), BorderLayout.SOUTH);
-        Branding.setInitialSize(this, 1024, 720, null); // centrada en pantalla
+        Branding.setInitialSize(this, 1024, 720, null);
     }
 
-    /** Cabecera del club, version grande (solo el menu principal). */
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
             pnHeader = new HeaderPanel("Football Club Management",
@@ -131,18 +117,19 @@ public class MainWindow extends JFrame {
             pnButtons.add(getBtnOption7());
             pnButtons.add(getBtnOption8());
             pnButtons.add(getBtnOption9());
+            pnButtons.add(getBtnOption10());
+            pnButtons.add(getBtnOption11());
+            pnButtons.add(getBtnOption12());
         }
         return pnButtons;
     }
-
-
 
     private MenuCardButton getBtnOption1() {
         if (btnOption1 == null) {
             btnOption1 = new MenuCardButton("Employees Management", "Register, modify and delete sports and non-sports staff");
             btnOption1.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
             btnOption1.setMnemonic('E');
-            
+
             selectedButton = btnOption1;
             btnOption1.addMouseListener(new MouseAdapter() {
                 @Override
@@ -160,9 +147,7 @@ public class MainWindow extends JFrame {
                 }
             });
 
-            btnOption1.addActionListener(e -> {
-                new EmployeeMenuDialog(this).setVisible(true);
-            });
+            btnOption1.addActionListener(e -> new EmployeeMenuDialog(this).setVisible(true));
         }
         return btnOption1;
     }
@@ -170,21 +155,16 @@ public class MainWindow extends JFrame {
     private MenuCardButton getBtnOption2() {
         if (btnOption2 == null) {
             btnOption2 = new MenuCardButton("Schedule Management", "Everything related to non sporting employees' schedules");
-            btnOption2.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    
-                    workScheduleWindow.setVisible(true);
-                }
-            });
+            btnOption2.addActionListener(e -> workScheduleWindow.setVisible(true));
             btnOption2.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
             btnOption2.setEnabled(true);
         }
         return btnOption2;
     }
+
     private MenuCardButton getBtnOption3() {
         if (btnOption3 == null) {
-            btnOption3 = new MenuCardButton("Sales", "Shop and ticket sales, and the sales history");
+            btnOption3 = new MenuCardButton("Sales & Fixtures", "Shop, ticket sales, match scheduling, and sales history");
             btnOption3.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
             btnOption3.setMnemonic('S');
             btnOption3.addActionListener(event -> new SalesMenuDialog(this).setVisible(true));
@@ -201,7 +181,7 @@ public class MainWindow extends JFrame {
         }
         return btnOption4;
     }
-    
+
     private MenuCardButton getBtnOption5() {
         if (btnOption5 == null) {
             btnOption5 = new MenuCardButton("Interview Management", "Manage availability slots and book press interviews");
@@ -211,14 +191,14 @@ public class MainWindow extends JFrame {
         return btnOption5;
     }
 
-	private MenuCardButton getBtnOption6() {
-		if (btnOption6 == null) {
-			btnOption6 = new MenuCardButton("Sports Teams","Add sports teams to manage them");
-			btnOption6.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
-			btnOption6.addActionListener(event -> openTeamCreation());
-		}
-		return btnOption6;
-	}
+    private MenuCardButton getBtnOption6() {
+        if (btnOption6 == null) {
+            btnOption6 = new MenuCardButton("Sports Teams", "Add sports teams to manage them");
+            btnOption6.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnOption6.addActionListener(event -> openTeamCreation());
+        }
+        return btnOption6;
+    }
 
     private MenuCardButton getBtnOption7() {
         if (btnOption7 == null) {
@@ -228,17 +208,17 @@ public class MainWindow extends JFrame {
         }
         return btnOption7;
     }
-    
+
     private MenuCardButton getBtnOption8() {
         if (btnOption8 == null) {
             btnOption8 = new MenuCardButton("Season Pass Holder Site", "Purchase annual season passes for specific teams");
             btnOption8.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
-            btnOption8.setMnemonic('S');
+            btnOption8.setMnemonic('P');
             btnOption8.addActionListener(event -> openSeasonPass());
         }
         return btnOption8;
     }
-    
+
     private MenuCardButton getBtnOption9() {
         if (btnOption9 == null) {
             btnOption9 = new MenuCardButton("Shareholder Campaigns", "Create and manage share capital campaigns");
@@ -248,7 +228,71 @@ public class MainWindow extends JFrame {
         }
         return btnOption9;
     }
+    
+    private MenuCardButton getBtnOption10() {
+        if (btnOption10== null) {
+            btnOption10 = new MenuCardButton("Schedule Home Match", "Schedule local matches, dynamic pricing and auto-cancel conflicts");
+            btnOption10.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnOption10.setMnemonic('M');
+            btnOption10.addActionListener(event -> openScheduleMatch());
+        }
+        return btnOption10;
+    }
+    
+    private MenuCardButton getBtnOption11() {
+        if (btnOption11 == null) {
+            btnOption11 = new MenuCardButton("Gardening Sessions", "for the club's facilities");
+            btnOption11.setFont(new Font("Tahoma", Font.PLAIN, 16));
+            btnOption11.setMnemonic('G');
+            btnOption11.addActionListener(event -> openGardeningSession());
+        }
+        return btnOption11;
+    }
+    
+    private MenuCardButton getBtnOption12() {
+        if (btnOption12 == null) {
+            btnOption12 = new MenuCardButton("Training Sessions", "Schedule and manage training sessions for the team");
+            btnOption12.setMnemonic('T');
+            btnOption12.setFont(new Font("Tahoma", Font.PLAIN, 16));
+            btnOption12.addActionListener(event -> openTrainingSession());
+        }
+        return btnOption12;
+    }
 
+    private Object openGardeningSession() {
+        try {
+            GardeningSessionWindow dialog = new GardeningSessionWindow(this);
+            dialog.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error opening Gardening Session dialog: " + ex.getMessage(),
+                    "Gardening Session Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return null;
+    }
+    
+    private Object openTrainingSession() {
+        try {
+            TrainingSessionWindow dialog = new TrainingSessionWindow(this);
+            dialog.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error opening Gardening Session dialog: " + ex.getMessage(),
+                    "Gardening Session Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return null;
+    }
+
+    public void openScheduleMatch() {
+        try {
+            ScheduleMatchDialog dialog = new ScheduleMatchDialog(this);
+            dialog.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error opening Schedule Match dialog: " + ex.getMessage(),
+                    "Schedule Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
     private void openShareholderPortal() {
         ShareholderPortalController controller = new ShareholderPortalController(new ShareholderDAO());
@@ -290,19 +334,6 @@ public class MainWindow extends JFrame {
         new FacilityReservationWindow(controller, this).setVisible(true);
     }
 
-
-    private void openStoreSales() {
-        StoreSalesController controller = new StoreSalesController(new MerchandiseDAO(), new MerchandiseSaleDAO());
-        try {
-            controller.loadCatalog();
-        } catch (SQLException exception) {
-            JOptionPane.showMessageDialog(this,
-                    "The catalog could not be loaded:\n" + exception.getMessage(),
-                    "Store Sales", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        new StoreSalesWindow(controller, this).setVisible(true);
-    }
     private void openSeasonPass() {
         try {
             PurchaseSeasonPassDialog dialog = new PurchaseSeasonPassDialog(this);
@@ -315,16 +346,11 @@ public class MainWindow extends JFrame {
     }
 
     private void openInterviewSlots() {
-		// TODO Auto-generated method stub
-    	try {
-            // 1. Initialize required controllers and DAOs
+        try {
             InterviewSlotsController interviewCtrl = new InterviewSlotsController(new InterviewSlotDAO());
             EmployeeController empCtrl = new EmployeeController(new EmployeeDAO());
-
-            // 2. Identify the active coach (session placeholder)
             int coachId = 4;
 
-            // 3. Retrieve and filter all professional players eligible for interview slots
             List<Employee> allEmployees = empCtrl.getEmployees();
             List<Employee> players = allEmployees.stream()
                     .filter(emp -> "Player".equalsIgnoreCase(emp.getPosition()))
@@ -340,7 +366,6 @@ public class MainWindow extends JFrame {
                 return;
             }
 
-            // 4. Open the intermediate Hub dialog
             InterviewHubDialog hub = new InterviewHubDialog(this, interviewCtrl, coachId, players);
             hub.setVisible(true);
 
@@ -376,5 +401,6 @@ public class MainWindow extends JFrame {
         }
         return lblFooter;
     }
-	
+    
+    
 }

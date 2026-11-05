@@ -344,10 +344,8 @@ public class PurchaseSeasonPassDialog extends JDialog {
 
                 emailController.sendSeasonPassReceipt(email, dni, fullName, team, grandstand, section, selectedRow + 1,
                     selectedSeat + 1, ageCategory, basePrice);
-                JOptionPane.showMessageDialog(this, "Receipt sent to " + email, "Email sent",
-                    JOptionPane.INFORMATION_MESSAGE);
 
-                JOptionPane.showMessageDialog(this, "Season pass successfully purchased!", "Success",
+                JOptionPane.showMessageDialog(this, "Season pass successfully purchased!\nReceipt sent to " + email, "Success",
                     JOptionPane.INFORMATION_MESSAGE);
                 dispose();
             }

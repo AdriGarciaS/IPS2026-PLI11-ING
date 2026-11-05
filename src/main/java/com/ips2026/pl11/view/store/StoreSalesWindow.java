@@ -61,11 +61,11 @@ import jakarta.mail.MessagingException;
 public class StoreSalesWindow extends JDialog {
 
     private static final long serialVersionUID = 1L;
-    private  EmailController emailController = new EmailController("smtp.gmail.com", 587, "ipswichmgmt@gmail.com", "lndqblaxqraeetjw");
+    private EmailController emailController = new EmailController("smtp.gmail.com", 587, "ipswichmgmt@gmail.com",
+        "lndqblaxqraeetjw");
 
     private static final String ALL_TYPES = "All types";
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    
 
     private final transient StoreSalesController controller;
     private final CatalogTableModel catalogModel;
@@ -659,27 +659,25 @@ public class StoreSalesWindow extends JDialog {
         }
 
         String email = askForEmail();
-        if(email == null) {
+        if (email == null) {
             return;
         }
-        
+
         cartModel.reload();
         updateCartActions();
         refreshCatalog();
         updateTotal();
-        
+
         try {
             emailController.sendReceipt(email, receipt);
-            JOptionPane.showMessageDialog(this, "Receipt sent to " + email, "Email sent",
-                JOptionPane.INFORMATION_MESSAGE);
+        
         } catch (MessagingException | IllegalStateException exception) {
-            JOptionPane.showMessageDialog(this,
-                "The receipt could not be sent:\n" + exception.getMessage(),
+            JOptionPane.showMessageDialog(this, "The receipt could not be sent:\n" + exception.getMessage(),
                 "Email error", JOptionPane.ERROR_MESSAGE);
         }
 
-        JOptionPane.showMessageDialog(this, buildSummary(receipt), "Purchase completed",
-            JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, buildSummary(receipt) + "\nReceipt sent to " + email,
+            "Purchase completed", JOptionPane.INFORMATION_MESSAGE);
     }
 
     /** HTML summary of the purchase: one row per line and the final price. */

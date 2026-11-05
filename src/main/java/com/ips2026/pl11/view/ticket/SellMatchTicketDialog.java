@@ -316,7 +316,7 @@ public class SellMatchTicketDialog extends JDialog {
             try {
                 BigDecimal totalPrice = BigDecimal.valueOf(quantity * 30.0);
                 emailController.sendTicketReceipt(email, matchDisplayName, grandstand, section, seatLines, totalPrice);
-                JOptionPane.showMessageDialog(this, "Receipt sent to " + email, "Email sent",
+                JOptionPane.showMessageDialog(this, seatsMsg.toString()+ "\nReceipt sent to " + email, "Success",
                     JOptionPane.INFORMATION_MESSAGE);
             } catch (MessagingException | IllegalStateException exception) {
                 JOptionPane.showMessageDialog(this,
@@ -324,7 +324,6 @@ public class SellMatchTicketDialog extends JDialog {
                     "Email error", JOptionPane.ERROR_MESSAGE);
             }
 
-            JOptionPane.showMessageDialog(this, seatsMsg.toString(), "Success", JOptionPane.INFORMATION_MESSAGE);
             refreshBoard();
 
         } catch (IllegalStateException ex) {

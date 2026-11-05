@@ -1,6 +1,5 @@
 package com.ips2026.pl11.view.ticket;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -9,13 +8,13 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.Window;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -29,11 +28,14 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.EmptyBorder;
 
+import com.ips2026.pl11.controller.email.EmailController;
 import com.ips2026.pl11.controller.ticket.MatchTicketController;
 import com.ips2026.pl11.controller.ticket.SpecialMatchTicketController;
 import com.ips2026.pl11.data.ticket.MatchDAO;
 import com.ips2026.pl11.model.ticket.HomeMatch;
 import com.ips2026.pl11.view.common.Branding;
+
+import jakarta.mail.MessagingException;
 
 /**
  * Dialog for purchasing match tickets, supporting standard seat sales as well as
@@ -42,6 +44,8 @@ import com.ips2026.pl11.view.common.Branding;
 public class SellMatchTicketDialog extends JDialog {
 
     private static final long serialVersionUID = 1L;
+    private  EmailController emailController = new EmailController("smtp.gmail.com", 587, "ipswichmgmt@gmail.com", "lndqblaxqraeetjw");
+    private String matchDisplayName;
 
     private final MatchTicketController controller;
     private final SpecialMatchTicketController specialController;
@@ -73,6 +77,8 @@ public class SellMatchTicketDialog extends JDialog {
         this.matchId = matchId;
         this.controller = new MatchTicketController();
         this.specialController = new SpecialMatchTicketController();
+        
+        this.matchDisplayName = matchDisplayName;
 
         try {
             MatchDAO matchDAO = new MatchDAO();
@@ -90,7 +96,7 @@ public class SellMatchTicketDialog extends JDialog {
      * Initializes components, layouts, card panels, and bottom action controls.
      */
     private void initUI() {
-        setLayout(new BorderLayout(15, 15));
+        getContentPane().setLayout(new BorderLayout(15, 15));
         ((JPanel) getContentPane()).setBorder(new EmptyBorder(15, 15, 15, 15));
 
         // Left Control Panel Container
@@ -138,11 +144,11 @@ public class SellMatchTicketDialog extends JDialog {
             leftFormPanel.add(pnlSpecialMemberCheckIn);
         }
 
-        add(leftFormPanel, BorderLayout.WEST);
+        getContentPane().add(leftFormPanel, BorderLayout.WEST);
 
         // Center Panel: Visual Stadium Board
         boardPanel = new StandBoardPanel();
-        add(boardPanel, BorderLayout.CENTER);
+        getContentPane().add(boardPanel, BorderLayout.CENTER);
 
         // Footer Actions Bar
         JPanel bottomActionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
@@ -158,7 +164,7 @@ public class SellMatchTicketDialog extends JDialog {
         btnClose.addActionListener(e -> dispose());
         bottomActionPanel.add(btnClose);
 
-        add(bottomActionPanel, BorderLayout.SOUTH);
+        getContentPane().add(bottomActionPanel, BorderLayout.SOUTH);
 
         setPreferredSize(new Dimension(880, 560));
         pack();
@@ -235,7 +241,9 @@ public class SellMatchTicketDialog extends JDialog {
      * Processes payment for the verified season pass member seat and locks it exclusively for the match.
      */
     private void handlePayMemberSeat() {
-        if (claimedMemberSeat == null) return;
+        if (claimedMemberSeat == null) {
+            return;
+        }
 
         try {
             String grandstand = claimedMemberSeat[0];
@@ -266,7 +274,9 @@ public class SellMatchTicketDialog extends JDialog {
         String grandstand = (String) cbGrandstand.getSelectedItem();
         String section = (String) cbSection.getSelectedItem();
 
-        if (grandstand == null || section == null) return;
+        if (grandstand == null || section == null) {
+            return;
+        }
 
         try {
             boolean[][] occupiedMatrix = controller.getOccupiedSeats(matchId, grandstand, section);
@@ -290,10 +300,28 @@ public class SellMatchTicketDialog extends JDialog {
             StringBuilder seatsMsg = new StringBuilder("Tickets booked successfully in Grandstand ")
                     .append(grandstand).append(", Section ").append(section).append(":\n");
 
+            List<String> seatLines = new ArrayList<>();
             for (int[] seat : assignedSeats) {
                 int row = seat[0] < 10 ? seat[0] + 1 : seat[0];
                 int col = seat[1] < 15 ? seat[1] + 1 : seat[1];
+                seatLines.add("Row " + row + ", Seat " + col);
                 seatsMsg.append("• Row ").append(row).append(", Seat ").append(col).append("\n");
+            }
+            
+            String email = askForEmail();
+            if(email == null) {
+                return;
+            }
+            
+            try {
+                BigDecimal totalPrice = BigDecimal.valueOf(quantity * 30.0);
+                emailController.sendTicketReceipt(email, matchDisplayName, grandstand, section, seatLines, totalPrice);
+                JOptionPane.showMessageDialog(this, "Receipt sent to " + email, "Email sent",
+                    JOptionPane.INFORMATION_MESSAGE);
+            } catch (MessagingException | IllegalStateException exception) {
+                JOptionPane.showMessageDialog(this,
+                    "The receipt could not be sent:\n" + exception.getMessage(),
+                    "Email error", JOptionPane.ERROR_MESSAGE);
             }
 
             JOptionPane.showMessageDialog(this, seatsMsg.toString(), "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -303,6 +331,29 @@ public class SellMatchTicketDialog extends JDialog {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "No Contiguous Seats", JOptionPane.WARNING_MESSAGE);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "An error occurred: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private String askForEmail() {
+        while (true) {
+            JTextField txtEmail = new JTextField(25);
+
+            int result = JOptionPane.showConfirmDialog(this,
+                new Object[] { "Enter the customer's email address:", txtEmail }, "Send purchase receipt",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+            if (result != JOptionPane.OK_OPTION) {
+                return null;
+            }
+
+            String email = txtEmail.getText().trim();
+
+            if (email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                return email;
+            }
+
+            JOptionPane.showMessageDialog(this, "Please enter a valid email address.", "Invalid email",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 

@@ -22,6 +22,7 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -57,7 +58,7 @@ import com.toedter.calendar.IDateEvaluator;
 import com.toedter.calendar.JCalendar;
 import com.toedter.calendar.JDateChooser;
 
-public class ViewGardeningSessions extends JFrame {
+public class ViewGardeningSessions extends JDialog {
 
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
@@ -137,6 +138,7 @@ public class ViewGardeningSessions extends JFrame {
         contentPane.add(getLblFooter(), BorderLayout.SOUTH);
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         setLocationRelativeTo(gsw);
+        setModal(true);
 
     }
 

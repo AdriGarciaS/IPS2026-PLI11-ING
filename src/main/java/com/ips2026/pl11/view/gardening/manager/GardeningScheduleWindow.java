@@ -23,6 +23,7 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -64,7 +65,7 @@ import com.ips2026.pl11.view.gardening.GardeningSessionWindow;
 import com.toedter.calendar.IDateEvaluator;
 import com.toedter.calendar.JDateChooser;
 
-public class GardeningScheduleWindow extends JFrame {
+public class GardeningScheduleWindow extends JDialog {
 
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
@@ -154,6 +155,7 @@ public class GardeningScheduleWindow extends JFrame {
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         rootPane.setDefaultButton(btnSchedule);
         setLocationRelativeTo(gsw);
+        setModal(true);
 
     }
 
@@ -579,9 +581,10 @@ public class GardeningScheduleWindow extends JFrame {
                         return;
                     }
                     if (cbHours.getSelectedItem().equals(maxHours)) {
-                        maxMinutes = LocalTime
-                            .parse(tableTimeslots.getValueAt(tableTimeslots.getSelectedRow(), 1).toString())
-                            .getMinute();
+                        LocalTime start = LocalTime.parse(tableTimeslots.getValueAt(tableTimeslots.getSelectedRow(), 0).toString());
+                        LocalTime end = LocalTime.parse(tableTimeslots.getValueAt(tableTimeslots.getSelectedRow(), 1).toString());
+                        
+                        maxMinutes = 60 - start.getMinute() + end.getMinute();
                         insertMinutes();
                     } else {
                         maxMinutes = 59;
@@ -636,7 +639,12 @@ public class GardeningScheduleWindow extends JFrame {
         LocalTime start = LocalTime.parse(tableTimeslots.getValueAt(tableTimeslots.getSelectedRow(), 0).toString());
         LocalTime end = LocalTime.parse(tableTimeslots.getValueAt(tableTimeslots.getSelectedRow(), 1).toString());
 
-        maxHours = end.getHour() - start.getHour();
+        if(start.getMinute() == 0) {
+            maxHours = end.getHour() - start.getHour();            
+        } else {
+            maxHours = end.getHour() - start.getHour() - 1;
+            maxMinutes = 60 - start.getMinute() + end.getMinute();
+        }
 
         insertHours();
         insertMinutes();
@@ -707,10 +715,14 @@ public class GardeningScheduleWindow extends JFrame {
             List<TimeSlot> commonPeriods = new ArrayList<>(facilityController.getAvailability().getFreePeriods());
             for (int i = 0; i < gardenersModel.getRowCount(); i++) {
                 long gardenerId = ((Number) gardenersModel.getValueAt(i, 0)).longValue();
-
+                List<GardeningSession> gardenerSessions = gardeningSessionController
+                    .getGardenerWeeklySessions(gardenerId, monday);
+                
+                commonPeriods = intersectWithGardenerSessions(commonPeriods, gardenerSessions);
+                
                 List<WeeklyShift> shifts = dsController.getWeekShifts(gardenerId, monday);
                 commonPeriods = intersectWithShifts(commonPeriods, shifts, weekDay);
-
+                
                 if (commonPeriods.isEmpty()) {
                     break;
                 }
@@ -727,6 +739,30 @@ public class GardeningScheduleWindow extends JFrame {
                 "Something went wrong while showing the selected day's timeslots:\n" + e.getMessage(),
                 "Gardening Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private List<TimeSlot> intersectWithGardenerSessions(List<TimeSlot> commonPeriods,
+        List<GardeningSession> gardenerSessions) {
+        for(GardeningSession session : gardenerSessions) {
+            LocalTime sessionStart = LocalTime.parse(session.getStartTime());
+            LocalTime sessionEnd = LocalTime.parse(session.getEndTime());
+            List<TimeSlot> updatedPeriods = new ArrayList<>();
+
+            for (TimeSlot period : commonPeriods) {
+                if (!sessionEnd.isAfter(period.getStart()) || !sessionStart.isBefore(period.getEnd())) {
+                    updatedPeriods.add(period);
+                } else {
+                    if (sessionStart.isAfter(period.getStart())) {
+                        updatedPeriods.add(new TimeSlot(period.getStart(), sessionStart, TimeSlot.Type.RESERVED, "Gardening Session"));
+                    }
+                    if (sessionEnd.isBefore(period.getEnd())) {
+                        updatedPeriods.add(new TimeSlot(sessionEnd, period.getEnd(), TimeSlot.Type.RESERVED, "Gardening Session"));
+                    }
+                }
+            }
+            commonPeriods = updatedPeriods;
+        }
+        return commonPeriods;
     }
 
     public void refreshGardenerAvailability() {

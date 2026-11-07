@@ -21,6 +21,7 @@ import java.util.Locale;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -48,7 +49,7 @@ import com.ips2026.pl11.model.schedule.WorkSchedule;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 
-public class DayScheduleWindow extends JFrame {
+public class DayScheduleWindow extends JDialog {
 
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
@@ -143,6 +144,7 @@ public class DayScheduleWindow extends JFrame {
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         rootPane.setDefaultButton(btnModify);
         setLocationRelativeTo(sw);
+        setModal(true);
         
         initializeShiftsTable();
         initializeWorkersTable();

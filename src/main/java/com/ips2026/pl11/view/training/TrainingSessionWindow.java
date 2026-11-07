@@ -23,42 +23,53 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSpinner;
+import javax.swing.JTable;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
+import javax.swing.table.DefaultTableModel;
 
 import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.controller.gardening.GardeningSessionController;
+import com.ips2026.pl11.controller.interview.InterviewController;
 import com.ips2026.pl11.controller.reservation.FacilityReservationController;
+import com.ips2026.pl11.controller.slots.InterviewSlotsController;
 import com.ips2026.pl11.controller.team.TeamController;
 import com.ips2026.pl11.controller.training.TrainingSessionController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.data.gardening.GardeningSessionDAO;
 import com.ips2026.pl11.data.gardening.GardeningSessionEmployeeDAO;
+import com.ips2026.pl11.data.interview.InterviewDAO;
 import com.ips2026.pl11.data.reservation.FacilityDAO;
 import com.ips2026.pl11.data.reservation.ReservationDAO;
 import com.ips2026.pl11.data.reservation.TeamUseDAO;
+import com.ips2026.pl11.data.slots.InterviewSlotDAO;
 import com.ips2026.pl11.data.team.TeamDAO;
 import com.ips2026.pl11.data.team.TeamDAO.TeamItem;
 import com.ips2026.pl11.data.training.TrainingSessionDAO;
 import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.gardening.GardeningSession;
+import com.ips2026.pl11.model.interview.AvailableSlotRecord;
 import com.ips2026.pl11.model.reservation.Facility;
+import com.ips2026.pl11.model.reservation.TimeSlot;
 import com.ips2026.pl11.model.training.TrainingSession;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.menu.MainWindow;
 import com.toedter.calendar.JDateChooser;
 
-public class TrainingSessionWindow extends JFrame {
+public class TrainingSessionWindow extends JDialog {
 
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
@@ -80,6 +91,8 @@ public class TrainingSessionWindow extends JFrame {
         new TeamUseDAO(), new ReservationDAO());
     private GardeningSessionController gardeningSessionController = new GardeningSessionController(
         new GardeningSessionDAO(), new GardeningSessionEmployeeDAO());
+    private InterviewController interviewController = new InterviewController(new InterviewDAO(), new EmployeeDAO());
+    private InterviewSlotsController interviewSlotsController = new InterviewSlotsController(new InterviewSlotDAO());
 
     private JLabel lblDate;
     private JComboBox cbTeams;
@@ -92,6 +105,19 @@ public class TrainingSessionWindow extends JFrame {
     private JLabel lblStart;
     private JSpinner spStart;
     private JSpinner spEnd;
+    private JSeparator separator;
+    private JScrollPane spnInterviews;
+    private JScrollPane spnFreeTimeslots;
+    private JTable tableInterviews;
+    private JTable tableFreeTimeslots;
+    private JLabel lblInterviews;
+    private JLabel lblFreeTimeslots;
+
+    private DefaultTableModel timeslotsModel=new DefaultTableModel(new Object[][]{},new String[]{"Start","End"}){@Override public boolean isCellEditable(int row,int column){return false;}};
+
+    private DefaultTableModel interviewsModel=new DefaultTableModel(new Object[][]{},new String[]{"Player","Start","End"}){@Override public boolean isCellEditable(int row,int column){return false;}};
+
+    private List<Facility> facilities = new ArrayList<>();
 
     /**
      * Create the frame.
@@ -102,7 +128,7 @@ public class TrainingSessionWindow extends JFrame {
         this.mw = mainWindow;
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setBounds(100, 100, 494, 531);
+        setBounds(100, 100, 820, 531);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
@@ -114,6 +140,7 @@ public class TrainingSessionWindow extends JFrame {
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         rootPane.setDefaultButton(btnSchedule);
         setLocationRelativeTo(mw);
+        setModal(true);
 
     }
 
@@ -167,6 +194,11 @@ public class TrainingSessionWindow extends JFrame {
             pnButtons.add(getLblStart());
             pnButtons.add(getSpStart());
             pnButtons.add(getSpEnd());
+            pnButtons.add(getSeparator());
+            pnButtons.add(getSpnInterviews());
+            pnButtons.add(getSpnFreeTimeslots());
+            pnButtons.add(getLblInterviews());
+            pnButtons.add(getLblFreeTimeslots());
         }
         return pnButtons;
     }
@@ -193,7 +225,7 @@ public class TrainingSessionWindow extends JFrame {
             });
             btnReturn.setBackground(new Color(240, 240, 240));
             btnReturn.setFont(new Font("Tahoma", Font.PLAIN, 11));
-            btnReturn.setBounds(232, 339, 85, 27);
+            btnReturn.setBounds(586, 339, 85, 27);
         }
         return btnReturn;
     }
@@ -205,11 +237,12 @@ public class TrainingSessionWindow extends JFrame {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     checkAllFilled();
+                    dateSession.setDate(null);
                 }
             });
             btnSchedule.setFont(new Font("Tahoma", Font.BOLD, 11));
             btnSchedule.setBackground(UIManager.getColor("Button.background"));
-            btnSchedule.setBounds(334, 339, 85, 27);
+            btnSchedule.setBounds(688, 339, 85, 27);
         }
         return btnSchedule;
     }
@@ -261,7 +294,10 @@ public class TrainingSessionWindow extends JFrame {
             dateSession.addPropertyChangeListener("date", new PropertyChangeListener() {
                 @Override
                 public void propertyChange(PropertyChangeEvent evt) {
-
+                    if(dateSession.getDate() != null) {
+                        updateTableFreeTimeslots();
+                        loadTableInterviews();                        
+                    }
                 }
             });
 
@@ -278,6 +314,12 @@ public class TrainingSessionWindow extends JFrame {
     private JComboBox<String> getCbCoaches() {
         if (cbCoaches == null) {
             cbCoaches = new JComboBox();
+            cbCoaches.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    loadTableInterviews();
+                }
+            });
             cbCoaches.setBounds(237, 132, 181, 38);
         }
         return cbCoaches;
@@ -331,12 +373,81 @@ public class TrainingSessionWindow extends JFrame {
         return spEnd;
     }
 
+    private JSeparator getSeparator() {
+        if (separator == null) {
+            separator = new JSeparator();
+            separator.setOrientation(SwingConstants.VERTICAL);
+            separator.setForeground(new Color(126, 126, 126));
+            separator.setBounds(439, 21, 8, 306);
+        }
+        return separator;
+    }
+
+    private JScrollPane getSpnInterviews() {
+        if (spnInterviews == null) {
+            spnInterviews = new JScrollPane();
+            spnInterviews.setBounds(468, 39, 282, 122);
+            spnInterviews.setViewportView(getTableInterviews());
+        }
+        return spnInterviews;
+    }
+
+    private JScrollPane getSpnFreeTimeslots() {
+        if (spnFreeTimeslots == null) {
+            spnFreeTimeslots = new JScrollPane();
+            spnFreeTimeslots.setBounds(468, 182, 282, 122);
+            spnFreeTimeslots.setViewportView(getTableFreeTimeslots());
+        }
+        return spnFreeTimeslots;
+    }
+
+    private JTable getTableInterviews() {
+        if (tableInterviews == null) {
+            tableInterviews = new JTable();
+            tableInterviews.setEnabled(false);
+            tableInterviews.setModel(interviewsModel);
+        }
+        return tableInterviews;
+    }
+
+    private JTable getTableFreeTimeslots() {
+        if (tableFreeTimeslots == null) {
+            tableFreeTimeslots = new JTable();
+            tableFreeTimeslots.setEnabled(false);
+            tableFreeTimeslots.setModel(timeslotsModel);
+        }
+        return tableFreeTimeslots;
+    }
+
+    private JLabel getLblInterviews() {
+        if (lblInterviews == null) {
+            lblInterviews = new JLabel("Interviews:");
+            lblInterviews.setFont(new Font("Tahoma", Font.PLAIN, 12));
+            lblInterviews.setBounds(468, 19, 152, 26);
+        }
+        return lblInterviews;
+    }
+
+    private JLabel getLblFreeTimeslots() {
+        if (lblFreeTimeslots == null) {
+            lblFreeTimeslots = new JLabel("Facility free timeslots:");
+            lblFreeTimeslots.setFont(new Font("Tahoma", Font.PLAIN, 12));
+            lblFreeTimeslots.setBounds(468, 160, 231, 26);
+        }
+        return lblFreeTimeslots;
+    }
+
     // ---- Auxiliary methods ----
 
     public void initialize() {
+        interviewsModel.setRowCount(0);
+        timeslotsModel.setRowCount(0);
+        
+        
         loadFacilities();
         loadCoaches();
         loadTeams();
+
     }
 
     private void loadTeams() {
@@ -373,7 +484,7 @@ public class TrainingSessionWindow extends JFrame {
 
         try {
             facilityController.loadFacilities();
-            List<Facility> facilities = facilityController.getFacilities();
+            facilities = facilityController.getFacilities();
             List<String> training = new ArrayList<>();
             for (Facility f : facilities) {
                 if (f.getName().contains("Training")) {
@@ -385,6 +496,115 @@ public class TrainingSessionWindow extends JFrame {
             JOptionPane.showMessageDialog(this, "Facilities could not be loaded:\n" + exception.getMessage(),
                 "Gardening Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void updateTableFreeTimeslots() {
+        try {
+            long facilityId = getFacilityIdFromCb();
+            Facility facility = facilities.stream().filter(f -> f.getId() == facilityId).findFirst().orElse(null);
+
+            LocalDate date = getDate().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            facilityController.selectDay(facility, date);
+
+            timeslotsModel.setRowCount(0);
+            List<GardeningSession> gardeningSessions = getTodayGardeningSessions(date);
+            List<TimeSlot> freePeriods = intersectPeriodsWithGardeningSessions(gardeningSessions, facility);
+
+            for (TimeSlot slot : freePeriods) {
+                timeslotsModel.addRow(new Object[] { slot.getStart().toString(), slot.getEnd().toString() });
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error loading free timeslots:\n" + e.getMessage(),
+                "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private List<TimeSlot> intersectPeriodsWithGardeningSessions(List<GardeningSession> gardeningSessions,
+        Facility facility) {
+
+        List<TimeSlot> result = new ArrayList<>(facilityController.getAvailability().getFreePeriods());
+
+        for (GardeningSession gardeningSession : gardeningSessions) {
+            Optional<Facility> facilityOpt = getGardeningSessionFacility(gardeningSession);
+
+            if (facilityOpt.isEmpty() || facilityOpt.get().getId() != facility.getId()) {
+                continue;
+            }
+            LocalTime gardeningStart = LocalTime.parse(gardeningSession.getStartTime());
+            LocalTime gardeningEnd = LocalTime.parse(gardeningSession.getEndTime());
+            List<TimeSlot> updatedPeriods = new ArrayList<>();
+
+            for (TimeSlot freeSlot : result) {
+                LocalTime freeStart = freeSlot.getStart();
+                LocalTime freeEnd = freeSlot.getEnd();
+                // No overlap
+                if (!gardeningStart.isBefore(freeEnd) || !gardeningEnd.isAfter(freeStart)) {
+
+                    updatedPeriods.add(freeSlot);
+                    continue;
+                }
+                // Free period before the gardening session
+                if (gardeningStart.isAfter(freeStart)) {
+                    updatedPeriods.add(new TimeSlot(freeStart, gardeningStart, TimeSlot.Type.FREE, ""));
+                }
+                // Free period after the gardening session
+                if (gardeningEnd.isBefore(freeEnd)) {
+                    updatedPeriods.add(new TimeSlot(gardeningEnd, freeEnd, TimeSlot.Type.FREE, ""));
+                }
+            }
+            result = updatedPeriods;
+        }
+
+        return result;
+    }
+
+    private Optional<Facility> getGardeningSessionFacility(GardeningSession gardeningSession) {
+        for (Facility f : facilities) {
+            if (f.getId() == gardeningSession.getFacilityId()) {
+                return Optional.of(f);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private List<GardeningSession> getTodayGardeningSessions(LocalDate date) throws SQLException {
+        List<GardeningSession> sessions = gardeningSessionController.getAllGardeningSessions();
+        List<GardeningSession> todaySessions = new ArrayList<>();
+        for (GardeningSession session : sessions) {
+            LocalDate sessionDate = LocalDate.parse(session.getDate());
+            if (date.equals(sessionDate)) {
+                todaySessions.add(session);
+            }
+        }
+        return todaySessions;
+    }
+
+    private void loadTableInterviews() {
+        interviewsModel.setRowCount(0);
+        try {
+            int coachId = (int) getCoachIdFromCb();
+            List<Employee> players = interviewSlotsController.getPlayersByCoach(coachId);
+            
+            List<AvailableSlotRecord> interviews = interviewController.getInterviewSlots();
+            LocalDate date = getDate().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+            for (AvailableSlotRecord slot : interviews) {
+                if (players.stream().anyMatch(p -> p.getId() == slot.getPlayerId())) {
+                    LocalDate interviewDate = LocalDate.parse(slot.getDate());
+                    if (interviewDate.equals(date)) {
+                        interviewsModel
+                        .addRow(new Object[] { slot.getPlayerName(), slot.getStartTime(), slot.getEndTime() });
+                    }
+                }
+            }
+
+        }catch(
+
+    SQLException e)
+    {
+        JOptionPane.showMessageDialog(this, "Interviews could not be loaded:\n" + e.getMessage(),
+            "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
+    }
     }
 
     private void checkAllFilled() {
@@ -415,7 +635,7 @@ public class TrainingSessionWindow extends JFrame {
                 trainingSessionController.scheduleTrainingSession(session);
                 JOptionPane.showMessageDialog(this, "Training session scheduled successfully!",
                     "Training Session Scheduling", JOptionPane.INFORMATION_MESSAGE);
-
+                initialize();
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error scheduling training session:\n" + e.getMessage(),
@@ -474,6 +694,12 @@ public class TrainingSessionWindow extends JFrame {
             if (problem.isPresent()) {
                 if (canCancelReservation(problem)) {
 
+                    if (problem.get().contains("can not be booked")) {
+                        JOptionPane.showMessageDialog(this, "The following time conflict was found:\n" + problem.get(),
+                            "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
+                        return false;
+                    }
+
                     int option = JOptionPane.showConfirmDialog(this,
                         "The following reservation will be cancelled:\n" + problem.get() + "\n\nContinue?",
                         "Training Session Scheduling", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -504,7 +730,7 @@ public class TrainingSessionWindow extends JFrame {
         boolean c = problem.get().contains("Reservations can only be made until ");
         boolean d = problem.get().contains("Facilities can be booked from ");
         boolean e = problem.get().contains("A reservation must end at ");
-        
+
         return !(a || b || c || d || e);
     }
 

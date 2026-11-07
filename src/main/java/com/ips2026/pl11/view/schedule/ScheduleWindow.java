@@ -10,6 +10,7 @@ import java.sql.SQLException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -32,22 +33,7 @@ import com.ips2026.pl11.view.menu.MenuCardButton;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.store.StoreSalesWindow;
 
-/**
- * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
- *
- * <p>Tiene la cabecera del club ({@link HeaderPanel}), cuatro
- * botones tipo "tarjeta" en una rejilla de 2x2 y un pie de pagina. Los
- * botones se iran conectando con las funcionalidades de cada sprint (el
- * boton 1 abre el registro de empleados, el boton 3 la venta de
- * merchandising y el boton 4 la reserva de instalaciones); mientras no
- * tengan funcionalidad se muestran deshabilitados.</p>
- *
- * <p>El codigo sigue la generacion "lazy" de Eclipse WindowBuilder: cada
- * componente es un atributo privado que se crea la primera vez que se llama
- * a su getter, asi que la ventana se puede seguir editando desde la pestana
- * Design de WindowBuilder.</p>
- */
-public class ScheduleWindow extends JFrame {
+public class ScheduleWindow extends JDialog{
 
     private static final long serialVersionUID = 1L;
 
@@ -83,6 +69,7 @@ public class ScheduleWindow extends JFrame {
         contentPane.add(getPnHeader(), BorderLayout.NORTH);
         contentPane.add(getPnFooter(), BorderLayout.SOUTH);
         contentPane.add(getPnBody(), BorderLayout.CENTER);
+        setModal(true);
         
         setLocationRelativeTo(mw);
          

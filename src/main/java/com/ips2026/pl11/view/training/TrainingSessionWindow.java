@@ -662,7 +662,9 @@ public class TrainingSessionWindow extends JDialog {
                 .filter(g -> LocalDate.parse(g.getDate()).equals(session.getDate()))
                 .filter(g -> session.getStartTime().isBefore(LocalTime.parse(g.getEndTime()))
                     && session.getEndTime().isAfter(LocalTime.parse(g.getStartTime())))
+                .filter(g -> g.getFacilityId() == session.getFacility())
                 .toList();
+           
 
             if (!overlapping.isEmpty()) {
                 String msg = overlapping.stream()
@@ -694,7 +696,7 @@ public class TrainingSessionWindow extends JDialog {
             if (problem.isPresent()) {
                 if (canCancelReservation(problem)) {
 
-                    if (problem.get().contains("can not be booked")) {
+                    if(!checkBookingExclusiveRestriction(problem.get())) {
                         JOptionPane.showMessageDialog(this, "The following time conflict was found:\n" + problem.get(),
                             "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
                         return false;
@@ -720,6 +722,26 @@ public class TrainingSessionWindow extends JDialog {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error loading facility availability:\n" + e.getMessage(),
                 "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
+        return false;
+    }
+
+    private boolean checkBookingExclusiveRestriction(String problem) {
+        String minDurationMsg = "A reservation must last at least ";
+        String timeLimit = "Reservations can only be made until ";
+        String openingTime = "Facilities can be booked from ";
+        String closingTime = "A reservation must end at ";
+        String pastTime = "That day has already passed.";
+        String blockedAfterTeamUse = "The facility can not be booked until ";
+        String startTimePassed = "The start time has already passed.";
+        String training = "(training)";
+                
+        boolean ignoreProblem = problem.contains(minDurationMsg) || problem.contains(timeLimit) || problem.contains(openingTime)
+            || problem.contains(closingTime) || problem.contains(pastTime) || problem.contains(blockedAfterTeamUse)
+            || problem.contains(startTimePassed) || problem.contains(training);
+        
+        if (ignoreProblem) {
+            return true;
         }
         return false;
     }

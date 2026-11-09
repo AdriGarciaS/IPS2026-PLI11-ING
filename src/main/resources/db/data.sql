@@ -10,9 +10,9 @@ INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_num
     ('Sarah', 'Jenkins', '99887766C', '1985-04-12', '+34622334455', 'NON_SPORTS', 'General Manager', 95000.0, 'FEMALE'),
     ('Jackie', 'Taylor', '62671892R', '1978-11-09', '+34669571133', 'NON_SPORTS', 'Manager', 70000.0, 'FEMALE'),
     
-    ('Carlos', 'Maceta', '74392871L', '2001-12-19', '+34626014732', 'NON_SPORTS', 'Gardener', 30000.0, 'MALE'),
-    ('Rosa', 'Petunia', '87290851K', '1988-02-02', '+34692449181', 'NON_SPORTS', 'Gardener', 30000.0, 'FEMALE'),
-    ('Clara', 'Cizalla', '92378567M', '2002-08-21', '+34611311952', 'NON_SPORTS', 'Gardener', 30000.0, 'FEMALE');
+    ('Carlos', 'Martínez', '74392871L', '2001-12-19', '+34626014732', 'NON_SPORTS', 'Gardener', 30000.0, 'MALE'),
+    ('Rosa', 'Vilas', '87290851K', '1988-02-02', '+34692449181', 'NON_SPORTS', 'Gardener', 30000.0, 'FEMALE'),
+    ('Clara', 'Díez', '92378567M', '2002-08-21', '+34611311952', 'NON_SPORTS', 'Gardener', 30000.0, 'FEMALE');
 
 INSERT INTO MERCHANDISING (name, type, available_units, price) VALUES
     ('Home Shirt 26/27', 'Clothing', 25, 59.99),
@@ -378,3 +378,35 @@ WHERE s.id IN (301, 302);
 
 UPDATE SHARE SET holding_id = (SELECT to_holding_id FROM SHARE_TRANSFER WHERE share_id = SHARE.id)
 WHERE id IN (301, 302);
+
+INSERT INTO GARDENING_SESSION (facility_id, description, date, start_time, end_time, type) VALUES
+	(2, 'Pruning trees and trimming hedges',
+        '2026-11-11', '08:00', '12:00', 'Exterior'),
+
+    (4, 'Cleaning and maintenance of gym facilities',
+        '2026-11-12', '15:00', '17:00', 'Interior'),
+
+    (3, 'Cleaning corridors and common areas',
+        '2026-11-13', '09:00', '11:00', 'Interior'),
+
+    (1, 'Garden irrigation system maintenance',
+        '2026-11-14', '08:00', '10:00', 'Exterior'),
+
+    (4, 'Removal of leaves and garden debris',
+        '2026-11-16', '10:00', '13:00', 'Exterior');
+
+INSERT INTO gardening_session_employee
+    (gardening_session_id, employee_id)
+VALUES
+    -- Session 1
+    (1, 7),
+	-- Session 2
+    (2, 7),
+    (2, 8),
+    -- Session 3
+    (3, 7),
+    (3, 8),
+    -- Session 4
+    (4, 8),
+    -- Session 5
+    (5, 7);

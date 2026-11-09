@@ -1,20 +1,20 @@
 package com.ips2026.pl11.controller.matches;
 
+import com.ips2026.pl11.data.matches.MatchPriceDAO;
 import com.ips2026.pl11.data.ticket.MatchDAO;
-import com.ips2026.pl11.data.ticket.MatchTicketDAO;
 
 public class ScheduleMatchController {
 
     private final MatchDAO matchDAO;
-    private final MatchTicketDAO ticketDAO;
+    private final MatchPriceDAO matchPriceDAO;
 
     public ScheduleMatchController() {
         this.matchDAO = new MatchDAO();
-        this.ticketDAO = new MatchTicketDAO();
+        this.matchPriceDAO = new MatchPriceDAO();
     }
 
-    public void scheduleMatch(int teamId, String rival, String date, String startTime, 
-                              boolean isSpecial, String grandstand, String section, double price, int facilityId) throws Exception {
+    public int scheduleMatch(int teamId, String rival, String date, String startTime, 
+                             boolean isSpecial, String grandstand, String section, double price, int facilityId) throws Exception {
         
         // Fixed match window duration: 2 hours (120 minutes)
         String endTime = calculateEndTime(startTime, 120);
@@ -22,8 +22,10 @@ public class ScheduleMatchController {
         // Schedule match and enforce training conflict validation
         int matchId = matchDAO.createHomeMatchWithConflictsCleared(teamId, rival, date, startTime, endTime, isSpecial, facilityId);
 
-        // Batch initialize tickets with base price
-        ticketDAO.initializeMatchTicketsWithPrice(matchId, grandstand, section, price);
+        // Save active price configuration in MATCH_PRICE
+        matchPriceDAO.saveMatchPrice(matchId, grandstand, section, price);
+
+        return matchId;
     }
 
     private String calculateEndTime(String startTime, int durationMinutes) {

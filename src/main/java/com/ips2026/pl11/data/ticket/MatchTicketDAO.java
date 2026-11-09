@@ -120,30 +120,4 @@ public class MatchTicketDAO {
             return pstmt.executeUpdate() > 0;
         }
     }
-    
-    public void initializeMatchTicketsWithPrice(int matchId, String grandstand, String section, double price) throws SQLException {
-        String sql = "INSERT INTO MATCH_TICKET (purchase_number, match_id, grandstand, section, row_num, seat_num, price) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = ConexionBD.obtenerConexion();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            int purchaseNumber = 1;
-
-            // Iterate over standard stadium layout (10 rows x 15 seats)
-            for (int r = 1; r <= 10; r++) {
-                for (int c = 1; c <= 15; c++) {
-                    pstmt.setInt(1, purchaseNumber++);
-                    pstmt.setInt(2, matchId);
-                    pstmt.setString(3, grandstand);
-                    pstmt.setString(4, section);
-                    pstmt.setInt(5, r);
-                    pstmt.setInt(6, c);
-                    pstmt.setDouble(7, price);
-                    pstmt.addBatch();
-                }
-            }
-            pstmt.executeBatch();
-        }
-    }
 }

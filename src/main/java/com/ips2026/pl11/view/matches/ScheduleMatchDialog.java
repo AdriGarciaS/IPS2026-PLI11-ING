@@ -16,7 +16,10 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -41,6 +44,7 @@ import javax.swing.table.DefaultTableModel;
 import com.toedter.calendar.JDateChooser;
 
 import com.ips2026.pl11.controller.matches.ScheduleMatchController;
+import com.ips2026.pl11.data.matches.MatchPriceDAO;
 import com.ips2026.pl11.data.seasonpass.SeasonPassDAO;
 import com.ips2026.pl11.data.team.TeamDAO;
 import com.ips2026.pl11.data.ticket.MatchDAO;
@@ -49,7 +53,7 @@ import com.ips2026.pl11.view.common.HeaderPanel;
 
 /**
  * Dialog for scheduling home matches (US 35775).
- * Features fixture details with facility selection (Main Pitch, Training Pitch 1, Training Pitch 2),
+ * Features fixture details with facility selection, pricing configuration per stand/section,
  * JCalendar integration, JSpinner time picker, and rounded titled section borders.
  */
 public class ScheduleMatchDialog extends JDialog {
@@ -59,6 +63,11 @@ public class ScheduleMatchDialog extends JDialog {
     private final ScheduleMatchController controller;
     private final SeasonPassDAO seasonPassDAO;
     private final MatchDAO matchDAO;
+    private final MatchPriceDAO matchPriceDAO;
+
+    // Temporal price storage for dynamic UI switching
+    private final Map<String, Double> tempPriceMap = new HashMap<>();
+    private String lastSelectedKey = "A-A";
 
     // Section 1 UI Controls
     private JComboBox<TeamDAO.TeamItem> cbLocalTeam;
@@ -87,6 +96,7 @@ public class ScheduleMatchDialog extends JDialog {
         this.controller = new ScheduleMatchController();
         this.seasonPassDAO = new SeasonPassDAO();
         this.matchDAO = new MatchDAO();
+        this.matchPriceDAO = new MatchPriceDAO();
 
         Branding.applyTo(this);
         Branding.setInitialSize(this, 1050, 720, parent);
@@ -135,9 +145,6 @@ public class ScheduleMatchDialog extends JDialog {
         updateSeatPreview();
     }
 
-    /**
-     * Creates Section 1 with Fixture Details and Facility selection restricted to Main Pitch, Training Pitch 1, and Training Pitch 2.
-     */
     private JPanel createFixtureDetailsPanel() {
         JPanel container = new JPanel(new BorderLayout(0, 10));
         container.setOpaque(false);
@@ -237,7 +244,8 @@ public class ScheduleMatchDialog extends JDialog {
         txtBasePrice = new JTextField("30.00");
         pn.add(txtBasePrice);
 
-        ActionListener refreshGrid = e -> updateSeatPreview();
+        // Event listener to dynamically save current price before switching combo values
+        ActionListener refreshGrid = e -> handleStandOrSectionChange();
         cbGrandstand.addActionListener(refreshGrid);
         cbSection.addActionListener(refreshGrid);
 
@@ -273,6 +281,31 @@ public class ScheduleMatchDialog extends JDialog {
         return pn;
     }
 
+    private void handleStandOrSectionChange() {
+        if (cbGrandstand == null || cbSection == null || txtBasePrice == null) return;
+
+        try {
+            String currentPriceText = txtBasePrice.getText().trim();
+            if (!currentPriceText.isEmpty()) {
+                double price = Double.parseDouble(currentPriceText);
+                tempPriceMap.put(lastSelectedKey, price);
+            }
+        } catch (NumberFormatException ignored) {
+        }
+
+        String newGrandstand = (String) cbGrandstand.getSelectedItem();
+        String newSection = (String) cbSection.getSelectedItem();
+        if (newGrandstand == null || newSection == null) return;
+
+        String newKey = newGrandstand + "-" + newSection;
+        lastSelectedKey = newKey;
+
+        double loadedPrice = tempPriceMap.getOrDefault(newKey, 30.00);
+        txtBasePrice.setText(String.format(Locale.US, "%.2f", loadedPrice));
+
+        updateSeatPreview();
+    }
+
     private void loadTeams() {
         try {
             TeamDAO teamDAO = new TeamDAO();
@@ -285,15 +318,9 @@ public class ScheduleMatchDialog extends JDialog {
         }
     }
 
-    /**
-     * Helper to map selected facility name to its respective database facility_id:
-     * 1: Main Pitch
-     * 2: Training Pitch 1
-     * 3: Training Pitch 2
-     */
     private int getSelectedFacilityId() {
         int index = cbFacility.getSelectedIndex();
-        return index + 1; // Index 0 -> ID 1, Index 1 -> ID 2, Index 2 -> ID 3
+        return index + 1;
     }
 
     private void updateActivitiesTable() {
@@ -310,7 +337,6 @@ public class ScheduleMatchDialog extends JDialog {
                 modelActivities.addRow(act);
             }
         } catch (SQLException ex) {
-            // Fallback table update
         }
     }
 
@@ -364,13 +390,35 @@ public class ScheduleMatchDialog extends JDialog {
             String startTime = sdfTime.format(selectedTime);
 
             boolean isSpecial = rbSpecialYes.isSelected();
-            String grandstand = (String) cbGrandstand.getSelectedItem();
-            String section = (String) cbSection.getSelectedItem();
-            double price = Double.parseDouble(txtBasePrice.getText().trim());
+            String activeGrandstand = (String) cbGrandstand.getSelectedItem();
+            String activeSection = (String) cbSection.getSelectedItem();
+            double activePrice = Double.parseDouble(txtBasePrice.getText().trim());
 
             int facilityId = getSelectedFacilityId();
 
-            controller.scheduleMatch(selectedTeam.getId(), rival, date, startTime, isSpecial, grandstand, section, price, facilityId);
+            handleStandOrSectionChange();
+
+            int matchId = controller.scheduleMatch(selectedTeam.getId(), rival, date, startTime, isSpecial, activeGrandstand, activeSection, activePrice, facilityId);
+
+            System.out.println("\n========== MATCH CREATED [ID: " + matchId + "] - SEAT PRICING MATRIX ==========");
+            System.out.println("Match: " + selectedTeam.getName() + " vs " + rival + " | Date: " + date + " " + startTime);
+            System.out.println("------------------------------------------------------------------");
+
+            String[] grandstands = {"A", "B", "C", "D"};
+            String[] sections = {"A", "B", "C", "D", "E", "F"};
+
+            for (String gs : grandstands) {
+                for (String sec : sections) {
+                    String key = gs + "-" + sec;
+                    
+                    double priceToSave = tempPriceMap.getOrDefault(key, 30.00);
+
+                    matchPriceDAO.saveMatchPrice(matchId, gs, sec, priceToSave);
+
+                    System.out.printf(Locale.US, "Grandstand: %s | Section: %s | Price per seat: €%.2f%n", gs, sec, priceToSave);
+                }
+            }
+            System.out.println("==================================================================\n");
 
             JOptionPane.showMessageDialog(this,
                     "Home match scheduled successfully!\nFacility conflicts cleared automatically.",

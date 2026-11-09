@@ -31,6 +31,7 @@ import javax.swing.border.EmptyBorder;
 import com.ips2026.pl11.controller.email.EmailController;
 import com.ips2026.pl11.controller.ticket.MatchTicketController;
 import com.ips2026.pl11.controller.ticket.SpecialMatchTicketController;
+import com.ips2026.pl11.data.matches.MatchPriceDAO;
 import com.ips2026.pl11.data.ticket.MatchDAO;
 import com.ips2026.pl11.model.ticket.HomeMatch;
 import com.ips2026.pl11.view.common.Branding;
@@ -44,11 +45,12 @@ import jakarta.mail.MessagingException;
 public class SellMatchTicketDialog extends JDialog {
 
     private static final long serialVersionUID = 1L;
-    private  EmailController emailController = new EmailController("smtp.gmail.com", 587, "ipswichmgmt@gmail.com", "lndqblaxqraeetjw");
+    private EmailController emailController = new EmailController("smtp.gmail.com", 587, "ipswichmgmt@gmail.com", "lndqblaxqraeetjw");
     private String matchDisplayName;
 
     private final MatchTicketController controller;
     private final SpecialMatchTicketController specialController;
+    private final MatchPriceDAO matchPriceDAO;
     private final int matchId;
     private HomeMatch currentMatch;
 
@@ -65,18 +67,12 @@ public class SellMatchTicketDialog extends JDialog {
     private JButton btnPayMemberSeat;
     private String[] claimedMemberSeat = null;
 
-    /**
-     * Constructs the ticket sales dialog attached to a parent window.
-     *
-     * @param parent the anchoring window for modal display
-     * @param matchId the unique database identifier of the selected match
-     * @param matchDisplayName the text description of the match for the title bar
-     */
     public SellMatchTicketDialog(Window parent, int matchId, String matchDisplayName) {
         super(parent, "Ticket Sales - " + matchDisplayName, ModalityType.APPLICATION_MODAL);
         this.matchId = matchId;
         this.controller = new MatchTicketController();
         this.specialController = new SpecialMatchTicketController();
+        this.matchPriceDAO = new MatchPriceDAO();
         
         this.matchDisplayName = matchDisplayName;
 
@@ -92,9 +88,6 @@ public class SellMatchTicketDialog extends JDialog {
         refreshBoard();
     }
 
-    /**
-     * Initializes components, layouts, card panels, and bottom action controls.
-     */
     private void initUI() {
         getContentPane().setLayout(new BorderLayout(15, 15));
         ((JPanel) getContentPane()).setBorder(new EmptyBorder(15, 15, 15, 15));
@@ -171,11 +164,6 @@ public class SellMatchTicketDialog extends JDialog {
         setLocationRelativeTo(getParent());
     }
 
-    /**
-     * Builds the interactive check-in module for US 35777 (Season Pass Member Verification).
-     *
-     * @return the constructed member verification panel
-     */
     private JPanel createSpecialMatchMemberPanel() {
         JPanel pn = new JPanel();
         pn.setOpaque(false);
@@ -206,9 +194,6 @@ public class SellMatchTicketDialog extends JDialog {
         return pn;
     }
 
-    /**
-     * Handles verification of the season pass member's DNI and locates their usual seat location.
-     */
     private void handleVerifyMemberSeat() {
         String dni = txtMemberDni.getText().trim();
         if (dni.isEmpty()) {
@@ -237,9 +222,6 @@ public class SellMatchTicketDialog extends JDialog {
         }
     }
 
-    /**
-     * Processes payment for the verified season pass member seat and locks it exclusively for the match.
-     */
     private void handlePayMemberSeat() {
         if (claimedMemberSeat == null) {
             return;
@@ -251,7 +233,8 @@ public class SellMatchTicketDialog extends JDialog {
             int row = Integer.parseInt(claimedMemberSeat[2]);
             int seat = Integer.parseInt(claimedMemberSeat[3]);
 
-            boolean success = specialController.confirmMemberSpecialTicket(matchId, grandstand, section, row, seat, 30.0);
+            double currentPrice = matchPriceDAO.getPriceForMatch(matchId, grandstand, section);
+            boolean success = specialController.confirmMemberSpecialTicket(matchId, grandstand, section, row, seat, currentPrice);
             if (success) {
                 JOptionPane.showMessageDialog(this,
                         "Payment successful! Your regular seat (Row " + row + ", Seat " + seat + ") is secured for this special match.",
@@ -267,9 +250,6 @@ public class SellMatchTicketDialog extends JDialog {
         }
     }
 
-    /**
-     * Fetches current seat availability for the active grandstand/section selection and updates the board grid.
-     */
     private void refreshBoard() {
         String grandstand = (String) cbGrandstand.getSelectedItem();
         String section = (String) cbSection.getSelectedItem();
@@ -286,37 +266,35 @@ public class SellMatchTicketDialog extends JDialog {
         }
     }
 
-    /**
-     * Processes general public purchase for contiguous seats in the selected stand and section.
-     */
     private void processGeneralPurchase() {
         String grandstand = (String) cbGrandstand.getSelectedItem();
         String section = (String) cbSection.getSelectedItem();
         int quantity = (Integer) spinnerQuantity.getValue();
 
         try {
-            var assignedSeats = controller.sellTickets(matchId, grandstand, section, quantity, 30.0);
+            double currentPrice = matchPriceDAO.getPriceForMatch(matchId, grandstand, section);
+            var assignedSeats = controller.sellTickets(matchId, grandstand, section, quantity, currentPrice);
 
             StringBuilder seatsMsg = new StringBuilder("Tickets booked successfully in Grandstand ")
                     .append(grandstand).append(", Section ").append(section).append(":\n");
 
             List<String> seatLines = new ArrayList<>();
             for (int[] seat : assignedSeats) {
-                int row = seat[0] < 10 ? seat[0] + 1 : seat[0];
-                int col = seat[1] < 15 ? seat[1] + 1 : seat[1];
+                int row = seat[0];
+                int col = seat[1];
                 seatLines.add("Row " + row + ", Seat " + col);
                 seatsMsg.append("• Row ").append(row).append(", Seat ").append(col).append("\n");
             }
             
             String email = askForEmail();
-            if(email == null) {
+            if (email == null) {
                 return;
             }
             
             try {
-                BigDecimal totalPrice = BigDecimal.valueOf(quantity * 30.0);
+                BigDecimal totalPrice = BigDecimal.valueOf(quantity * currentPrice);
                 emailController.sendTicketReceipt(email, matchDisplayName, grandstand, section, seatLines, totalPrice);
-                JOptionPane.showMessageDialog(this, seatsMsg.toString()+ "\nReceipt sent to " + email, "Success",
+                JOptionPane.showMessageDialog(this, seatsMsg.toString() + "\nReceipt sent to " + email, "Success",
                     JOptionPane.INFORMATION_MESSAGE);
             } catch (MessagingException | IllegalStateException exception) {
                 JOptionPane.showMessageDialog(this,
@@ -356,9 +334,6 @@ public class SellMatchTicketDialog extends JDialog {
         }
     }
 
-    /**
-     * Custom Swing border class drawing smoothly antialiased rounded rectangles with top titles.
-     */
     private static class RoundedTitledBorder extends AbstractBorder {
         private static final long serialVersionUID = 1L;
         private final String title;

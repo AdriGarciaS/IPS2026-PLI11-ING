@@ -376,3 +376,12 @@ CREATE TABLE IF NOT EXISTS FAN (
     created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 
 );
+
+CREATE TABLE IF NOT EXISTS MATCH_PRICE (
+    match_id INTEGER NOT NULL,
+    grandstand VARCHAR(50) NOT NULL,
+    section VARCHAR(50) NOT NULL,
+    price REAL NOT NULL,
+    PRIMARY KEY (match_id, grandstand, section),
+    FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE
+);

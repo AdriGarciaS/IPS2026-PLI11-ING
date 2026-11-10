@@ -41,8 +41,8 @@ public class GardeningSessionDAO {
         try (Connection connection = ConexionBD.obtenerConexion();
             PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            var resultSet = statement.executeQuery();
-            List<GardeningSession> sessions = new java.util.ArrayList<>();
+            ResultSet resultSet = statement.executeQuery();
+            List<GardeningSession> sessions = new ArrayList<>();
 
             while (resultSet.next()) {
                 GardeningSession session = new GardeningSession(resultSet.getLong("id"),
@@ -62,7 +62,7 @@ public class GardeningSessionDAO {
         try (Connection connection = ConexionBD.obtenerConexion();
             PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, gardenerId);
-            var resultSet = statement.executeQuery();
+            ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
                 GardeningSession session = new GardeningSession(resultSet.getLong("id"),
@@ -73,6 +73,18 @@ public class GardeningSessionDAO {
             }
             return sessions;
         }
+    }
+
+    public void delete(long id) {
+        String sql = "DELETE FROM gardening_session WHERE id = ?";
+        try (Connection connection = ConexionBD.obtenerConexion();
+            PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, id);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
     }
 
 }

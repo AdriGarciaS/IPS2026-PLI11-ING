@@ -1,9 +1,5 @@
 package com.ips2026.pl11.data.reservation;
 
-import com.ips2026.pl11.data.ConexionBD;
-import com.ips2026.pl11.model.reservation.Facility;
-import com.ips2026.pl11.model.reservation.Reservation;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Connection;
@@ -17,6 +13,10 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.ips2026.pl11.data.ConexionBD;
+import com.ips2026.pl11.model.reservation.Facility;
+import com.ips2026.pl11.model.reservation.Reservation;
 
 /**
  * SQL operations on the FACILITY_RESERVATION table.
@@ -83,6 +83,18 @@ public class ReservationDAO {
                 keys.next();
                 return reservation.withId(keys.getInt(1));
             }
+        }
+    }
+    
+    public void deleteByDateTime(long id, LocalDate date, LocalTime start) throws SQLException {
+        String sql = "DELETE FROM FACILITY_RESERVATION WHERE id = ? AND reservation_date = ? AND start_time = ?";
+
+        try (Connection connection = ConexionBD.obtenerConexion();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, id);
+            statement.setString(2, date.toString());
+            statement.setString(3, start.format(TIME_FORMAT));
+            statement.executeUpdate();
         }
     }
 }

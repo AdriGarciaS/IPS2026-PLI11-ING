@@ -33,27 +33,36 @@ import javax.swing.border.MatteBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import com.ips2026.pl11.controller.email.EmailController;
 import com.ips2026.pl11.controller.store.StoreSalesController;
 import com.ips2026.pl11.model.store.CartLine;
 import com.ips2026.pl11.model.store.Merchandise;
 import com.ips2026.pl11.model.store.SaleReceipt;
-
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.common.MoneyFormat;
 
+import jakarta.mail.MessagingException;
+
 /**
- * Store sales window: the catalog of merchandising products on the left and
- * the cart on the right, with the total price updated dynamically.
+ * Store sales window: the catalog of merchandising products on the left and the
+ * cart on the right, with the total price updated dynamically.
  *
- * <p>It is a modal dialog: the main menu is blocked while it is open.</p>
+ * <p>
+ * It is a modal dialog: the main menu is blocked while it is open.
+ * </p>
  *
- * <p>Follows the same "lazy" WindowBuilder style as the main menu ({@code VentanaPrincipal}):
- * one private attribute per component, created by its getter.</p>
+ * <p>
+ * Follows the same "lazy" WindowBuilder style as the main menu
+ * ({@code VentanaPrincipal}): one private attribute per component, created by
+ * its getter.
+ * </p>
  */
 public class StoreSalesWindow extends JDialog {
 
     private static final long serialVersionUID = 1L;
+    private EmailController emailController = new EmailController("smtp.gmail.com", 587, "ipswichmgmt@gmail.com",
+        "lndqblaxqraeetjw");
 
     private static final String ALL_TYPES = "All types";
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -62,7 +71,10 @@ public class StoreSalesWindow extends JDialog {
     private final CatalogTableModel catalogModel;
     private final CartTableModel cartModel;
 
-    /** True while the cart spinner is changed by code, so it is not taken as a user change. */
+    /**
+     * True while the cart spinner is changed by code, so it is not taken as a user
+     * change.
+     */
     private boolean updatingCartSpinner;
 
     private JPanel contentPane;
@@ -98,8 +110,8 @@ public class StoreSalesWindow extends JDialog {
 
     /**
      * @param controller controller with the catalog already loaded
-     * @param owner      window that opens it (the main menu); it stays
-     *                   blocked until this window is closed
+     * @param owner      window that opens it (the main menu); it stays blocked
+     *                   until this window is closed
      */
     public StoreSalesWindow(StoreSalesController controller, Window owner) {
         super(owner, ModalityType.APPLICATION_MODAL);
@@ -136,7 +148,7 @@ public class StoreSalesWindow extends JDialog {
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
             pnHeader = new HeaderPanel("Merchandising Store",
-                    "Select products from the catalog and add them to the cart.");
+                "Select products from the catalog and add them to the cart.");
         }
         return pnHeader;
     }
@@ -169,9 +181,8 @@ public class StoreSalesWindow extends JDialog {
     private JPanel getPnCatalog() {
         if (pnCatalog == null) {
             pnCatalog = new JPanel();
-            pnCatalog.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createTitledBorder("Catalog"),
-                    new EmptyBorder(6, 8, 8, 8)));
+            pnCatalog.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Catalog"),
+                new EmptyBorder(6, 8, 8, 8)));
             pnCatalog.setLayout(new BorderLayout(0, 8));
             pnCatalog.add(getPnFilters(), BorderLayout.NORTH);
             pnCatalog.add(getScrCatalog(), BorderLayout.CENTER);
@@ -284,7 +295,7 @@ public class StoreSalesWindow extends JDialog {
             tblCatalog = new JTable(catalogModel);
             configureTable(tblCatalog);
             tblCatalog.getColumnModel().getColumn(CatalogTableModel.COLUMN_PRICE)
-                    .setCellRenderer(MoneyFormat.tableRenderer());
+                .setCellRenderer(MoneyFormat.tableRenderer());
             tblCatalog.getColumnModel().getColumn(0).setPreferredWidth(200);
             tblCatalog.getColumnModel().getColumn(1).setPreferredWidth(110);
             tblCatalog.getColumnModel().getColumn(2).setPreferredWidth(80);
@@ -338,9 +349,8 @@ public class StoreSalesWindow extends JDialog {
     private JPanel getPnCart() {
         if (pnCart == null) {
             pnCart = new JPanel();
-            pnCart.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createTitledBorder("Cart"),
-                    new EmptyBorder(6, 8, 8, 8)));
+            pnCart.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Cart"),
+                new EmptyBorder(6, 8, 8, 8)));
             pnCart.setLayout(new BorderLayout(0, 8));
             pnCart.add(getScrCart(), BorderLayout.CENTER);
             pnCart.add(getPnCartBottom(), BorderLayout.SOUTH);
@@ -361,9 +371,9 @@ public class StoreSalesWindow extends JDialog {
             tblCart = new JTable(cartModel);
             configureTable(tblCart);
             tblCart.getColumnModel().getColumn(CartTableModel.COLUMN_PRICE)
-                    .setCellRenderer(MoneyFormat.tableRenderer());
+                .setCellRenderer(MoneyFormat.tableRenderer());
             tblCart.getColumnModel().getColumn(CartTableModel.COLUMN_SUBTOTAL)
-                    .setCellRenderer(MoneyFormat.tableRenderer());
+                .setCellRenderer(MoneyFormat.tableRenderer());
             tblCart.getColumnModel().getColumn(0).setPreferredWidth(200);
             tblCart.getColumnModel().getColumn(1).setPreferredWidth(80);
             tblCart.getColumnModel().getColumn(2).setPreferredWidth(50);
@@ -433,9 +443,8 @@ public class StoreSalesWindow extends JDialog {
     private JPanel getPnTotal() {
         if (pnTotal == null) {
             pnTotal = new JPanel();
-            pnTotal.setBorder(BorderFactory.createCompoundBorder(
-                    new MatteBorder(1, 0, 0, 0, Branding.BORDER),
-                    new EmptyBorder(8, 0, 0, 0)));
+            pnTotal.setBorder(BorderFactory.createCompoundBorder(new MatteBorder(1, 0, 0, 0, Branding.BORDER),
+                new EmptyBorder(8, 0, 0, 0)));
             pnTotal.setLayout(new BorderLayout(10, 0));
             pnTotal.add(getLblTotalText(), BorderLayout.WEST);
             pnTotal.add(getLblTotal(), BorderLayout.EAST);
@@ -521,7 +530,10 @@ public class StoreSalesWindow extends JDialog {
         return viewRow < 0 ? -1 : getTblCart().convertRowIndexToModel(viewRow);
     }
 
-    /** The units spinner of the catalog goes from 1 to the units that can still be added. */
+    /**
+     * The units spinner of the catalog goes from 1 to the units that can still be
+     * added.
+     */
     private void updateCatalogActions() {
         Merchandise product = getSelectedProduct();
         int remaining = product == null ? 0 : controller.getCart().getRemainingUnits(product);
@@ -536,14 +548,17 @@ public class StoreSalesWindow extends JDialog {
         getBtnAdd().setEnabled(canAdd);
     }
 
-    /** The units spinner of the cart shows the units of the selected line (1 to the available units). */
+    /**
+     * The units spinner of the cart shows the units of the selected line (1 to the
+     * available units).
+     */
     private void updateCartActions() {
         int modelRow = getSelectedCartModelRow();
         updatingCartSpinner = true;
         if (modelRow >= 0) {
             CartLine line = cartModel.getLineAt(modelRow);
-            getSpCartUnits().setModel(new SpinnerNumberModel(
-                    line.getUnits(), 1, line.getMerchandise().getAvailableUnits(), 1));
+            getSpCartUnits()
+                .setModel(new SpinnerNumberModel(line.getUnits(), 1, line.getMerchandise().getAvailableUnits(), 1));
         } else {
             getSpCartUnits().setModel(new SpinnerNumberModel(1, 1, 1, 1));
         }
@@ -556,7 +571,10 @@ public class StoreSalesWindow extends JDialog {
         getLblTotal().setText(MoneyFormat.format(controller.getCart().getTotal()));
     }
 
-    /** Called after any change of the cart: refreshes the stock shown in the catalog and the total. */
+    /**
+     * Called after any change of the cart: refreshes the stock shown in the catalog
+     * and the total.
+     */
     private void cartChanged() {
         catalogModel.refreshAvailable();
         updateCatalogActions();
@@ -617,15 +635,16 @@ public class StoreSalesWindow extends JDialog {
     }
 
     private void purchase() {
+
         if (controller.getCart().isEmpty()) {
             showWarning("The cart is empty. Add at least one product before purchasing.");
             return;
         }
 
-        int option = JOptionPane.showConfirmDialog(this,
-                "Do you want to purchase the cart for a total of "
-                        + MoneyFormat.format(controller.getCart().getTotal()) + "?",
-                "Confirm purchase", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        int option = JOptionPane.showConfirmDialog(
+            this, "Do you want to purchase the cart for a total of "
+                + MoneyFormat.format(controller.getCart().getTotal()) + "?",
+            "Confirm purchase", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (option != JOptionPane.YES_OPTION) {
             return;
         }
@@ -634,9 +653,13 @@ public class StoreSalesWindow extends JDialog {
         try {
             receipt = controller.purchase();
         } catch (SQLException exception) {
-            JOptionPane.showMessageDialog(this,
-                    "The purchase could not be completed:\n" + exception.getMessage(),
-                    "Purchase error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "The purchase could not be completed:\n" + exception.getMessage(),
+                "Purchase error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String email = askForEmail();
+        if (email == null) {
             return;
         }
 
@@ -645,25 +668,31 @@ public class StoreSalesWindow extends JDialog {
         refreshCatalog();
         updateTotal();
 
-        JOptionPane.showMessageDialog(this, buildSummary(receipt),
-                "Purchase completed", JOptionPane.INFORMATION_MESSAGE);
+        try {
+            emailController.sendReceipt(email, receipt);
+        
+        } catch (MessagingException | IllegalStateException exception) {
+            JOptionPane.showMessageDialog(this, "The receipt could not be sent:\n" + exception.getMessage(),
+                "Email error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        JOptionPane.showMessageDialog(this, buildSummary(receipt) + "\nReceipt sent to " + email,
+            "Purchase completed", JOptionPane.INFORMATION_MESSAGE);
     }
 
     /** HTML summary of the purchase: one row per line and the final price. */
     private static String buildSummary(SaleReceipt receipt) {
         StringBuilder html = new StringBuilder("<html><body style='width: 320px'>");
         html.append("<b>Sale nº ").append(receipt.getSaleNumber()).append("</b> &mdash; ")
-                .append(receipt.getDate().format(DATE_FORMAT))
-                .append("<table width='100%' cellpadding='2' style='margin-top: 8px'>");
+            .append(receipt.getDate().format(DATE_FORMAT))
+            .append("<table width='100%' cellpadding='2' style='margin-top: 8px'>");
         for (CartLine line : receipt.getLines()) {
             html.append("<tr><td>").append(line.getUnits()).append(" x ")
-                    .append(escapeHtml(line.getMerchandise().getName()))
-                    .append("</td><td align='right'>").append(MoneyFormat.format(line.getSubtotal()))
-                    .append("</td></tr>");
+                .append(escapeHtml(line.getMerchandise().getName())).append("</td><td align='right'>")
+                .append(MoneyFormat.format(line.getSubtotal())).append("</td></tr>");
         }
         html.append("</table><hr><b style='font-size: 13px'>FINAL PRICE: ")
-                .append(MoneyFormat.format(receipt.getFinalPrice()))
-                .append("</b></body></html>");
+            .append(MoneyFormat.format(receipt.getFinalPrice())).append("</b></body></html>");
         return html.toString();
     }
 
@@ -678,13 +707,35 @@ public class StoreSalesWindow extends JDialog {
     /** Closes the window, asking first if there are products in the cart. */
     private void close() {
         if (!controller.getCart().isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(this,
-                    "The cart is not empty. Close the window and discard it?",
-                    "Close Store Sales", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            int option = JOptionPane.showConfirmDialog(this, "The cart is not empty. Close the window and discard it?",
+                "Close Store Sales", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             if (option != JOptionPane.YES_OPTION) {
                 return;
             }
         }
         dispose();
+    }
+
+    private String askForEmail() {
+        while (true) {
+            JTextField txtEmail = new JTextField(25);
+
+            int result = JOptionPane.showConfirmDialog(this,
+                new Object[] { "Enter the customer's email address:", txtEmail }, "Send purchase receipt",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+            if (result != JOptionPane.OK_OPTION) {
+                return null;
+            }
+
+            String email = txtEmail.getText().trim();
+
+            if (email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                return email;
+            }
+
+            JOptionPane.showMessageDialog(this, "Please enter a valid email address.", "Invalid email",
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

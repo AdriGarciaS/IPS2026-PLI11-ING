@@ -10,6 +10,7 @@ import java.sql.SQLException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -49,7 +50,7 @@ import com.ips2026.pl11.view.store.StoreSalesWindow;
  * a su getter, asi que la ventana se puede seguir editando desde la pestana
  * Design de WindowBuilder.</p>
  */
-public class GardeningSessionWindow extends JFrame {
+public class GardeningSessionWindow extends JDialog {
 
     private static final long serialVersionUID = 1L;
 
@@ -71,6 +72,7 @@ public class GardeningSessionWindow extends JFrame {
     private MenuCardButton btnNonSportingEmp;
 
     public GardeningSessionWindow(MainWindow mw) {
+        setModal(true);
         setResizable(false);
         this.mw = mw;
         

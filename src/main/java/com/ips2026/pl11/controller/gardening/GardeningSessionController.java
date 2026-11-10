@@ -62,4 +62,14 @@ public class GardeningSessionController {
         return weeklySessions;
     }
 
+    public void cancelGardeningSession(long id) {
+        try {
+            gardeningSessionDAO.delete(id);
+            gardeningSessionEmployeeDAO.deleteBySessionId(id);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+    }
+
 }

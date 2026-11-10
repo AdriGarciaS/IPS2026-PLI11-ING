@@ -66,5 +66,19 @@ public class GardeningSessionEmployeeDAO {
             return employeeIds;
         }
     }
+    
+    public void deleteBySessionId(long sessionId) throws SQLException {
+        String sql = """
+            DELETE FROM gardening_session_employee
+            WHERE gardening_session_id = ?
+            """;
+
+        try (Connection connection = ConexionBD.obtenerConexion();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setLong(1, sessionId);
+            statement.executeUpdate();
+        }
+    }
 
 }

@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.ips2026.pl11.data.ConexionBD;
 import com.ips2026.pl11.model.employee.Employee;
@@ -122,5 +123,35 @@ public class EmployeeDAO {
             }
         }
         return employees;
+    }
+    
+    public Optional<Employee> findById(int id) throws SQLException {
+        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender "
+                   + "FROM employees WHERE id = ?";
+
+        try (Connection connection = ConexionBD.obtenerConexion();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, id);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    Employee employee = new Employee(
+                            resultSet.getInt("id"),
+                            resultSet.getString("first_name"),
+                            resultSet.getString("last_name"),
+                            resultSet.getString("national_id"),
+                            LocalDate.parse(resultSet.getString("birth_date")),
+                            resultSet.getString("phone_number"),
+                            resultSet.getString("category"),
+                            resultSet.getString("position"),
+                            resultSet.getDouble("gross_annual_salary"),
+                            resultSet.getString("gender")
+                    );
+                    return Optional.of(employee);
+                } else {
+                    return Optional.empty();
+                }
+            }
+        }
     }
 }

@@ -10,10 +10,11 @@ import com.ips2026.pl11.data.ConexionBD;
 public class MatchPriceDAO {
 
     /**
-     * Saves category-based pricing per grandstand and section for a scheduled match.
+     * Saves or updates category-based pricing per grandstand and section for a scheduled match.
      */
     public void saveMatchPrice(int matchId, String grandstand, String section, double price) throws SQLException {
-        String sql = "INSERT INTO MATCH_PRICE (match_id, grandstand, section, price) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO MATCH_PRICE (match_id, grandstand, section, price) VALUES (?, ?, ?, ?) " +
+                     "ON CONFLICT(match_id, grandstand, section) DO UPDATE SET price = excluded.price";
 
         try (Connection conn = ConexionBD.obtenerConexion();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {

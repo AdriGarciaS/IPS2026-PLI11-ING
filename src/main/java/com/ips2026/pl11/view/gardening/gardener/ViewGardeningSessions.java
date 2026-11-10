@@ -22,6 +22,7 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -57,7 +58,7 @@ import com.toedter.calendar.IDateEvaluator;
 import com.toedter.calendar.JCalendar;
 import com.toedter.calendar.JDateChooser;
 
-public class ViewGardeningSessions extends JFrame {
+public class ViewGardeningSessions extends JDialog {
 
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
@@ -137,6 +138,7 @@ public class ViewGardeningSessions extends JFrame {
         contentPane.add(getLblFooter(), BorderLayout.SOUTH);
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         setLocationRelativeTo(gsw);
+        setModal(true);
 
     }
 
@@ -297,7 +299,7 @@ public class ViewGardeningSessions extends JFrame {
                             .getGardenerWeeklySessions(gardenerId, date);
                         List<String> sessionDescriptions = new ArrayList<>();
                         for (GardeningSession session : sessions) {
-                            sessionDescriptions.add(sessions.indexOf(session) + 1 + ": " + session.getDate());
+                            sessionDescriptions.add(sessions.indexOf(session) + 1 + ": " + session.getDate()+ " / "+ session.getStartTime());
                         }
 
                         cbWeekSessions.setModel(new DefaultComboBoxModel<>(sessionDescriptions.toArray(new String[0])));
@@ -430,7 +432,7 @@ public class ViewGardeningSessions extends JFrame {
             txtDate = new JTextField();
             txtDate.setEditable(false);
             txtDate.setColumns(10);
-            txtDate.setBounds(471, 130, 63, 27);
+            txtDate.setBounds(471, 130, 92, 27);
         }
         return txtDate;
     }

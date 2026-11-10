@@ -1,9 +1,6 @@
 -- Datos de ejemplo (dummy data).
--- Solo se cargan cuando la base de datos se crea desde cero, para no
--- duplicar filas si se mantiene entre ejecuciones.
+-- Solo se cargan cuando la base de datos se crea desde cero.
 -- Cada sentencia debe terminar en ";".
-
-
 
 INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender) VALUES
     ('Lamine', 'Yamal', '12345678A', '2007-07-13', '+34600112233', 'SPORTS', 'Player', 1500000.0, 'MALE'),
@@ -13,9 +10,9 @@ INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_num
     ('Sarah', 'Jenkins', '99887766C', '1985-04-12', '+34622334455', 'NON_SPORTS', 'General Manager', 95000.0, 'FEMALE'),
     ('Jackie', 'Taylor', '62671892R', '1978-11-09', '+34669571133', 'NON_SPORTS', 'Manager', 70000.0, 'FEMALE'),
     
-    ('Carlos', 'Maceta', '74392871L', '2001-12-19', '+34626014732', 'NON_SPORTS', 'Gardener', 30000.0, 'MALE'),
-    ('Rosa', 'Petunia', '87290851K', '1988-02-02', '+34692449181', 'NON_SPORTS', 'Gardener', 30000.0, 'FEMALE'),
-    ('Clara', 'Cizalla', '92378567M', '2002-08-21', '+34611311952', 'NON_SPORTS', 'Gardener', 30000.0, 'FEMALE');
+    ('Carlos', 'Martínez', '74392871L', '2001-12-19', '+34626014732', 'NON_SPORTS', 'Gardener', 30000.0, 'MALE'),
+    ('Rosa', 'Vilas', '87290851K', '1988-02-02', '+34692449181', 'NON_SPORTS', 'Gardener', 30000.0, 'FEMALE'),
+    ('Clara', 'Díez', '92378567M', '2002-08-21', '+34611311952', 'NON_SPORTS', 'Gardener', 30000.0, 'FEMALE');
 
 INSERT INTO MERCHANDISING (name, type, available_units, price) VALUES
     ('Home Shirt 26/27', 'Clothing', 25, 59.99),
@@ -37,12 +34,10 @@ INSERT INTO FACILITY (id, name) VALUES
     (4, 'Gym'),
     (5, 'Indoor Court');
 
--- An existing reservation, so the "Reserved" periods can be seen.
 INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reservation_date, start_time, end_time, hours, total_price, created_at) VALUES
     (2, 'Laura Perez', '**** **** **** 1111', date('now', 'localtime', '+1 day'), '14:00', '16:00', 2, 100.0, datetime('now', 'localtime'));
     
--- Dummy work schedule to test the Recurring Work Schedules user story and the Specific Schedules user story.
-insert into work_schedule (employee_id, week_day, start_time, end_time) VALUES
+INSERT INTO work_schedule (employee_id, week_day, start_time, end_time) VALUES
 	(7, 1, '09:00', '17:00'),
 	(7, 2, '09:00', '17:00'),
 	(7, 3, '09:00', '17:00'),
@@ -50,10 +45,6 @@ insert into work_schedule (employee_id, week_day, start_time, end_time) VALUES
 	(8, 3, '09:00', '17:00'),
 	(8, 6, '09:00', '16:00');
 
-
--- Sample sports employees for the sports teams. The birth dates are relative
--- to the current year (age is counted by year), so every category always has
--- players of the right age.
 INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender) VALUES
     ('Marc', 'Serra', 'P0000001T', (strftime('%Y', 'now', 'localtime') - 24) || '-03-02', '+34650000001', 'SPORTS', 'Player', 80000.0, 'MALE'),
     ('Pau', 'Ferrer', 'P0000002T', (strftime('%Y', 'now', 'localtime') - 23) || '-05-21', '+34650000002', 'SPORTS', 'Player', 80000.0, 'MALE'),
@@ -130,8 +121,6 @@ INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_num
     ('Javier', 'Ruiz', 'C0000005T', '1990-04-15', '+34660000005', 'SPORTS', 'Coach', 45000.0, 'MALE'),
     ('Elena', 'Navarro', 'C0000006T', '1993-04-16', '+34660000006', 'SPORTS', 'Coach', 45000.0, 'FEMALE');
 
--- More sample players, so a team of each kind (8 categories x male/female)
--- can be created with at least 7 free players, also after the sample teams.
 INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender) VALUES
     ('Raul', 'Peña', 'P0000069T', (strftime('%Y', 'now', 'localtime') - 25) || '-08-10', '+34650000069', 'SPORTS', 'Player', 70000.0, 'MALE'),
     ('Oscar', 'Mingueza', 'P0000070T', (strftime('%Y', 'now', 'localtime') - 27) || '-10-01', '+34650000070', 'SPORTS', 'Player', 70000.0, 'MALE'),
@@ -200,8 +189,6 @@ INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_num
     ('Duna', 'Costa', 'P0000133T', (strftime('%Y', 'now', 'localtime') - 7) || '-04-03', '+34650000133', 'SPORTS', 'Player', 0.0, 'FEMALE'),
     ('Maria', 'Tort', 'P0000134T', (strftime('%Y', 'now', 'localtime') - 6) || '-06-22', '+34650000134', 'SPORTS', 'Player', 0.0, 'FEMALE');
 
--- Sample teams, so players that already belong to a team can be seen and
--- there are trainings and matches that use the facilities.
 INSERT INTO TEAM (name, category, gender, first_coach_id, second_coach_id, created_at) VALUES
     ('Juvenil A', 'JUVENIL', 'MALE',
      (SELECT id FROM employees WHERE national_id = 'C0000001T'),
@@ -233,58 +220,68 @@ INSERT INTO TEAM_MEMBER (team_id, employee_id, role, task)
 SELECT (SELECT id FROM TEAM WHERE name = 'Women''s First Team'), id, 'PLAYER', NULL FROM employees
 WHERE national_id IN ('P0000009T', 'P0000010T', 'P0000011T', 'P0000012T', 'P0000013T', 'P0000014T', 'P0000015T');
 
--- Sample trainings and matches of the sample teams for the next 32 days,
--- relative to the day in which the database is created. Facilities:
--- 1 Main Pitch, 2 Training Pitch 1, 3 Training Pitch 2, 4 Gym, 5 Indoor Court.
--- Trainings and home matches block the facility (and 1 h 30 min after them).
 WITH RECURSIVE days(n) AS (SELECT 0 UNION ALL SELECT n + 1 FROM days WHERE n < 31)
-INSERT INTO trainings (team_id, training_date, start_time, end_time, facility_id)
-SELECT (SELECT id FROM TEAM WHERE name = 'First Team'), date('now', 'localtime', '+' || n || ' days'), '10:00', '12:00', 2 FROM days
+INSERT INTO trainings (team_id, coach_id, training_date, start_time, end_time, facility_id)
+SELECT t.id, t.first_coach_id, date('now', 'localtime', '+' || n || ' days'), '10:00', '12:00', 2 
+FROM days, TEAM t WHERE t.name = 'First Team'
+
 UNION ALL
-SELECT (SELECT id FROM TEAM WHERE name = 'First Team'), date('now', 'localtime', '+' || n || ' days'), '09:00', '10:30', 4 FROM days WHERE n % 2 = 1
+
+SELECT t.id, t.first_coach_id, date('now', 'localtime', '+' || n || ' days'), '09:00', '10:30', 4 
+FROM days, TEAM t WHERE t.name = 'First Team' AND n % 2 = 1
+
 UNION ALL
-SELECT (SELECT id FROM TEAM WHERE name = 'Juvenil A'), date('now', 'localtime', '+' || n || ' days'), '18:00', '20:00', 2 FROM days
+
+SELECT t.id, t.first_coach_id, date('now', 'localtime', '+' || n || ' days'), '18:00', '20:00', 2 
+FROM days, TEAM t WHERE t.name = 'Juvenil A'
+
 UNION ALL
-SELECT (SELECT id FROM TEAM WHERE name = 'Women''s First Team'), date('now', 'localtime', '+' || n || ' days'), '17:00', '19:00', 3 FROM days
+
+SELECT t.id, t.first_coach_id, date('now', 'localtime', '+' || n || ' days'), '17:00', '19:00', 3 
+FROM days, TEAM t WHERE t.name = 'Women''s First Team'
+
 UNION ALL
-SELECT (SELECT id FROM TEAM WHERE name = 'Women''s First Team'), date('now', 'localtime', '+' || n || ' days'), '16:00', '17:30', 4 FROM days WHERE n % 2 = 0;
+
+SELECT t.id, t.first_coach_id, date('now', 'localtime', '+' || n || ' days'), '16:00', '17:30', 4 
+FROM days, TEAM t WHERE t.name = 'Women''s First Team' AND n % 2 = 0;
 
 WITH RECURSIVE days(n) AS (SELECT 0 UNION ALL SELECT n + 1 FROM days WHERE n < 31)
 INSERT INTO matches (team_id, match_date, start_time, end_time, rival, is_home, facility_id)
 SELECT (SELECT id FROM TEAM WHERE name = 'First Team'), date('now', 'localtime', '+' || n || ' days'), '17:00', '19:00',
        CASE (n / 7) % 3 WHEN 0 THEN 'Real Madrid' WHEN 1 THEN 'Sevilla FC' ELSE 'Valencia CF' END, 1, 1
 FROM days WHERE n % 7 = 2
+
 UNION ALL
+
 SELECT (SELECT id FROM TEAM WHERE name = 'First Team'), date('now', 'localtime', '+' || n || ' days'), '18:00', '20:00',
        CASE (n / 7) % 3 WHEN 0 THEN 'Atletico Madrid' WHEN 1 THEN 'Athletic Club' ELSE 'Real Betis' END, 0, NULL
 FROM days WHERE n % 7 = 5
+
 UNION ALL
+
 SELECT (SELECT id FROM TEAM WHERE name = 'Women''s First Team'), date('now', 'localtime', '+' || n || ' days'), '12:00', '14:00',
        CASE (n / 7) % 2 WHEN 0 THEN 'Real Madrid Femenino' ELSE 'Levante UD' END, 1, 1
 FROM days WHERE n % 7 = 6
+
 UNION ALL
+
 SELECT (SELECT id FROM TEAM WHERE name = 'Juvenil A'), date('now', 'localtime', '+' || n || ' days'), '11:00', '13:00',
        'RCD Espanyol Juvenil', 0, NULL
 FROM days WHERE n % 7 = 3;
 
--- Training added by the interviews user story (it was stored by player_id):
--- player 1 (Lamine) belongs to the First Team, so it is a First Team training.
-INSERT INTO trainings (team_id, training_date, start_time, end_time, facility_id)
-    VALUES ((SELECT id FROM TEAM WHERE name = 'First Team'), '2026-10-15', '09:00', '11:00', 5);
+INSERT INTO trainings (team_id, coach_id, training_date, start_time, end_time, facility_id)
+VALUES (
+    (SELECT id FROM TEAM WHERE name = 'First Team'),
+    (SELECT first_coach_id FROM TEAM WHERE name = 'First Team'),
+    '2026-10-15', '09:00', '11:00', 5
+);
 
--- Sample shareholders (US 35747).
 INSERT INTO SHAREHOLDER (first_name, last_name, national_id) VALUES
     ('Laura', 'Pérez Gil', '11111111H'),
     ('Marcos', 'Ruiz Soto', '22222222J'),
     ('Irene', 'Castillo Mora', '33333333P'),
     ('Javier', 'Ortega Lima', '44444444A');
 
--- Sample share campaigns, holdings and market prices (US 35747), so every
--- case can be tested: Laura is in profit, Marcos at a loss, Irene has one
--- holding up and one down, and Javier has no shares. The purchases of the
--- 2026 campaign are recent (relative to today), so they appear in the last
--- 30 days of the sales history.
--- All of them are finished, so a new campaign can be created.
 INSERT INTO SHARE_CAMPAIGN (name, nominal_price, total_shares, status) VALUES
     ('Founding shares 2023', 9.50, 1000, 'FINISHED'),
     ('Capital increase 2024', 10.00, 1000, 'FINISHED'),
@@ -298,9 +295,6 @@ INSERT INTO SHARE_HOLDING (shareholder_id, campaign_id, purchase_date, purchase_
     ((SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), '2023-03-01 17:30:00', 9.80),
     ((SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), datetime('now', 'localtime', 'start of day', '-20 days', '+16 hours', '+10 minutes'), 14.80);
 
--- The shares of each holding, with their IDs. Some holdings have IDs that
--- are not consecutive (for example Laura: 1-300 and 601-800), to test it.
--- Each SELECT gives the share numbers from..to of one holding.
 WITH RECURSIVE numbers(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM numbers WHERE n < 3000),
 ranges(national_id, campaign, first_id, last_id) AS (
     SELECT '11111111H', 'Founding shares 2023', 1, 300
@@ -321,20 +315,11 @@ JOIN SHARE_CAMPAIGN c ON c.name = r.campaign
 JOIN SHARE_HOLDING h ON h.shareholder_id = s.id AND h.campaign_id = c.id
 JOIN numbers n ON n.n BETWEEN r.first_id AND r.last_id;
 
--- Market prices of the last 3 days (relative to the day the database is
--- created). The price of today is created at random when the app starts.
 INSERT INTO MARKET_PRICE (price_date, price) VALUES
     (date('now', 'localtime', '-3 days'), 12.10),
     (date('now', 'localtime', '-2 days'), 12.25),
     (date('now', 'localtime', '-1 days'), 12.30);
 
--- ---------------------------------------------------------------------------
--- Sample income for the sales history (US 35084): at least one operation of
--- each concept in the last 30 days, and some older ones (more than 30 days
--- ago) to test the date filter. All the moments are relative to today.
--- ---------------------------------------------------------------------------
-
--- Merchandising: 4 purchases (one row per product line; total_price = units x price).
 INSERT INTO MERCHANDISING_SALE (sale_number, merch_id, units_sold, total_price, sale_date) VALUES
     (1, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2, 119.98, datetime('now', 'localtime', 'start of day', '-1 days', '+18 hours', '+20 minutes')),
     (1, (SELECT id FROM MERCHANDISING WHERE name = 'Club Scarf'), 1, 14.95, datetime('now', 'localtime', 'start of day', '-1 days', '+18 hours', '+20 minutes')),
@@ -344,32 +329,23 @@ INSERT INTO MERCHANDISING_SALE (sale_number, merch_id, units_sold, total_price, 
     (3, (SELECT id FROM MERCHANDISING WHERE name = 'Club Cap'), 2, 39.90, datetime('now', 'localtime', 'start of day', '-9 days', '+17 hours', '+40 minutes')),
     (4, (SELECT id FROM MERCHANDISING WHERE name = 'Club Keyring'), 4, 18.00, datetime('now', 'localtime', 'start of day', '-45 days', '+12 hours'));
 
--- Match tickets: 3 purchases for the next home matches (the seats of a purchase share the purchase_number).
 INSERT INTO MATCH_TICKET (purchase_number, match_id, grandstand, section, row_num, seat_num, price, created_at) VALUES
-    (1, (SELECT id FROM matches WHERE is_home = 1 ORDER BY match_date, start_time LIMIT 1), 'A', 'B', 4, 7, 30.0, datetime('now', 'localtime', 'start of day', '-2 days', '+10 hours', '+15 minutes')),
-    (1, (SELECT id FROM matches WHERE is_home = 1 ORDER BY match_date, start_time LIMIT 1), 'A', 'B', 4, 8, 30.0, datetime('now', 'localtime', 'start of day', '-2 days', '+10 hours', '+15 minutes')),
-    (1, (SELECT id FROM matches WHERE is_home = 1 ORDER BY match_date, start_time LIMIT 1), 'A', 'B', 4, 9, 30.0, datetime('now', 'localtime', 'start of day', '-2 days', '+10 hours', '+15 minutes')),
-    (2, (SELECT id FROM matches WHERE is_home = 1 ORDER BY match_date, start_time LIMIT 1), 'C', 'A', 1, 3, 30.0, datetime('now', 'localtime', 'start of day', '-6 days', '+20 hours', '+30 minutes')),
-    (3, (SELECT id FROM matches WHERE is_home = 1 ORDER BY match_date, start_time LIMIT 1 OFFSET 1), 'D', 'F', 10, 1, 30.0, datetime('now', 'localtime', 'start of day', '-12 days', '+9 hours', '+50 minutes')),
-    (3, (SELECT id FROM matches WHERE is_home = 1 ORDER BY match_date, start_time LIMIT 1 OFFSET 1), 'D', 'F', 10, 2, 30.0, datetime('now', 'localtime', 'start of day', '-12 days', '+9 hours', '+50 minutes'));
+    (1, 1, 'A', 'B', 4, 7, 30.0, datetime('now', 'localtime', 'start of day', '-2 days', '+10 hours', '+15 minutes')),
+    (1, 1, 'A', 'B', 4, 8, 30.0, datetime('now', 'localtime', 'start of day', '-2 days', '+10 hours', '+15 minutes')),
+    (1, 1, 'A', 'B', 4, 9, 30.0, datetime('now', 'localtime', 'start of day', '-2 days', '+10 hours', '+15 minutes')),
+    (2, 1, 'C', 'A', 1, 3, 30.0, datetime('now', 'localtime', 'start of day', '-6 days', '+20 hours', '+30 minutes')),
+    (3, 1, 'D', 'F', 10, 1, 30.0, datetime('now', 'localtime', 'start of day', '-12 days', '+9 hours', '+50 minutes')),
+    (3, 1, 'D', 'F', 10, 2, 30.0, datetime('now', 'localtime', 'start of day', '-12 days', '+9 hours', '+50 minutes'));
 
--- Season tickets (provisional table).
 INSERT INTO SEASON_TICKET (season, holder_name, price, created_at) VALUES
     ('2026/27', 'Carlos Medina', 350.00, datetime('now', 'localtime', 'start of day', '-3 days', '+9 hours', '+45 minutes')),
     ('2026/27', 'Lucia Romero', 350.00, datetime('now', 'localtime', 'start of day', '-15 days', '+13 hours', '+20 minutes')),
     ('2026/27', 'Pablo Ortiz', 280.00, datetime('now', 'localtime', 'start of day', '-40 days', '+19 hours'));
 
--- Facility bookings made some days ago (the one above is made today).
 INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reservation_date, start_time, end_time, hours, total_price, created_at) VALUES
     (4, 'Mario Blanco', '**** **** **** 2222', date('now', 'localtime', '+3 days'), '10:00', '12:00', 2, 100.0, datetime('now', 'localtime', 'start of day', '-5 days', '+16 hours', '+5 minutes')),
     (5, 'Ana Torres', '**** **** **** 3333', date('now', 'localtime', '-18 days'), '18:00', '19:00', 1, 50.0, datetime('now', 'localtime', 'start of day', '-20 days', '+11 hours', '+35 minutes'));
 
--- ---------------------------------------------------------------------------
--- Sample share market (US 35750): listings of Laura, Marcos and Irene (each
--- shareholder only sees the listings of the others; Javier has no shares and
--- sees all of them). Irene's listing of Founding shares has already sold 2
--- shares individually to Marcos, so its pack price no longer applies.
--- ---------------------------------------------------------------------------
 INSERT INTO SHARE_LISTING (id, seller_id, price_per_share, pack_price, listed_at) VALUES
     (1, (SELECT id FROM SHAREHOLDER WHERE national_id = '11111111H'), 12.50, 230.00, datetime('now', 'localtime', 'start of day', '-6 days', '+10 hours', '+30 minutes')),
     (2, (SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), 13.00, NULL, datetime('now', 'localtime', 'start of day', '-4 days', '+17 hours', '+15 minutes')),
@@ -377,7 +353,6 @@ INSERT INTO SHARE_LISTING (id, seller_id, price_per_share, pack_price, listed_at
     (4, (SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), 14.90, 70.00, datetime('now', 'localtime', 'start of day', '-1 days', '+12 hours')),
     (5, (SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), 15.20, NULL, datetime('now', 'localtime', 'start of day', '+8 hours', '+30 minutes'));
 
--- The shares of each listing (listing, first ID, last ID).
 WITH RECURSIVE numbers(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM numbers WHERE n < 3000),
 ranges(listing_id, first_id, last_id) AS (
     SELECT 1, 1001, 1020
@@ -389,8 +364,6 @@ ranges(listing_id, first_id, last_id) AS (
 INSERT INTO SHARE_LISTING_ITEM (listing_id, share_id)
 SELECT r.listing_id, n.n FROM ranges r JOIN numbers n ON n.n BETWEEN r.first_id AND r.last_id;
 
--- Marcos bought shares 301 and 302 of listing 3 yesterday: his new holding,
--- the change of owner of the shares and the record of the transfer.
 INSERT INTO SHARE_HOLDING (shareholder_id, campaign_id, purchase_date, purchase_price) VALUES
     ((SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'),
      datetime('now', 'localtime', 'start of day', '-1 days', '+19 hours', '+20 minutes'), 11.80);
@@ -405,3 +378,35 @@ WHERE s.id IN (301, 302);
 
 UPDATE SHARE SET holding_id = (SELECT to_holding_id FROM SHARE_TRANSFER WHERE share_id = SHARE.id)
 WHERE id IN (301, 302);
+
+INSERT INTO GARDENING_SESSION (facility_id, description, date, start_time, end_time, type) VALUES
+	(2, 'Pruning trees and trimming hedges',
+        '2026-11-11', '08:00', '12:00', 'Exterior'),
+
+    (4, 'Cleaning and maintenance of gym facilities',
+        '2026-11-12', '15:00', '17:00', 'Interior'),
+
+    (3, 'Cleaning corridors and common areas',
+        '2026-11-13', '09:00', '11:00', 'Interior'),
+
+    (1, 'Garden irrigation system maintenance',
+        '2026-11-14', '08:00', '10:00', 'Exterior'),
+
+    (4, 'Removal of leaves and garden debris',
+        '2026-11-16', '10:00', '13:00', 'Exterior');
+
+INSERT INTO gardening_session_employee
+    (gardening_session_id, employee_id)
+VALUES
+    -- Session 1
+    (1, 7),
+	-- Session 2
+    (2, 7),
+    (2, 8),
+    -- Session 3
+    (3, 7),
+    (3, 8),
+    -- Session 4
+    (4, 8),
+    -- Session 5
+    (5, 7);

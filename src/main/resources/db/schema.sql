@@ -132,6 +132,7 @@ CREATE TABLE IF NOT EXISTS trainings (
     start_time TEXT NOT NULL,        -- HH:MM
     end_time TEXT NOT NULL,          -- HH:MM
     facility_id INTEGER NOT NULL,    -- facility where the training takes place
+    coach_id INTEGER NOT NULL,         -- coach responsible for the training
     FOREIGN KEY (team_id) REFERENCES team(id),
     FOREIGN KEY (facility_id) REFERENCES FACILITY(id)
 );
@@ -336,6 +337,8 @@ CREATE TABLE IF NOT EXISTS gardening_session_employee (
 
     UNIQUE (gardening_session_id, employee_id)
 );
+
+
 -- Season tickets sold. PROVISIONAL table: there is no user story to sell
 -- season tickets yet; it exists so they can be seen in the sales history.
 -- season: for example '2026/27'.
@@ -372,4 +375,13 @@ CREATE TABLE IF NOT EXISTS FAN (
     email       VARCHAR(100) NOT NULL,
     created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 
+);
+
+CREATE TABLE IF NOT EXISTS MATCH_PRICE (
+    match_id INTEGER NOT NULL,
+    grandstand VARCHAR(50) NOT NULL,
+    section VARCHAR(50) NOT NULL,
+    price REAL NOT NULL,
+    PRIMARY KEY (match_id, grandstand, section),
+    FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE
 );

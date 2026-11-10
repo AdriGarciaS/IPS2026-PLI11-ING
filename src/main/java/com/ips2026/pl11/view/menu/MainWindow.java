@@ -274,6 +274,7 @@ public class MainWindow extends JFrame {
     private Object openTrainingSession() {
         try {
             TrainingSessionWindow dialog = new TrainingSessionWindow(this);
+            dialog.initialize();
             dialog.setVisible(true);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,

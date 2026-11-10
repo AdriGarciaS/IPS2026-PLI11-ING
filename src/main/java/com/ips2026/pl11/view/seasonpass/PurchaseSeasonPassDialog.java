@@ -21,13 +21,18 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import com.ips2026.pl11.controller.email.EmailController;
 import com.ips2026.pl11.controller.seasonpass.SeasonPassController;
 import com.ips2026.pl11.model.seasonpass.SeasonDateUtils;
 import com.ips2026.pl11.view.common.HeaderPanel;
 
+import jakarta.mail.MessagingException;
+
 public class PurchaseSeasonPassDialog extends JDialog {
 
     private static final long serialVersionUID = 1L;
+    private EmailController emailController = new EmailController("smtp.gmail.com", 587, "ipswichmgmt@gmail.com",
+        "lndqblaxqraeetjw");
 
     private final SeasonPassController controller;
     private HeaderPanel pnHeader;
@@ -70,8 +75,8 @@ public class PurchaseSeasonPassDialog extends JDialog {
 
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
-            pnHeader = new HeaderPanel("SEASON PASS HOLDER SITE", 
-                    "Purchase annual season pass for specific club teams", false);
+            pnHeader = new HeaderPanel("SEASON PASS HOLDER SITE", "Purchase annual season pass for specific club teams",
+                false);
         }
         return pnHeader;
     }
@@ -88,10 +93,9 @@ public class PurchaseSeasonPassDialog extends JDialog {
         JPanel rightPanel = createRightGridPanel();
 
         // Division line on left panel right edge
-        leftPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY),
-                BorderFactory.createEmptyBorder(0, 0, 0, 15)
-        ));
+        leftPanel
+            .setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY),
+                BorderFactory.createEmptyBorder(0, 0, 0, 15)));
 
         mainContent.add(leftPanel);
         mainContent.add(rightPanel);
@@ -133,7 +137,7 @@ public class PurchaseSeasonPassDialog extends JDialog {
         panel.add(createSectionHeader("CATEGORY"), getGbc(0, row++, 2));
 
         panel.add(new JLabel("AGE CATEGORY:"), getGbc(0, row, 1));
-        cbAgeCategory = new JComboBox<>(new String[]{"Adults", "Seniors", "Under 26", "Children"});
+        cbAgeCategory = new JComboBox<>(new String[] { "Adults", "Seniors", "Under 26", "Children" });
         cbAgeCategory.addActionListener(e -> updatePriceAndSummary());
         panel.add(cbAgeCategory, getGbc(1, row++, 1));
 
@@ -141,7 +145,7 @@ public class PurchaseSeasonPassDialog extends JDialog {
         panel.add(createSectionHeader("TEAM SELECTION"), getGbc(0, row++, 2));
 
         panel.add(new JLabel("SELECTED TEAM:"), getGbc(0, row, 1));
-        cbTeam = new JComboBox<>(new String[]{"First Team", "Women's Team", "Youth Team"});
+        cbTeam = new JComboBox<>(new String[] { "First Team", "Women's Team", "Youth Team" });
         cbTeam.addActionListener(e -> loadOccupiedSeats());
         panel.add(cbTeam, getGbc(1, row++, 1));
 
@@ -155,12 +159,12 @@ public class PurchaseSeasonPassDialog extends JDialog {
         panel.add(createSectionHeader("SEAT LOCATION"), getGbc(0, row++, 2));
 
         panel.add(new JLabel("GRANDSTAND:"), getGbc(0, row, 1));
-        cbGrandstand = new JComboBox<>(new String[]{"A", "B", "C", "D"});
+        cbGrandstand = new JComboBox<>(new String[] { "A", "B", "C", "D" });
         cbGrandstand.addActionListener(e -> loadOccupiedSeats());
         panel.add(cbGrandstand, getGbc(1, row++, 1));
 
         panel.add(new JLabel("SECTION:"), getGbc(0, row, 1));
-        cbSection = new JComboBox<>(new String[]{"A", "B", "C", "D", "E", "F"});
+        cbSection = new JComboBox<>(new String[] { "A", "B", "C", "D", "E", "F" });
         cbSection.addActionListener(e -> loadOccupiedSeats());
         panel.add(cbSection, getGbc(1, row++, 1));
 
@@ -187,7 +191,7 @@ public class PurchaseSeasonPassDialog extends JDialog {
 
     private JPanel createRightGridPanel() {
         JPanel rightPanel = new JPanel(new BorderLayout(8, 8));
-        
+
         JLabel lblGridTitle = new JLabel("SEAT SELECTION", SwingConstants.CENTER);
         lblGridTitle.setFont(new Font("SansSerif", Font.BOLD, 14));
         rightPanel.add(lblGridTitle, BorderLayout.NORTH);
@@ -215,7 +219,8 @@ public class PurchaseSeasonPassDialog extends JDialog {
         rightPanel.add(gridPanel, BorderLayout.CENTER);
 
         // Legend
-        JLabel lblLegend = new JLabel("Click an available green seat to select it (turns blue).", SwingConstants.CENTER);
+        JLabel lblLegend = new JLabel("Click an available green seat to select it (turns blue).",
+            SwingConstants.CENTER);
         lblLegend.setFont(new Font("SansSerif", Font.ITALIC, 11));
         rightPanel.add(lblLegend, BorderLayout.SOUTH);
 
@@ -297,7 +302,9 @@ public class PurchaseSeasonPassDialog extends JDialog {
     }
 
     private void selectSeat(int rowIndex, int colIndex) {
-        if (occupiedMatrix[rowIndex][colIndex]) return;
+        if (occupiedMatrix[rowIndex][colIndex]) {
+            return;
+        }
 
         selectedRow = rowIndex;
         selectedSeat = colIndex;
@@ -316,28 +323,35 @@ public class PurchaseSeasonPassDialog extends JDialog {
 
     private void handlePurchase() {
         if (selectedRow == -1 || selectedSeat == -1) {
-            JOptionPane.showMessageDialog(this, "Please select an available seat on the grid.", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select an available seat on the grid.", "Selection Required",
+                JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         try {
-            boolean success = controller.purchaseSeasonPass(
-                    txtDni.getText().trim(),
-                    txtFullName.getText().trim(),
-                    txtEmail.getText().trim(),
-                    (String) cbTeam.getSelectedItem(),
-                    (String) cbGrandstand.getSelectedItem(),
-                    (String) cbSection.getSelectedItem(),
-                    selectedRow + 1,
-                    selectedSeat + 1,
-                    (String) cbAgeCategory.getSelectedItem(),
-                    basePrice
-            );
+            String email = txtEmail.getText().trim();
+            String dni = txtDni.getText().trim();
+            String fullName = txtFullName.getText().trim();
+            String team = (String) cbTeam.getSelectedItem();
+            String grandstand = (String) cbGrandstand.getSelectedItem();
+            String section = (String) cbSection.getSelectedItem();
+            String ageCategory = (String) cbAgeCategory.getSelectedItem();
+
+            boolean success = controller.purchaseSeasonPass(dni, fullName, email, team, grandstand, section,
+                selectedRow + 1, selectedSeat + 1, ageCategory, basePrice);
 
             if (success) {
-                JOptionPane.showMessageDialog(this, "Season pass successfully purchased!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                emailController.sendSeasonPassReceipt(email, dni, fullName, team, grandstand, section, selectedRow + 1,
+                    selectedSeat + 1, ageCategory, basePrice);
+
+                JOptionPane.showMessageDialog(this, "Season pass successfully purchased!\nReceipt sent to " + email, "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
                 dispose();
             }
+        } catch (MessagingException e) {
+            JOptionPane.showMessageDialog(this, "The receipt could not be sent:\n" + e.getMessage(), "Email error",
+                JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }

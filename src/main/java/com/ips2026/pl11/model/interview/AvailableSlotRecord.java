@@ -4,10 +4,11 @@ public class AvailableSlotRecord {
 
 	private final int id;
     private final int playerId;
-    private final String playerName;
     private final String date;
     private final String startTime;
     private final String endTime;
+    
+    private String playerName;
 
     public AvailableSlotRecord(int id, int playerId, String playerName, String date, String startTime, String endTime) {
         this.id = id;
@@ -40,5 +41,9 @@ public class AvailableSlotRecord {
 
     public String getEndTime() {
         return endTime;
+    }
+    
+    public void setPlayerName(String pn) {
+        this.playerName = pn;
     }
 }

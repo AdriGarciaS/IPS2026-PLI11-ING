@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -113,9 +114,21 @@ public class TrainingSessionWindow extends JDialog {
     private JLabel lblInterviews;
     private JLabel lblFreeTimeslots;
 
-    private DefaultTableModel timeslotsModel=new DefaultTableModel(new Object[][]{},new String[]{"Start","End"}){@Override public boolean isCellEditable(int row,int column){return false;}};
+    private DefaultTableModel timeslotsModel = new DefaultTableModel(new Object[][] {},
+        new String[] { "Start", "End", "Availability" }) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false;
+        }
+    };
 
-    private DefaultTableModel interviewsModel=new DefaultTableModel(new Object[][]{},new String[]{"Player","Start","End"}){@Override public boolean isCellEditable(int row,int column){return false;}};
+    private DefaultTableModel interviewsModel = new DefaultTableModel(new Object[][] {},
+        new String[] { "Player", "Start", "End" }) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false;
+        }
+    };
 
     private List<Facility> facilities = new ArrayList<>();
 
@@ -208,7 +221,7 @@ public class TrainingSessionWindow extends JDialog {
             lblTeam = new JLabel("Team:");
             lblTeam.setForeground(new Color(0, 64, 128));
             lblTeam.setFont(new Font("Tahoma", Font.BOLD, 16));
-            lblTeam.setBounds(63, 93, 176, 23);
+            lblTeam.setBounds(63, 141, 176, 23);
         }
         return lblTeam;
     }
@@ -260,7 +273,7 @@ public class TrainingSessionWindow extends JDialog {
     private JComboBox<String> getCbTeams() {
         if (cbTeams == null) {
             cbTeams = new JComboBox();
-            cbTeams.setBounds(237, 85, 181, 38);
+            cbTeams.setBounds(237, 133, 181, 38);
         }
         return cbTeams;
     }
@@ -271,6 +284,7 @@ public class TrainingSessionWindow extends JDialog {
             cbFacilities.addActionListener(e -> {
                 if (dateSession != null) {
                     dateSession.getJCalendar().getDayChooser().repaint();
+                    updateTableFreeTimeslots();
                 }
             });
             cbFacilities.setBounds(237, 39, 181, 38);
@@ -280,7 +294,7 @@ public class TrainingSessionWindow extends JDialog {
 
     private JLabel getLblFacility() {
         if (lblFacility == null) {
-            lblFacility = new JLabel("Training facility:");
+            lblFacility = new JLabel("Facility:");
             lblFacility.setForeground(new Color(0, 64, 128));
             lblFacility.setFont(new Font("Tahoma", Font.BOLD, 16));
             lblFacility.setBounds(63, 47, 162, 23);
@@ -294,9 +308,9 @@ public class TrainingSessionWindow extends JDialog {
             dateSession.addPropertyChangeListener("date", new PropertyChangeListener() {
                 @Override
                 public void propertyChange(PropertyChangeEvent evt) {
-                    if(dateSession.getDate() != null) {
+                    if (dateSession.getDate() != null) {
                         updateTableFreeTimeslots();
-                        loadTableInterviews();                        
+                        loadTableInterviews();
                     }
                 }
             });
@@ -317,10 +331,13 @@ public class TrainingSessionWindow extends JDialog {
             cbCoaches.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    loadTableInterviews();
+                    if (getDate().getDate() != null) {
+                        loadTableInterviews();
+                    }
+                    filterTeamsByCoach();
                 }
             });
-            cbCoaches.setBounds(237, 132, 181, 38);
+            cbCoaches.setBounds(237, 86, 181, 38);
         }
         return cbCoaches;
     }
@@ -330,7 +347,7 @@ public class TrainingSessionWindow extends JDialog {
             lblCoach = new JLabel("Coach:");
             lblCoach.setForeground(new Color(0, 64, 128));
             lblCoach.setFont(new Font("Tahoma", Font.BOLD, 16));
-            lblCoach.setBounds(63, 140, 176, 23);
+            lblCoach.setBounds(63, 94, 176, 23);
         }
         return lblCoach;
     }
@@ -442,8 +459,7 @@ public class TrainingSessionWindow extends JDialog {
     public void initialize() {
         interviewsModel.setRowCount(0);
         timeslotsModel.setRowCount(0);
-        
-        
+
         loadFacilities();
         loadCoaches();
         loadTeams();
@@ -487,9 +503,8 @@ public class TrainingSessionWindow extends JDialog {
             facilities = facilityController.getFacilities();
             List<String> training = new ArrayList<>();
             for (Facility f : facilities) {
-                if (f.getName().contains("Training")) {
-                    training.add(f.getName());
-                }
+                training.add(f.getName());
+
             }
             getCbFacilities().setModel(new DefaultComboBoxModel<>(training.toArray(new String[0])));
         } catch (SQLException exception) {
@@ -510,13 +525,56 @@ public class TrainingSessionWindow extends JDialog {
             List<GardeningSession> gardeningSessions = getTodayGardeningSessions(date);
             List<TimeSlot> freePeriods = intersectPeriodsWithGardeningSessions(gardeningSessions, facility);
 
-            for (TimeSlot slot : freePeriods) {
-                timeslotsModel.addRow(new Object[] { slot.getStart().toString(), slot.getEnd().toString() });
+            List<Object[]> rows = getPeriodRows(freePeriods);
+
+            for (Object[] r : rows) {
+                timeslotsModel.addRow(new Object[] { r[0].toString(), r[1].toString(), r[2] });
             }
+
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error loading free timeslots:\n" + e.getMessage(),
                 "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private List<Object[]> getPeriodRows(List<TimeSlot> freePeriods) {
+        List<Object[]> rows = new ArrayList<>();
+        for (TimeSlot slot : freePeriods) {
+            rows.add(new Object[] { slot.getStart(), slot.getEnd(), "Free" });
+        }
+
+        rows.sort(Comparator.comparing(r -> (LocalTime) r[0]));
+
+        List<Object[]> filled = new ArrayList<>();
+
+        if (!rows.isEmpty()) {
+            LocalTime openingTime = LocalTime.of(8, 00);
+            LocalTime closingTime = LocalTime.of(22, 00);
+
+            LocalTime firstStart = (LocalTime) rows.get(0)[0];
+            if (openingTime.isBefore(firstStart)) {
+                filled.add(new Object[] { openingTime, firstStart, "Busy" });
+            }
+            for (int i = 0; i < rows.size(); i++) {
+                Object[] current = rows.get(i);
+                filled.add(current);
+                if (i < rows.size() - 1) {
+
+                    LocalTime currentEnd = (LocalTime) current[1];
+                    LocalTime nextStart = (LocalTime) rows.get(i + 1)[0];
+                    if (currentEnd.isBefore(nextStart)) {
+                        filled.add(new Object[] { currentEnd, nextStart, "Busy" });
+                    }
+                }
+            }
+
+            LocalTime lastEnd = (LocalTime) rows.get(rows.size() - 1)[1];
+            if (lastEnd.isBefore(closingTime)) {
+                filled.add(new Object[] { lastEnd, closingTime, "Busy" });
+            }
+        }
+        return filled;
+
     }
 
     private List<TimeSlot> intersectPeriodsWithGardeningSessions(List<GardeningSession> gardeningSessions,
@@ -582,9 +640,9 @@ public class TrainingSessionWindow extends JDialog {
     private void loadTableInterviews() {
         interviewsModel.setRowCount(0);
         try {
-            int coachId = (int) getCoachIdFromCb();
+            int coachId = getCoachIdFromCb();
             List<Employee> players = interviewSlotsController.getPlayersByCoach(coachId);
-            
+
             List<AvailableSlotRecord> interviews = interviewController.getInterviewSlots();
             LocalDate date = getDate().getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
@@ -593,18 +651,17 @@ public class TrainingSessionWindow extends JDialog {
                     LocalDate interviewDate = LocalDate.parse(slot.getDate());
                     if (interviewDate.equals(date)) {
                         interviewsModel
-                        .addRow(new Object[] { slot.getPlayerName(), slot.getStartTime(), slot.getEndTime() });
+                            .addRow(new Object[] { slot.getPlayerName(), slot.getStartTime(), slot.getEndTime() });
                     }
                 }
             }
 
-        }catch(
+        } catch (
 
-    SQLException e)
-    {
-        JOptionPane.showMessageDialog(this, "Interviews could not be loaded:\n" + e.getMessage(),
-            "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
-    }
+        SQLException e) {
+            JOptionPane.showMessageDialog(this, "Interviews could not be loaded:\n" + e.getMessage(),
+                "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void checkAllFilled() {
@@ -662,9 +719,7 @@ public class TrainingSessionWindow extends JDialog {
                 .filter(g -> LocalDate.parse(g.getDate()).equals(session.getDate()))
                 .filter(g -> session.getStartTime().isBefore(LocalTime.parse(g.getEndTime()))
                     && session.getEndTime().isAfter(LocalTime.parse(g.getStartTime())))
-                .filter(g -> g.getFacilityId() == session.getFacility())
-                .toList();
-           
+                .filter(g -> g.getFacilityId() == session.getFacility()).toList();
 
             if (!overlapping.isEmpty()) {
                 String msg = overlapping.stream()
@@ -696,7 +751,7 @@ public class TrainingSessionWindow extends JDialog {
             if (problem.isPresent()) {
                 if (canCancelReservation(problem)) {
 
-                    if(!checkBookingExclusiveRestriction(problem.get())) {
+                    if (!checkBookingExclusiveRestriction(problem.get())) {
                         JOptionPane.showMessageDialog(this, "The following time conflict was found:\n" + problem.get(),
                             "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
                         return false;
@@ -735,11 +790,11 @@ public class TrainingSessionWindow extends JDialog {
         String blockedAfterTeamUse = "The facility can not be booked until ";
         String startTimePassed = "The start time has already passed.";
         String training = "(training)";
-                
-        boolean ignoreProblem = problem.contains(minDurationMsg) || problem.contains(timeLimit) || problem.contains(openingTime)
-            || problem.contains(closingTime) || problem.contains(pastTime) || problem.contains(blockedAfterTeamUse)
-            || problem.contains(startTimePassed) || problem.contains(training);
-        
+
+        boolean ignoreProblem = problem.contains(minDurationMsg) || problem.contains(timeLimit)
+            || problem.contains(openingTime) || problem.contains(closingTime) || problem.contains(pastTime)
+            || problem.contains(blockedAfterTeamUse) || problem.contains(startTimePassed) || problem.contains(training);
+
         if (ignoreProblem) {
             return true;
         }
@@ -772,7 +827,7 @@ public class TrainingSessionWindow extends JDialog {
         return -1;
     }
 
-    private long getCoachIdFromCb() {
+    private int getCoachIdFromCb() {
         try {
             String selectedCoachName = (String) getCbCoaches().getSelectedItem();
             List<Employee> coaches = employeeController.getEmployeesByRole("Coach");
@@ -804,6 +859,23 @@ public class TrainingSessionWindow extends JDialog {
                 "Training Session Scheduling", JOptionPane.ERROR_MESSAGE);
         }
         return -1;
+    }
+
+    private void filterTeamsByCoach() {
+        try {
+            int coachId = getCoachIdFromCb();
+            List<TeamItem> teams = teamController.getTeamsByCoach(coachId);
+            List<String> teamNames = new ArrayList<>();
+            for (TeamItem team : teams) {
+                if (team.getFirstCoachId() == coachId || team.getSecondCoachId() == coachId) {
+                    teamNames.add(team.getName());
+                }
+            }
+            getCbTeams().setModel(new DefaultComboBoxModel<String>(teamNames.toArray(new String[0])));
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this, "Teams could not be loaded:\n" + exception.getMessage(),
+                "Training Sessions Scheduling", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
 }

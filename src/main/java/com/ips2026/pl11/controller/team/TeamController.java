@@ -18,4 +18,8 @@ public class TeamController {
         return teamDAO.findAll();
     }
     
+    public List<TeamItem> getTeamsByCoach(int coachId) throws SQLException {
+        return teamDAO.findTeamsByCoach(coachId);
+    }
+    
 }

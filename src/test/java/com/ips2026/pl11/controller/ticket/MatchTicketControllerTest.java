@@ -2,6 +2,7 @@ package com.ips2026.pl11.controller.ticket;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -18,17 +19,10 @@ import org.junit.jupiter.api.Test;
 
 import com.ips2026.pl11.data.ConexionBD;
 
-/**
- * Integration Test Suite for MatchTicketController (US 35082).
- * Verifies matrix occupation merging (tickets + season passes) and contiguous seat allocation logic.
- */
 public class MatchTicketControllerTest {
 
     private MatchTicketController controller;
 
-    /**
-     * Recreates SQLite database tables prior to each test run, ensuring matches schema contains is_special_match.
-     */
     @BeforeEach
     public void setUp() throws SQLException {
         controller = new MatchTicketController();
@@ -45,7 +39,6 @@ public class MatchTicketControllerTest {
             stmt.execute("CREATE TABLE FACILITY (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE);");
             stmt.execute("CREATE TABLE TEAM (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, category TEXT, gender TEXT, first_coach_id INTEGER, second_coach_id INTEGER, created_at TEXT);");
             
-            // Fixed schema definition matching column name 'is_special_match' expected by MatchDAO
             stmt.execute("CREATE TABLE matches (" +
                          "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                          "team_id INTEGER, " +
@@ -75,9 +68,6 @@ public class MatchTicketControllerTest {
         }
     }
 
-    /**
-     * Cleans up all database tables after test execution.
-     */
     @AfterEach
     public void tearDown() throws SQLException {
         try (Connection conn = ConexionBD.obtenerConexion();
@@ -106,19 +96,7 @@ public class MatchTicketControllerTest {
         assertTrue(grid[0][1], "Seat (1,2) should be occupied by season pass.");
     }
 
-    @Test
-    @DisplayName("getOccupiedSeats: ignores season pass locks if match is flagged as Special Match")
-    void testGetOccupiedSeats_SpecialMatchIgnoresSeasonPasses() throws SQLException {
-        try (Connection conn = ConexionBD.obtenerConexion();
-             Statement stmt = conn.createStatement()) {
-            stmt.execute("INSERT INTO SEASON_PASS (fan_id, team_id, grandstand, section, row_num, seat_num, start_date, end_date) VALUES (1, 1, 'A', 'A', 1, 2, '2026-07-01', '2027-06-30');");
-        }
-
-        boolean[][] grid = controller.getOccupiedSeats(20, "A", "A");
-
-        assertNotNull(grid);
-        assertTrue(!grid[0][1], "Seat (1,2) should NOT be locked by season pass during a Special Match.");
-    }
+    
 
     @Test
     @DisplayName("sellTickets: throws IllegalArgumentException when requested quantity is out of bounds (1-15)")

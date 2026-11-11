@@ -410,3 +410,24 @@ VALUES
     (4, 8),
     -- Session 5
     (5, 7);
+    
+INSERT OR IGNORE INTO FAN (id, dni, full_name, email) VALUES
+    (101, '12345678X', 'Carlos González', 'carlos@example.com'),
+    (102, '87654321Y', 'María Fernández', 'maria@example.com'),
+    (103, '11223344Z', 'Juan Martínez', 'juan@example.com'),
+    (104, '44332211K', 'Ana López', 'ana@example.com');
+
+INSERT INTO SEASON_PASS (fan_id, team_id, grandstand, section, row_num, seat_num, age_category, price, start_date, end_date) VALUES
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'A', 1, 2, 'Adults', 250.00, '2026-07-01', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'A', 2, 5, 'Adults', 250.00, '2026-07-01', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'C', 4, 8, 'Adults', 220.00, '2026-07-01', '2027-06-30');
+
+-- (2026/27)
+INSERT INTO matches (team_id, rival, match_date, start_time, end_time, is_home, is_special_match, facility_id) VALUES
+    ((SELECT id FROM TEAM WHERE name = 'First Team'), 'Villarreal CF', '2026-11-25', '18:00', '20:00', 1, 0, 1),
+    ((SELECT id FROM TEAM WHERE name = 'First Team'), 'Real Madrid', '2026-12-15', '21:00', '23:00', 1, 1, 1);
+
+-- (2027/28)
+INSERT INTO matches (team_id, rival, match_date, start_time, end_time, is_home, is_special_match, facility_id) VALUES
+    ((SELECT id FROM TEAM WHERE name = 'First Team'), 'Getafe CF', '2027-09-20', '19:00', '21:00', 1, 0, 1),
+    ((SELECT id FROM TEAM WHERE name = 'First Team'), 'FC Barcelona', '2027-10-30', '21:00', '23:00', 1, 1, 1);

@@ -34,13 +34,14 @@ import com.ips2026.pl11.controller.ticket.SpecialMatchTicketController;
 import com.ips2026.pl11.data.matches.MatchPriceDAO;
 import com.ips2026.pl11.data.ticket.MatchDAO;
 import com.ips2026.pl11.model.ticket.HomeMatch;
+import com.ips2026.pl11.model.ticket.SeatStatus;
 import com.ips2026.pl11.view.common.Branding;
 
 import jakarta.mail.MessagingException;
 
 /**
  * Dialog for purchasing match tickets, supporting standard seat sales as well as
- * US 35777 Special Match season pass member seat verification and payment check-in.
+ * US 35777 / US 36757 Special Match season pass member seat verification and payment check-in.
  */
 public class SellMatchTicketDialog extends JDialog {
 
@@ -60,7 +61,7 @@ public class SellMatchTicketDialog extends JDialog {
     private JSpinner spinnerQuantity;
     private StandBoardPanel boardPanel;
 
-    // US 35777 Special Match Check-in Controls
+    // US 35777 / US 36757 Special Match Check-in Controls
     private JPanel pnlSpecialMemberCheckIn;
     private JTextField txtMemberDni;
     private JButton btnVerifyMember;
@@ -131,7 +132,7 @@ public class SellMatchTicketDialog extends JDialog {
 
         leftFormPanel.add(pnlDetails);
 
-        // US 35777: Season Pass Member Check-in Panel (Rendered dynamically for Special Matches only)
+        // US 35777 / US 36757: Season Pass Member Check-in Panel (Rendered dynamically for Special Matches only)
         if (currentMatch != null && currentMatch.isSpecialMatch()) {
             pnlSpecialMemberCheckIn = createSpecialMatchMemberPanel();
             leftFormPanel.add(pnlSpecialMemberCheckIn);
@@ -250,6 +251,10 @@ public class SellMatchTicketDialog extends JDialog {
         }
     }
 
+    /**
+     * Refreshes the visual seating board by fetching the SeatStatus matrix (US 36757).
+     * Differentiates between Green (Available), Yellow/Orange (Member Reserved in Special Match), and Red (Occupied).
+     */
     private void refreshBoard() {
         String grandstand = (String) cbGrandstand.getSelectedItem();
         String section = (String) cbSection.getSelectedItem();
@@ -259,8 +264,9 @@ public class SellMatchTicketDialog extends JDialog {
         }
 
         try {
-            boolean[][] occupiedMatrix = controller.getOccupiedSeats(matchId, grandstand, section);
-            boardPanel.updateBoard(occupiedMatrix);
+            // Retrieves the 10x15 SeatStatus enum matrix from the controller
+            SeatStatus[][] statusMatrix = controller.getSeatMatrix(matchId, grandstand, section);
+            boardPanel.updateBoard(statusMatrix);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error loading seat map: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }

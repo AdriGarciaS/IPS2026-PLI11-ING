@@ -147,4 +147,56 @@ public class InterviewSlotDAOTest {
         assertNotNull(activities);
         assertEquals(2, activities.size());
     }
+    
+    @Test
+    @DisplayName("US 36755: getSlotsByTeam returns ALL slots (AVAILABLE and ASSIGNED) for a specific team")
+    void testGetSlotsByTeam_ReturnsAllStatusesForSelectedTeam() throws SQLException {
+        try (Connection conn = ConexionBD.obtenerConexion()) {
+            // Team 1 (Pedri) -> 1 AVAILABLE slot, 1 ASSIGNED slot
+            try (PreparedStatement ps = conn.prepareStatement("INSERT INTO interview_slots (player_id, coach_id, slot_date, start_time, end_time, status) VALUES (1, 2, '2026-11-25', '10:00', '10:30', 'AVAILABLE')")) {
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = conn.prepareStatement("INSERT INTO interview_slots (player_id, coach_id, slot_date, start_time, end_time, status) VALUES (1, 2, '2026-11-25', '11:00', '11:30', 'ASSIGNED')")) {
+                ps.executeUpdate();
+            }
+
+            // Team 2 (Pablo Gavi) -> 1 AVAILABLE slot (Must NOT be retrieved for Team 1)
+            try (PreparedStatement ps = conn.prepareStatement("INSERT INTO interview_slots (player_id, coach_id, slot_date, start_time, end_time, status) VALUES (4, 3, '2026-11-25', '12:00', '12:30', 'AVAILABLE')")) {
+                ps.executeUpdate();
+            }
+        }
+
+        List<InterviewSlotRecord> slotsTeam1 = slotDAO.getSlotsByTeam(1);
+        assertNotNull(slotsTeam1);
+        assertEquals(2, slotsTeam1.size());
+        assertTrue(slotsTeam1.stream().anyMatch(s -> "AVAILABLE".equals(s.getStatus())));
+        assertTrue(slotsTeam1.stream().anyMatch(s -> "ASSIGNED".equals(s.getStatus())));
+        assertTrue(slotsTeam1.stream().allMatch(s -> "Pedri González".equals(s.getPlayerName())));
+    }
+
+    @Test
+    @DisplayName("US 36755: getTeamScheduleByTeamId retrieves matches, trainings, and all interview slots for selected team")
+    void testGetTeamScheduleByTeamId_ReturnsFullTeamSchedule() throws SQLException {
+        try (Connection conn = ConexionBD.obtenerConexion()) {
+            // Insert Match for Team 1
+            try (PreparedStatement ps = conn.prepareStatement("INSERT INTO matches (team_id, match_date, start_time, end_time, is_home, facility_id) VALUES (1, '2026-11-25', '18:00', '20:00', 1, 1)")) {
+                ps.executeUpdate();
+            }
+            // Insert Training for Team 1
+            try (PreparedStatement ps = conn.prepareStatement("INSERT INTO trainings (team_id, training_date, start_time, end_time, facility_id, coach_id) VALUES (1, '2026-11-25', '10:00', '12:00', 1, 2)")) {
+                ps.executeUpdate();
+            }
+            // Insert Interview Slot for Team 1 (Pedri)
+            try (PreparedStatement ps = conn.prepareStatement("INSERT INTO interview_slots (player_id, coach_id, slot_date, start_time, end_time, status) VALUES (1, 2, '2026-11-25', '14:00', '14:30', 'AVAILABLE')")) {
+                ps.executeUpdate();
+            }
+        }
+
+        List<TeamActivityRecord> schedule = slotDAO.getTeamScheduleByTeamId(1);
+        assertNotNull(schedule);
+        assertEquals(3, schedule.size());
+        assertTrue(schedule.stream().anyMatch(a -> "MATCH".equals(a.getType())));
+        assertTrue(schedule.stream().anyMatch(a -> "TRAINING".equals(a.getType())));
+        assertTrue(schedule.stream().anyMatch(a -> "INTERVIEW (AVAILABLE)".equals(a.getType())));
+    }
 }

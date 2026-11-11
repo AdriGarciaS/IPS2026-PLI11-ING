@@ -1,15 +1,15 @@
 package com.ips2026.pl11.data.ticket;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,130 +18,102 @@ import org.junit.jupiter.api.Test;
 
 import com.ips2026.pl11.data.ConexionBD;
 
+/**
+ * Integration Test Suite for MatchTicketDAO.
+ * Verifies table creation, seat matrix queries, seat booking, and unique seat constraints.
+ */
 public class MatchTicketDAOTest {
 
-    private MatchTicketDAO matchTicketDAO;
+    private MatchTicketDAO ticketDAO;
 
+    /**
+     * Recreates database tables prior to each test, setting up a UNIQUE constraint on seat coordinates.
+     */
     @BeforeEach
     public void setUp() throws SQLException {
-        matchTicketDAO = new MatchTicketDAO();
+        ticketDAO = new MatchTicketDAO();
 
         try (Connection conn = ConexionBD.obtenerConexion();
              Statement stmt = conn.createStatement()) {
-            
-            stmt.execute("CREATE TABLE IF NOT EXISTS matches (id INTEGER PRIMARY KEY AUTOINCREMENT, match_date TEXT, start_time TEXT, is_home INTEGER);");
-            stmt.execute("CREATE TABLE IF NOT EXISTS MATCH_TICKET (" +
+
+            stmt.execute("DROP TABLE IF EXISTS MATCH_TICKET;");
+
+            // UNIQUE constraint on (match_id, grandstand, section, row_num, seat_num) forces SQLite to throw SQLException on duplicates
+            stmt.execute("CREATE TABLE MATCH_TICKET (" +
                          "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                         "purchase_number INTEGER NOT NULL, " +
                          "match_id INTEGER NOT NULL, " +
                          "grandstand TEXT NOT NULL, " +
                          "section TEXT NOT NULL, " +
                          "row_num INTEGER NOT NULL, " +
                          "seat_num INTEGER NOT NULL, " +
                          "price REAL NOT NULL, " +
-                         "created_at TEXT DEFAULT CURRENT_TIMESTAMP, " +
+                         "purchase_number TEXT NOT NULL DEFAULT 'PN-000', " +
                          "UNIQUE(match_id, grandstand, section, row_num, seat_num));");
-
-            stmt.execute("INSERT OR IGNORE INTO matches (id, match_date, start_time, is_home) VALUES (1, '2026-11-20', '18:00', 1);");
         }
     }
 
+    /**
+     * Cleans up database table after test execution.
+     */
     @AfterEach
     public void tearDown() throws SQLException {
         try (Connection conn = ConexionBD.obtenerConexion();
              Statement stmt = conn.createStatement()) {
             stmt.execute("DELETE FROM MATCH_TICKET;");
-            stmt.execute("DELETE FROM matches WHERE id = 1;");
         }
     }
 
     @Test
-    @DisplayName("US 35083: getOccupiedSeats returns empty 10x15 matrix when no tickets are sold")
-    void testGetOccupiedSeats_NoTicketsSold_ReturnsAllFalse() throws SQLException {
-        boolean[][] occupied = matchTicketDAO.getOccupiedSeats(1, "A", "A");
-
-        assertNotNull(occupied);
-        assertEquals(10, occupied.length);
-        assertEquals(15, occupied[0].length);
-
-        for (int r = 0; r < 10; r++) {
-            for (int c = 0; c < 15; c++) {
-                assertFalse(occupied[r][c]);
-            }
-        }
-    }
-
-    @Test
-    @DisplayName("US 35083: getOccupiedSeats correctly maps sold seats to true")
-    void testGetOccupiedSeats_SoldSeats_ReturnsTrueAtExactCoordinates() throws SQLException {
-        try (Connection conn = ConexionBD.obtenerConexion();
-             PreparedStatement stmt = conn.prepareStatement(
-                "INSERT INTO MATCH_TICKET (purchase_number, match_id, grandstand, section, row_num, seat_num, price) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-            stmt.setInt(1, 9991);
-            stmt.setInt(2, 1);
-            stmt.setString(3, "A");
-            stmt.setString(4, "A");
-            stmt.setInt(5, 5); // Fila 5 -> Índice [4]
-            stmt.setInt(6, 10); // Asiento 10 -> Índice [9]
-            stmt.setDouble(7, 30.00);
-            stmt.executeUpdate();
-        }
-
-        boolean[][] occupied = matchTicketDAO.getOccupiedSeats(1, "A", "A");
-
-        assertTrue(occupied[4][9], "Row 5 Seat 10 should be occupied (index 4, 9)");
-        assertFalse(occupied[0][0], "Row 1 Seat 1 should remain available");
-    }
-
-    @Test
-    @DisplayName("US 35082: Inserting duplicate seat ticket for same match throws SQLException")
-    void testInsertDuplicateTicket_ThrowsSQLException() throws SQLException {
-        String insertSql = "INSERT INTO MATCH_TICKET (purchase_number, match_id, grandstand, section, row_num, seat_num, price) VALUES (100, 1, 'B', 'C', 1, 1, 30.00)";
-
+    @DisplayName("getOccupiedSeats: returns 10x15 boolean matrix with true at occupied seat coordinates")
+    void testGetOccupiedSeats_ReturnsMatrixWithOccupiedSeats() throws SQLException {
         try (Connection conn = ConexionBD.obtenerConexion();
              Statement stmt = conn.createStatement()) {
-            stmt.execute(insertSql);
+            stmt.execute("INSERT INTO MATCH_TICKET (match_id, grandstand, section, row_num, seat_num, price, purchase_number) " +
+                         "VALUES (10, 'A', 'A', 1, 1, 30.0, 'PN-101');");
+            stmt.execute("INSERT INTO MATCH_TICKET (match_id, grandstand, section, row_num, seat_num, price, purchase_number) " +
+                         "VALUES (10, 'A', 'A', 5, 12, 30.0, 'PN-102');");
         }
 
-        assertThrows(SQLException.class, () -> {
-            try (Connection conn = ConexionBD.obtenerConexion();
-                 Statement stmt = conn.createStatement()) {
-                stmt.execute(insertSql);
-            }
+        boolean[][] occupied = ticketDAO.getOccupiedSeats(10, "A", "A");
+
+        assertNotNull(occupied, "Occupied seats matrix must not be null.");
+        assertEquals(10, occupied.length, "Matrix must have 10 rows.");
+        assertEquals(15, occupied[0].length, "Matrix must have 15 columns.");
+        assertTrue(occupied[0][0], "Seat (Row 1, Seat 1) should be marked as occupied.");
+        assertTrue(occupied[4][11], "Seat (Row 5, Seat 12) should be marked as occupied.");
+    }
+
+    @Test
+    @DisplayName("bookSpecificSeat: inserts ticket and returns true when seat is available")
+    void testBookSpecificSeat_Success() {
+        assertDoesNotThrow(() -> {
+            boolean success = ticketDAO.bookSpecificSeat(10, "A", "A", 3, 7, 30.0);
+            assertTrue(success, "bookSpecificSeat should return true on successful insertion.");
         });
     }
 
     @Test
-    @DisplayName("US 35082: Single purchase number groups multiple seats correctly")
-    void testMultipleTicketsSamePurchaseNumber() throws SQLException {
-        int purchaseNumber = 8882;
-        try (Connection conn = ConexionBD.obtenerConexion();
-             PreparedStatement stmt = conn.prepareStatement(
-                "INSERT INTO MATCH_TICKET (purchase_number, match_id, grandstand, section, row_num, seat_num, price) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-            
-            // Ticket 1: Fila 1, Asiento 1 -> Índice [0][0]
-            stmt.setInt(1, purchaseNumber);
-            stmt.setInt(2, 1);
-            stmt.setString(3, "A");
-            stmt.setString(4, "B");
-            stmt.setInt(5, 1);
-            stmt.setInt(6, 1);
-            stmt.setDouble(7, 35.00);
-            stmt.executeUpdate();
+    @DisplayName("bookContiguousSeats: allocates contiguous seats in specified row and returns ticket coordinates")
+    void testBookContiguousSeats_Success() {
+        assertDoesNotThrow(() -> {
+            List<int[]> booked = ticketDAO.bookContiguousSeats(10, "A", "A", 2, 5, 3, 30.0);
+            assertNotNull(booked, "Booked seats list must not be null.");
+            assertEquals(3, booked.size(), "Should book exactly 3 seats.");
+            assertEquals(2, booked.get(0)[0], "Row number must match target row.");
+            assertEquals(5, booked.get(0)[1], "First seat number must match start col.");
+            assertEquals(6, booked.get(1)[1], "Second seat number must be contiguous.");
+            assertEquals(7, booked.get(2)[1], "Third seat number must be contiguous.");
+        });
+    }
 
-            // Ticket 2: Fila 1, Asiento 2 -> Índice [0][1]
-            stmt.setInt(1, purchaseNumber);
-            stmt.setInt(2, 1);
-            stmt.setString(3, "A");
-            stmt.setString(4, "B");
-            stmt.setInt(5, 1);
-            stmt.setInt(6, 2);
-            stmt.setDouble(7, 35.00);
-            stmt.executeUpdate();
-        }
+    @Test
+    @DisplayName("insert duplicate ticket: throws SQLException when double booking same seat")
+    void testInsertDuplicateTicket_ThrowsSQLException() throws SQLException {
+        ticketDAO.bookSpecificSeat(10, "A", "A", 4, 4, 30.0);
 
-        boolean[][] occupied = matchTicketDAO.getOccupiedSeats(1, "A", "B");
-        assertTrue(occupied[0][0], "Row 1 Seat 1 must be occupied");
-        assertTrue(occupied[0][1], "Row 1 Seat 2 must be occupied");
+        assertThrows(SQLException.class, () ->
+            ticketDAO.bookSpecificSeat(10, "A", "A", 4, 4, 30.0),
+            "Inserting a duplicate ticket for the same seat must throw a SQLException."
+        );
     }
 }

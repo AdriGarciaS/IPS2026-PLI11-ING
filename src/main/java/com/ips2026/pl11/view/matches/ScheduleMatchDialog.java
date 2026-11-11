@@ -46,15 +46,17 @@ import com.toedter.calendar.JDateChooser;
 import com.ips2026.pl11.controller.matches.ScheduleMatchController;
 import com.ips2026.pl11.data.matches.MatchPriceDAO;
 import com.ips2026.pl11.data.seasonpass.SeasonPassDAO;
+import com.ips2026.pl11.data.slots.InterviewSlotDAO;
 import com.ips2026.pl11.data.team.TeamDAO;
 import com.ips2026.pl11.data.ticket.MatchDAO;
+import com.ips2026.pl11.model.slots.TeamActivityRecord;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 
 /**
- * Dialog for scheduling home matches (US 35775).
+ * Dialog for scheduling home matches (US 35775 & US 36755).
  * Features fixture details with facility selection, pricing configuration per stand/section,
- * JCalendar integration, JSpinner time picker, and rounded titled section borders.
+ * JCalendar integration, JSpinner time picker, and team activity/interview slot filtering.
  */
 public class ScheduleMatchDialog extends JDialog {
 
@@ -64,6 +66,7 @@ public class ScheduleMatchDialog extends JDialog {
     private final SeasonPassDAO seasonPassDAO;
     private final MatchDAO matchDAO;
     private final MatchPriceDAO matchPriceDAO;
+    private final InterviewSlotDAO interviewSlotDAO;
 
     // Temporal price storage for dynamic UI switching
     private final Map<String, Double> tempPriceMap = new HashMap<>();
@@ -97,6 +100,7 @@ public class ScheduleMatchDialog extends JDialog {
         this.seasonPassDAO = new SeasonPassDAO();
         this.matchDAO = new MatchDAO();
         this.matchPriceDAO = new MatchPriceDAO();
+        this.interviewSlotDAO = new InterviewSlotDAO();
 
         Branding.applyTo(this);
         Branding.setInitialSize(this, 1050, 720, parent);
@@ -155,6 +159,7 @@ public class ScheduleMatchDialog extends JDialog {
 
         pnlForm.add(new JLabel("LOCAL TEAM:"));
         cbLocalTeam = new JComboBox<>();
+        cbLocalTeam.addActionListener(e -> updateActivitiesTable());
         pnlForm.add(cbLocalTeam);
 
         pnlForm.add(new JLabel("AWAY TEAM:"));
@@ -324,19 +329,35 @@ public class ScheduleMatchDialog extends JDialog {
     }
 
     private void updateActivitiesTable() {
-        if (dateChooserMatchDate == null || dateChooserMatchDate.getDate() == null || cbFacility == null) return;
-        
+        if (cbLocalTeam == null || modelActivities == null) return;
+
         modelActivities.setRowCount(0);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        String dateStr = sdf.format(dateChooserMatchDate.getDate());
-        int facilityId = getSelectedFacilityId();
+        TeamDAO.TeamItem selectedTeam = (TeamDAO.TeamItem) cbLocalTeam.getSelectedItem();
+
+        if (selectedTeam == null) return;
 
         try {
-            List<Object[]> activities = matchDAO.getActivitiesForDay(facilityId, dateStr);
-            for (Object[] act : activities) {
-                modelActivities.addRow(act);
+            // US 36755: Retrieves team activities AND all interview slots (AVAILABLE + ASSIGNED) for the selected team
+            List<TeamActivityRecord> activities = interviewSlotDAO.getTeamScheduleByTeamId(selectedTeam.getId());
+
+            String selectedDateStr = null;
+            if (dateChooserMatchDate != null && dateChooserMatchDate.getDate() != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                selectedDateStr = sdf.format(dateChooserMatchDate.getDate());
+            }
+
+            for (TeamActivityRecord act : activities) {
+                String actDateStr = act.getDate().toString();
+                if (selectedDateStr == null || selectedDateStr.equals(actDateStr)) {
+                    modelActivities.addRow(new Object[]{
+                        act.getType(),
+                        act.getStartTime().toString(),
+                        act.getEndTime().toString()
+                    });
+                }
             }
         } catch (SQLException ex) {
+            System.err.println("Error loading team activities & interview slots: " + ex.getMessage());
         }
     }
 

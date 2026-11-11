@@ -316,4 +316,78 @@ public class InterviewSlotDAO {
         }
         return activities;
     }
+    
+    /**
+     * Retrieves ALL interview slots (both AVAILABLE and ASSIGNED) for a specific team ID.
+     * Fulfills US #36755 requirement to display all interview slots when selecting/managing a team.
+     */
+    public List<InterviewSlotRecord> getSlotsByTeam(int teamId) throws SQLException {
+        List<InterviewSlotRecord> slots = new ArrayList<>();
+
+        String sql = "SELECT s.id, (e.first_name || ' ' || e.last_name) AS player_name, " +
+                     "s.slot_date AS date, s.start_time, s.end_time, s.status " +
+                     "FROM INTERVIEW_SLOTS s " +
+                     "JOIN employees e ON s.player_id = e.id " +
+                     "JOIN TEAM_MEMBER tm ON e.id = tm.employee_id " +
+                     "WHERE tm.team_id = ? " +
+                     "ORDER BY s.slot_date DESC, s.start_time ASC";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, teamId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    slots.add(new InterviewSlotRecord(
+                        rs.getInt("id"),
+                        rs.getString("player_name"),
+                        LocalDate.parse(rs.getString("date")),
+                        LocalTime.parse(rs.getString("start_time")),
+                        LocalTime.parse(rs.getString("end_time")),
+                        rs.getString("status")
+                    ));
+                }
+            }
+        }
+        return slots;
+    }
+
+    /**
+     * Retrieves all team activities (matches and trainings) + ALL interview slots for a specific team.
+     * Used when creating a match to display the full team schedule.
+     */
+    public List<TeamActivityRecord> getTeamScheduleByTeamId(int teamId) throws SQLException {
+        List<TeamActivityRecord> activities = new ArrayList<>();
+
+        String sql = "SELECT 'MATCH' AS activity_type, m.match_date AS activity_date, m.start_time, m.end_time " +
+                     "FROM matches m WHERE m.team_id = ? " +
+                     "UNION ALL " +
+                     "SELECT 'TRAINING' AS activity_type, tr.training_date AS activity_date, tr.start_time, tr.end_time " +
+                     "FROM trainings tr WHERE tr.team_id = ? " +
+                     "UNION ALL " +
+                     "SELECT ('INTERVIEW (' || s.status || ')') AS activity_type, s.slot_date AS activity_date, s.start_time, s.end_time " +
+                     "FROM INTERVIEW_SLOTS s " +
+                     "JOIN TEAM_MEMBER tm ON s.player_id = tm.employee_id " +
+                     "WHERE tm.team_id = ? " +
+                     "ORDER BY activity_date DESC, start_time ASC";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, teamId);
+            pstmt.setInt(2, teamId);
+            pstmt.setInt(3, teamId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    activities.add(new TeamActivityRecord(
+                        rs.getString("activity_type"),
+                        LocalDate.parse(rs.getString("activity_date")),
+                        LocalTime.parse(rs.getString("start_time")),
+                        LocalTime.parse(rs.getString("end_time"))
+                    ));
+                }
+            }
+        }
+        return activities;
+    }
 }

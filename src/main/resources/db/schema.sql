@@ -385,3 +385,12 @@ CREATE TABLE IF NOT EXISTS MATCH_PRICE (
     PRIMARY KEY (match_id, grandstand, section),
     FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS NEWS (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    headline TEXT NOT NULL,
+    body_text TEXT NOT NULL,
+    image_paths TEXT NOT NULL,
+    publication_date TEXT NOT NULL,
+    author_id INTEGER NOT NULL
+);

@@ -77,10 +77,20 @@ public class NewsMenuDialog extends JDialog {
             btnViewNews = new MenuCardButton("View News Articles", "Browse published articles, view details, and attached images");
             btnViewNews.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
             btnViewNews.setMnemonic('V');
-            btnViewNews.addActionListener(e -> {
-                JOptionPane.showMessageDialog(this,"View News feature coming soon in the next update.","View News", JOptionPane.INFORMATION_MESSAGE);
+            btnViewNews.addActionListener(e -> { openViewNewsDialog(); 
             });
         }
         return btnViewNews;
+    }
+    
+    private void openViewNewsDialog() {
+        try {
+            NewsFeedWindow feedWindow = new NewsFeedWindow(parentFrame);
+            feedWindow.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error opening News Feed: " + ex.getMessage(),
+                    "News Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

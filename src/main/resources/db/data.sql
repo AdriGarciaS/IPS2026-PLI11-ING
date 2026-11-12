@@ -431,3 +431,11 @@ INSERT INTO matches (team_id, rival, match_date, start_time, end_time, is_home, 
 INSERT INTO matches (team_id, rival, match_date, start_time, end_time, is_home, is_special_match, facility_id) VALUES
     ((SELECT id FROM TEAM WHERE name = 'First Team'), 'Getafe CF', '2027-09-20', '19:00', '21:00', 1, 0, 1),
     ((SELECT id FROM TEAM WHERE name = 'First Team'), 'FC Barcelona', '2027-10-30', '21:00', '23:00', 1, 1, 1);
+    
+    
+INSERT INTO news (id, headline, body_text, image_paths, publication_date, author_id) VALUES
+(1, 'Huge victory in the derby (3-0)', 'The first team achieved a resounding 3-0 against our traditional rivals in an unforgettable match at Portman Road. The goals came in the second half after an intense tactical masterclass by the coaching staff. Fans celebrated passionately across the stadium.', 'images/derby1.jpg,images/derby2.jpg', '2026-11-10', 1),
+
+(2, 'New improvements in training facilities', 'Renovation work has started a couple of days ago on the club training pitches and medical recovery center. These state-of-the-art upgrades will ensure our professional and youth academy players have world-class infrastructure for the upcoming seasons.', 'images/training1.png,images/training2.png,images/training3.png,images/training4.jpg', '2026-11-05', 1),
+
+(3, 'Intense prep for upcoming match', 'The coaching staff has designed a week of rigorous tactical sessions and physical conditioning to prepare the squad for the next away fixture. Morale is exceptionally high following the recent victories and support from traveling supporters.', 'images/prep1.jpg,images/prep2.jpg,images/prep3.jpeg,images/prep4.jpg', '2026-11-02', 2);

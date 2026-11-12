@@ -27,23 +27,23 @@ public class NewsDAO {
         }
     }
 
-    public List<NewsArticle> getAllArticles() throws SQLException {
-        List<NewsArticle> articles = new ArrayList<>();
-        String sql = "SELECT id, headline, body_text, image_paths, publication_date, author_id FROM NEWS";
-        try (Connection conn = ConexionBD.obtenerConexion();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                articles.add(new NewsArticle(
-                    rs.getInt("id"),
-                    rs.getString("headline"),
-                    rs.getString("body_text"),
-                    rs.getString("image_paths"),
-                    LocalDate.parse(rs.getString("publication_date")),
-                    rs.getInt("author_id")
-                ));
-            }
-        }
-        return articles;
-    }
+	public List<NewsArticle> getAllArticles() throws SQLException {
+	    List<NewsArticle> articles = new ArrayList<>();
+	    String sql = "SELECT id, headline, body_text, image_paths, publication_date, author_id FROM news ORDER BY publication_date DESC, id DESC";
+	    try (Connection conn = ConexionBD.obtenerConexion();
+	         Statement stmt = conn.createStatement();
+	         ResultSet rs = stmt.executeQuery(sql)) {
+	        while (rs.next()) {
+	            articles.add(new NewsArticle(
+	                rs.getInt("id"),
+	                rs.getString("headline"),
+	                rs.getString("body_text"),
+	                rs.getString("image_paths"),
+	                LocalDate.parse(rs.getString("publication_date")),
+	                rs.getInt("author_id")
+	            ));
+	        }
+	    }
+	    return articles;
+	}
 }

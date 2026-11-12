@@ -3,7 +3,9 @@ package com.ips2026.pl11.controller.employee;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
+import com.ips2026.pl11.controller.PasswordEncrypting;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.model.employee.Employee;
 
@@ -16,10 +18,12 @@ public class EmployeeController {
     }
 
     public void registerEmployee(String firstName, String lastName, String nationalId, LocalDate birthDate,
-        String phoneNumber, String category, String position, double salary, String gender) throws Exception {
+        String phoneNumber, String category, String position, double salary, String gender, String username,
+        String password) throws Exception {
 
         if (firstName == null || firstName.isBlank() || lastName == null || lastName.isBlank() || nationalId == null
-            || nationalId.isBlank() || phoneNumber == null || phoneNumber.isBlank()) {
+            || nationalId.isBlank() || phoneNumber == null || phoneNumber.isBlank() || username == null
+            || username.isBlank() || password == null || password.isBlank()) {
             throw new IllegalArgumentException("All personal information fields are required.");
         }
 
@@ -30,7 +34,8 @@ public class EmployeeController {
         checkGender(gender);
 
         Employee employee = new Employee(null, firstName.trim(), lastName.trim(), nationalId.trim(), birthDate,
-            phoneNumber.trim(), category, position, salary, gender);
+            phoneNumber.trim(), category, position, salary, gender, username,
+            PasswordEncrypting.encryptPassword(password));
 
         // Business rule: Underage employees are only permitted for the 'Player'
         // position
@@ -46,7 +51,8 @@ public class EmployeeController {
     }
 
     public void updateEmployee(int id, String firstName, String lastName, String nationalId, LocalDate birthDate,
-        String phoneNumber, String category, String currentPosition, double salary, String gender) throws Exception {
+        String phoneNumber, String category, String currentPosition, double salary, String gender, String username,
+        String password) throws Exception {
 
         if (firstName == null || firstName.isBlank() || lastName == null || lastName.isBlank() || nationalId == null
             || nationalId.isBlank() || phoneNumber == null || phoneNumber.isBlank()) {
@@ -60,7 +66,8 @@ public class EmployeeController {
         checkGender(gender);
 
         Employee employee = new Employee(id, firstName.trim(), lastName.trim(), nationalId.trim(), birthDate,
-            phoneNumber.trim(), category, currentPosition, salary, gender);
+            phoneNumber.trim(), category, currentPosition, salary, gender, username,
+            PasswordEncrypting.encryptPassword(password));
 
         if (employee.isUnderage() && !currentPosition.equalsIgnoreCase("Player")) {
             throw new IllegalArgumentException("Only players can be under 18 years of age.");
@@ -83,5 +90,9 @@ public class EmployeeController {
     public List<Employee> getEmployeesByRole(String string) throws SQLException {
         return employeeDAO.getEmployeesByRole(string);
 
+    }
+    
+    public Optional<Employee> getEmployeeByUsername(String username) throws SQLException {
+        return employeeDAO.findByUsername(username);
     }
 }

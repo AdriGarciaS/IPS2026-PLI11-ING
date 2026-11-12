@@ -16,7 +16,7 @@ import com.ips2026.pl11.model.employee.Employee;
 public class EmployeeDAO {
 
 	public void insert(Employee employee) throws SQLException {
-        String sql = "INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender) "
+        String sql = "INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender, username, password) "
                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = ConexionBD.obtenerConexion();
@@ -31,13 +31,15 @@ public class EmployeeDAO {
             statement.setString(7, employee.getPosition());
             statement.setDouble(8, employee.getGrossAnnualSalary());
             statement.setString(9, employee.getGender());
+            statement.setString(10, employee.getUsername());
+            statement.setString(11, employee.getPassword());
 
             statement.executeUpdate();
         }
     }
 
     public List<Employee> getAll() throws SQLException {
-        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender FROM employees ORDER BY id";
+        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender, username, password FROM employees ORDER BY id";
         List<Employee> employees = new ArrayList<>();
 
         try (Connection connection = ConexionBD.obtenerConexion();
@@ -55,7 +57,9 @@ public class EmployeeDAO {
                         resultSet.getString("category"),
                         resultSet.getString("position"),
                         resultSet.getDouble("gross_annual_salary"),
-                        resultSet.getString("gender")
+                        resultSet.getString("gender"),
+                        resultSet.getString("username"),
+                        resultSet.getString("password")
                 ));
             }
         }
@@ -97,7 +101,7 @@ public class EmployeeDAO {
     }
 
     public List<Employee> getEmployeesByRole(String string) throws SQLException {
-        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender "
+        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender, username, password "
                    + "FROM employees WHERE position = ? ORDER BY id";
         List<Employee> employees = new ArrayList<>();
 
@@ -117,7 +121,9 @@ public class EmployeeDAO {
                             resultSet.getString("category"),
                             resultSet.getString("position"),
                             resultSet.getDouble("gross_annual_salary"),
-                            resultSet.getString("gender")
+                            resultSet.getString("gender"),
+                            resultSet.getString("username"),
+                            resultSet.getString("password")
                     ));
                 }
             }
@@ -126,7 +132,7 @@ public class EmployeeDAO {
     }
     
     public Optional<Employee> findById(int id) throws SQLException {
-        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender "
+        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender, username, password "
                    + "FROM employees WHERE id = ?";
 
         try (Connection connection = ConexionBD.obtenerConexion();
@@ -145,7 +151,9 @@ public class EmployeeDAO {
                             resultSet.getString("category"),
                             resultSet.getString("position"),
                             resultSet.getDouble("gross_annual_salary"),
-                            resultSet.getString("gender")
+                            resultSet.getString("gender"),
+                            resultSet.getString("username"),
+                            resultSet.getString("password")
                     );
                     return Optional.of(employee);
                 } else {
@@ -153,5 +161,37 @@ public class EmployeeDAO {
                 }
             }
         }
+    }
+
+    public Optional<Employee> findByUsername(String username) throws SQLException {
+        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender, username, password "
+            + "FROM employees WHERE username = ?";
+
+         try (Connection connection = ConexionBD.obtenerConexion();
+              PreparedStatement statement = connection.prepareStatement(sql)) {
+        
+             statement.setString(1, username);
+             try (ResultSet resultSet = statement.executeQuery()) {
+                 if (resultSet.next()) {
+                     Employee employee = new Employee(
+                             resultSet.getInt("id"),
+                             resultSet.getString("first_name"),
+                             resultSet.getString("last_name"),
+                             resultSet.getString("national_id"),
+                             LocalDate.parse(resultSet.getString("birth_date")),
+                             resultSet.getString("phone_number"),
+                             resultSet.getString("category"),
+                             resultSet.getString("position"),
+                             resultSet.getDouble("gross_annual_salary"),
+                             resultSet.getString("gender"),
+                             resultSet.getString("username"),
+                             resultSet.getString("password")
+                     );
+                     return Optional.of(employee);
+                 } else {
+                     return Optional.empty();
+                 }
+             }
+         }
     }
 }

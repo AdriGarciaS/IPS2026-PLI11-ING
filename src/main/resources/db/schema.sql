@@ -13,7 +13,10 @@ CREATE TABLE IF NOT EXISTS employees (
     category             TEXT NOT NULL, -- 'SPORTS' or 'NON_SPORTS'
     position             TEXT NOT NULL,
     gross_annual_salary  REAL NOT NULL,
-    gender               TEXT NOT NULL CHECK (gender IN ('MALE', 'FEMALE'))
+    gender               TEXT NOT NULL CHECK (gender IN ('MALE', 'FEMALE')),
+    
+    username			 TEXT UNIQUE COLLATE NOCASE,
+    password			 TEXT 
 );
 -- Merchandising products sold in the club store.
 -- available_units: number of units in stock (a sale can never exceed it).
@@ -193,7 +196,10 @@ CREATE TABLE IF NOT EXISTS SHAREHOLDER (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     first_name  TEXT    NOT NULL,
     last_name   TEXT    NOT NULL,
-    national_id TEXT    NOT NULL UNIQUE COLLATE NOCASE
+    national_id TEXT    NOT NULL UNIQUE COLLATE NOCASE,
+    
+    username	TEXT    UNIQUE COLLATE NOCASE,
+    password	TEXT   
 );
 
 -- Campaigns in which the club sells shares (for example a capital increase).
@@ -323,6 +329,7 @@ create table if not exists gardening_session(
 	foreign key (facility_id) references facility(id)
 );
 
+-- Gardeners assigned to a gardening session (many-to-many relationship)
 CREATE TABLE IF NOT EXISTS gardening_session_employee (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     gardening_session_id INTEGER NOT NULL,
@@ -394,3 +401,4 @@ CREATE TABLE IF NOT EXISTS NEWS (
     publication_date TEXT NOT NULL,
     author_id INTEGER NOT NULL
 );
+

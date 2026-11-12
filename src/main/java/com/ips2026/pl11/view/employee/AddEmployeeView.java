@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDate;
@@ -19,6 +21,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
@@ -46,6 +49,7 @@ public class AddEmployeeView extends JDialog {
     private HeaderPanel pnHeader;
     private JPanel pnBody;
     private JPanel pnForm;
+    private JPanel pnSecondForm;
     private JPanel pnFooter;
 
     private JTextField txtFirstName;
@@ -54,6 +58,9 @@ public class AddEmployeeView extends JDialog {
     private JDateChooser dateBirth;
     private JTextField txtPhone;
     private JTextField txtSalary;
+    private JTextField txtUsername;
+    private JPasswordField pswPassword;
+    private JPasswordField pswConfirmPassword;
 
     private JComboBox<String> cbCategory;
     private JComboBox<String> cbPosition;
@@ -62,7 +69,7 @@ public class AddEmployeeView extends JDialog {
 
     public AddEmployeeView(JFrame parent) {
         super(parent, "Employee Registration", true);
-        setSize(520, 690);
+        setSize(720, 600);
         setLocationRelativeTo(parent);
         setResizable(false);
 
@@ -79,7 +86,8 @@ public class AddEmployeeView extends JDialog {
         pnBody = new JPanel(new BorderLayout(0, 16));
         pnBody.setOpaque(false);
         pnBody.setBorder(new EmptyBorder(20, 28, 20, 28));
-        pnBody.add(getPnForm(), BorderLayout.CENTER);
+        pnBody.add(getPnForm(), BorderLayout.WEST);
+        pnBody.add(getPnSecondForm(), BorderLayout.EAST);
         pnBody.add(getPnFooter(), BorderLayout.SOUTH);
 
         contentPane.add(pnBody, BorderLayout.CENTER);
@@ -99,7 +107,7 @@ public class AddEmployeeView extends JDialog {
         if (pnForm == null) {
             pnForm = new JPanel();
             pnForm.setOpaque(false);
-            pnForm.setLayout(new GridLayout(9, 2, 12, 14));
+            pnForm.setLayout(new GridLayout(6, 2, 15, 14));
 
             pnForm.add(crearLabel("First Name:"));
             pnForm.add(getTxtFirstName());
@@ -119,17 +127,38 @@ public class AddEmployeeView extends JDialog {
             pnForm.add(crearLabel("Phone Number:"));
             pnForm.add(getTxtPhone());
 
-            pnForm.add(crearLabel("Staff Category:"));
-            pnForm.add(getCbCategory());
-
-            pnForm.add(crearLabel("Position:"));
-            pnForm.add(getCbPosition());
-
-            pnForm.add(crearLabel("Gross Annual Salary (€):"));
-            pnForm.add(getTxtSalary());
+         
         }
         return pnForm;
     }
+    
+    private JPanel getPnSecondForm() {
+        if (pnSecondForm == null) {
+            pnSecondForm = new JPanel();
+            pnSecondForm.setOpaque(false);
+            pnSecondForm.setLayout(new GridLayout(6, 2, 15, 14));
+
+            pnSecondForm.add(crearLabel("Staff Category:"));
+            pnSecondForm.add(getCbCategory());
+
+            pnSecondForm.add(crearLabel("Position:"));
+            pnSecondForm.add(getCbPosition());
+
+            pnSecondForm.add(crearLabel("Gross Annual Salary (€):"));
+            pnSecondForm.add(getTxtSalary());
+            
+            pnSecondForm.add(crearLabel("Username:"));
+            pnSecondForm.add(getTxtUsername());
+            
+            pnSecondForm.add(crearLabel("Password:"));
+            pnSecondForm.add(getPswPassword());
+            
+            pnSecondForm.add(crearLabel("Confirm Password:"));
+            pnSecondForm.add(getPswConfirmPassword());
+        }
+        return pnSecondForm;
+    }
+
 
     private JPanel getPnFooter() {
         if (pnFooter == null) {
@@ -224,6 +253,35 @@ public class AddEmployeeView extends JDialog {
         }
         return cbGender;
     }
+    
+    private JTextField getTxtUsername() {
+        if (txtUsername == null) {
+            txtUsername = crearTextField();
+        }
+        return txtUsername;
+    }
+    
+    private JPasswordField getPswPassword() {
+        if (pswPassword == null) {
+            pswPassword = new JPasswordField();
+            pswPassword.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
+            pswPassword.setBackground(Color.WHITE);
+            pswPassword.setForeground(Branding.NAVY);
+            pswPassword.setBorder(new LineBorder(Branding.BORDER, 1, true));
+        }
+        return pswPassword;
+    }
+    
+    private JPasswordField getPswConfirmPassword() {
+        if (pswConfirmPassword == null) {
+            pswConfirmPassword = new JPasswordField();
+            pswConfirmPassword.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
+            pswConfirmPassword.setBackground(Color.WHITE);
+            pswConfirmPassword.setForeground(Branding.NAVY);
+            pswConfirmPassword.setBorder(new LineBorder(Branding.BORDER, 1, true));
+        }
+        return pswConfirmPassword;
+    }
 
     private JButton getBtnSubmit() {
         if (btnSubmit == null) {
@@ -283,9 +341,9 @@ public class AddEmployeeView extends JDialog {
                 BorderFactory.createEmptyBorder(6, 8, 6, 8)
         ));
 
-        tf.addFocusListener(new java.awt.event.FocusAdapter() {
+        tf.addFocusListener(new FocusAdapter() {
             @Override
-            public void focusGained(java.awt.event.FocusEvent e) {
+            public void focusGained(FocusEvent e) {
                 tf.setBorder(BorderFactory.createCompoundBorder(
                         new LineBorder(Branding.NAVY_DARKER, 2, true),
                         BorderFactory.createEmptyBorder(5, 7, 5, 7)
@@ -293,7 +351,7 @@ public class AddEmployeeView extends JDialog {
             }
 
             @Override
-            public void focusLost(java.awt.event.FocusEvent e) {
+            public void focusLost(FocusEvent e) {
                 tf.setBorder(BorderFactory.createCompoundBorder(
                         new LineBorder(Branding.BORDER, 1, true),
                         BorderFactory.createEmptyBorder(6, 8, 6, 8)
@@ -335,7 +393,9 @@ public class AddEmployeeView extends JDialog {
                     (String) getCbCategory().getSelectedItem(),
                     (String) getCbPosition().getSelectedItem(),
                     salary,
-                    (String) getCbGender().getSelectedItem()
+                    (String) getCbGender().getSelectedItem(),
+                    getTxtUsername().getText(),
+                    new String(getPswPassword().getPassword())
             );
 
             JOptionPane.showMessageDialog(this, "Employee successfully registered!", "Success", JOptionPane.INFORMATION_MESSAGE);

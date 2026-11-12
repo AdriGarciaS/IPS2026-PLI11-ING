@@ -234,6 +234,8 @@ public class InterviewSlotDAO {
         String position = rs.getString("position");
         double grossAnnualSalary = rs.getDouble("gross_annual_salary");
         String gender = rs.getString("gender");
+        String username = rs.getString("username");
+        String password = rs.getString("password");
 
         return new Employee(
                 id,
@@ -245,7 +247,9 @@ public class InterviewSlotDAO {
                 category,
                 position,
                 grossAnnualSalary,
-                gender
+                gender,
+                username,
+                password
         );
     }
     

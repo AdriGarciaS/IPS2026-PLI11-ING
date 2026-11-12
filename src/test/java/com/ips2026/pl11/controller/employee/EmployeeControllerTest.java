@@ -22,19 +22,11 @@ import com.ips2026.pl11.data.ConexionBD;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.model.employee.Employee;
 
-/**
- * Integration Test Suite for EmployeeController.
- * Verifies business rule validations (underage constraints, gender checks, salary rules)
- * and database delegation using JUnit 5 without mocking frameworks.
- */
 public class EmployeeControllerTest {
 
     private EmployeeDAO employeeDAO;
     private EmployeeController controller;
 
-    /**
-     * Sets up in-memory/local SQLite table schema prior to each test execution.
-     */
     @BeforeEach
     public void setUp() throws SQLException {
         employeeDAO = new EmployeeDAO();
@@ -42,6 +34,13 @@ public class EmployeeControllerTest {
 
         try (Connection conn = ConexionBD.obtenerConexion();
              Statement stmt = conn.createStatement()) {
+
+            stmt.execute("DROP TABLE IF EXISTS interviews;");
+            stmt.execute("DROP TABLE IF EXISTS interview_slots;");
+            stmt.execute("DROP TABLE IF EXISTS gardening_session_employee;");
+            stmt.execute("DROP TABLE IF EXISTS TEAM_MEMBER;");
+            stmt.execute("DROP TABLE IF EXISTS TEAM;");
+            stmt.execute("DROP TABLE IF EXISTS employees;");
 
             stmt.execute("CREATE TABLE IF NOT EXISTS employees (" +
                          "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -57,9 +56,6 @@ public class EmployeeControllerTest {
         }
     }
 
-    /**
-     * Cleans up the employees table after each test execution.
-     */
     @AfterEach
     public void tearDown() throws SQLException {
         try (Connection conn = ConexionBD.obtenerConexion();
@@ -90,14 +86,12 @@ public class EmployeeControllerTest {
     void testRegisterEmployee_RequiredFieldsValidation() {
         LocalDate birthDate = LocalDate.now().minusYears(25);
 
-        // Blank first name
         IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class, () ->
             controller.registerEmployee("  ", "González", "11111111A", birthDate,
                 "600000001", "SPORTS", "Player", 5000000.0, "MALE")
         );
         assertEquals("All personal information fields are required.", ex1.getMessage());
 
-        // Null national ID
         IllegalArgumentException ex2 = assertThrows(IllegalArgumentException.class, () ->
             controller.registerEmployee("Pedri", "González", null, birthDate,
                 "600000001", "SPORTS", "Player", 5000000.0, "MALE")
@@ -134,13 +128,11 @@ public class EmployeeControllerTest {
     void testRegisterEmployee_UnderageRules() {
         LocalDate minorBirthDate = LocalDate.now().minusYears(16);
 
-        // Minor allowed as Player
         assertDoesNotThrow(() ->
             controller.registerEmployee("Young", "Talent", "33333333C", minorBirthDate,
                 "600000002", "SPORTS", "Player", 100000.0, "MALE")
         );
 
-        // Minor rejected as Coach or non-player position
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
             controller.registerEmployee("Young", "Coach", "44444444D", minorBirthDate,
                 "600000003", "SPORTS", "COACH", 100000.0, "MALE")

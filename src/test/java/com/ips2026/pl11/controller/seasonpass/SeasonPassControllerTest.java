@@ -27,9 +27,15 @@ public class SeasonPassControllerTest {
         try (Connection conn = ConexionBD.obtenerConexion();
              Statement stmt = conn.createStatement()) {
 
+            // Drop existing tables to avoid schema mismatches with preexisting database instances
+            stmt.execute("DROP TABLE IF EXISTS SEASON_PASS;");
+            stmt.execute("DROP TABLE IF EXISTS FAN;");
+            stmt.execute("DROP TABLE IF EXISTS TEAM;");
+            stmt.execute("DROP TABLE IF EXISTS employees;");
+
             stmt.execute("CREATE TABLE IF NOT EXISTS FAN (id INTEGER PRIMARY KEY AUTOINCREMENT, dni TEXT NOT NULL UNIQUE, full_name TEXT NOT NULL, email TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);");
-            stmt.execute("CREATE TABLE IF NOT EXISTS TEAM (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, category TEXT NOT NULL, gender TEXT NOT NULL, first_coach_id INTEGER NOT NULL, second_coach_id INTEGER NOT NULL, created_at TEXT NOT NULL);");
             stmt.execute("CREATE TABLE IF NOT EXISTS employees (id INTEGER PRIMARY KEY AUTOINCREMENT, first_name TEXT NOT NULL, last_name TEXT NOT NULL, national_id TEXT NOT NULL UNIQUE, birth_date TEXT NOT NULL, phone_number TEXT NOT NULL, category TEXT NOT NULL, position TEXT NOT NULL, gross_annual_salary REAL NOT NULL, gender TEXT NOT NULL);");
+            stmt.execute("CREATE TABLE IF NOT EXISTS TEAM (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, category TEXT NOT NULL, gender TEXT NOT NULL, first_coach_id INTEGER NOT NULL, second_coach_id INTEGER NOT NULL, created_at TEXT NOT NULL);");
             stmt.execute("CREATE TABLE IF NOT EXISTS SEASON_PASS (id INTEGER PRIMARY KEY AUTOINCREMENT, fan_id INTEGER NOT NULL, team_id INTEGER NOT NULL, grandstand TEXT NOT NULL, section TEXT NOT NULL, row_num INTEGER NOT NULL, seat_num INTEGER NOT NULL, age_category TEXT NOT NULL, price REAL NOT NULL, start_date TEXT NOT NULL, end_date TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (team_id) REFERENCES TEAM(id), UNIQUE (team_id, grandstand, section, row_num, seat_num, start_date));");
 
             stmt.execute("INSERT OR IGNORE INTO employees (id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender) VALUES (1, 'Coach', 'One', '00000000A', '1980-01-01', '600000000', 'SPORTS', 'COACH', 100000.0, 'MALE');");

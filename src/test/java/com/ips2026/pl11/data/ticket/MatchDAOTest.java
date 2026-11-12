@@ -29,10 +29,22 @@ public class MatchDAOTest {
 
         try (Connection conn = ConexionBD.obtenerConexion();
              Statement stmt = conn.createStatement()) {
+
+            // Prevenir errores de esquema limpiando las tablas antes de volver a crearlas
+            stmt.execute("DROP TABLE IF EXISTS interviews;");
+            stmt.execute("DROP TABLE IF EXISTS interview_slots;");
+            stmt.execute("DROP TABLE IF EXISTS gardening_session;");
+            stmt.execute("DROP TABLE IF EXISTS FACILITY_RESERVATION;");
+            stmt.execute("DROP TABLE IF EXISTS trainings;");
+            stmt.execute("DROP TABLE IF EXISTS matches;");
+            stmt.execute("DROP TABLE IF EXISTS employees;");
+            stmt.execute("DROP TABLE IF EXISTS TEAM;");
+            stmt.execute("DROP TABLE IF EXISTS FACILITY;");
+
             stmt.execute("CREATE TABLE IF NOT EXISTS FACILITY (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE);");
             stmt.execute("CREATE TABLE IF NOT EXISTS TEAM (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE);");
             stmt.execute("CREATE TABLE IF NOT EXISTS employees (id INTEGER PRIMARY KEY AUTOINCREMENT, first_name TEXT, last_name TEXT);");
-            stmt.execute("CREATE TABLE IF NOT EXISTS matches (id INTEGER PRIMARY KEY AUTOINCREMENT, team_id INTEGER, match_date TEXT, start_time TEXT, end_time TEXT, rival TEXT, is_home INTEGER, is_special_match INTEGER, facility_id INTEGER);");
+            stmt.execute("CREATE TABLE IF NOT EXISTS matches (id INTEGER PRIMARY KEY AUTOINCREMENT, team_id INTEGER, match_date TEXT, start_time TEXT, end_time TEXT, rival TEXT, is_home INTEGER, is_special_match INTEGER DEFAULT 0, facility_id INTEGER);");
             stmt.execute("CREATE TABLE IF NOT EXISTS trainings (id INTEGER PRIMARY KEY AUTOINCREMENT, facility_id INTEGER NOT NULL, training_date TEXT NOT NULL, start_time TEXT NOT NULL, end_time TEXT NOT NULL, coach_id INTEGER NOT NULL);");
             stmt.execute("CREATE TABLE IF NOT EXISTS FACILITY_RESERVATION (id INTEGER PRIMARY KEY AUTOINCREMENT, facility_id INTEGER, holder_name TEXT, reservation_date TEXT, start_time TEXT, end_time TEXT);");
             stmt.execute("CREATE TABLE IF NOT EXISTS gardening_session (id INTEGER PRIMARY KEY AUTOINCREMENT, facility_id INTEGER, date TEXT, start_time TEXT, end_time TEXT, type TEXT);");

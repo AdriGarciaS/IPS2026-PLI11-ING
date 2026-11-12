@@ -23,10 +23,21 @@ public class ScheduleMatchControllerTest {
 
         try (Connection conn = ConexionBD.obtenerConexion();
              Statement stmt = conn.createStatement()) {
+
+            // Prevenir discrepancias de esquema eliminando tablas previas
+            stmt.execute("DROP TABLE IF EXISTS interviews;");
+            stmt.execute("DROP TABLE IF EXISTS interview_slots;");
+            stmt.execute("DROP TABLE IF EXISTS gardening_session;");
+            stmt.execute("DROP TABLE IF EXISTS FACILITY_RESERVATION;");
+            stmt.execute("DROP TABLE IF EXISTS MATCH_PRICE;");
+            stmt.execute("DROP TABLE IF EXISTS matches;");
+            stmt.execute("DROP TABLE IF EXISTS trainings;");
+            stmt.execute("DROP TABLE IF EXISTS TEAM;");
+            stmt.execute("DROP TABLE IF EXISTS FACILITY;");
             
             stmt.execute("CREATE TABLE IF NOT EXISTS FACILITY (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE);");
             stmt.execute("CREATE TABLE IF NOT EXISTS TEAM (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE);");
-            stmt.execute("CREATE TABLE IF NOT EXISTS matches (id INTEGER PRIMARY KEY AUTOINCREMENT, team_id INTEGER, match_date TEXT, start_time TEXT, end_time TEXT, rival TEXT, is_home INTEGER, is_special_match INTEGER, facility_id INTEGER);");
+            stmt.execute("CREATE TABLE IF NOT EXISTS matches (id INTEGER PRIMARY KEY AUTOINCREMENT, team_id INTEGER, match_date TEXT, start_time TEXT, end_time TEXT, rival TEXT, is_home INTEGER, is_special_match INTEGER DEFAULT 0, facility_id INTEGER);");
             stmt.execute("CREATE TABLE IF NOT EXISTS MATCH_PRICE (match_id INTEGER, grandstand TEXT, section TEXT, price REAL, PRIMARY KEY(match_id, grandstand, section));");
             stmt.execute("CREATE TABLE IF NOT EXISTS trainings (id INTEGER PRIMARY KEY AUTOINCREMENT, facility_id INTEGER, training_date TEXT, start_time TEXT, end_time TEXT);");
             stmt.execute("CREATE TABLE IF NOT EXISTS FACILITY_RESERVATION (id INTEGER PRIMARY KEY AUTOINCREMENT, facility_id INTEGER, holder_name TEXT, reservation_date TEXT, start_time TEXT, end_time TEXT);");

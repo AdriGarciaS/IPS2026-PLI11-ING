@@ -41,6 +41,8 @@ import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
 import com.ips2026.pl11.view.gardening.GardeningSessionWindow;
 import com.ips2026.pl11.view.interview.InterviewHubDialog;
 import com.ips2026.pl11.view.matches.ScheduleMatchDialog;
+import com.ips2026.pl11.view.news.NewsCreationDialog;
+import com.ips2026.pl11.view.news.NewsMenuDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.sale.SalesMenuDialog;
 import com.ips2026.pl11.view.schedule.ScheduleWindow;
@@ -68,9 +70,7 @@ public class MainWindow extends JFrame {
     private MenuCardButton btnOption7;
     private MenuCardButton btnOption8;
     private MenuCardButton btnOption9;
-
     private MenuCardButton btnOption10;
-    private MenuCardButton btnScheduleMatch; // Nuevo botón de la US 35775
 
     private JPanel pnFooter;
     private JLabel lblFooter;
@@ -79,6 +79,7 @@ public class MainWindow extends JFrame {
     private ScheduleWindow workScheduleWindow = new ScheduleWindow(this);
     private MenuCardButton btnOption11;
     private MenuCardButton btnOption12;
+    private MenuCardButton btnOption13;
 
     public MainWindow() {
         setTitle("Football Club Management");
@@ -120,6 +121,7 @@ public class MainWindow extends JFrame {
             pnButtons.add(getBtnOption10());
             pnButtons.add(getBtnOption11());
             pnButtons.add(getBtnOption12());
+            pnButtons.add(getBtnOption13());
         }
         return pnButtons;
     }
@@ -257,6 +259,25 @@ public class MainWindow extends JFrame {
             btnOption12.addActionListener(event -> openTrainingSession());
         }
         return btnOption12;
+    }
+    
+    private MenuCardButton getBtnOption13() {
+        if (btnOption13 == null) {
+            btnOption13 = new MenuCardButton("Publish News", "Draft and publish news articles with headline, text and images");
+            btnOption13.setMnemonic('N');
+            btnOption13.setFont(new Font("Tahoma", Font.PLAIN, 16));
+            btnOption13.addActionListener(event -> openNewsMenu());
+        }
+        return btnOption13;
+    }
+    
+    private void openNewsMenu() {
+        try {
+            NewsMenuDialog dialog = new NewsMenuDialog(this);
+            dialog.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,"Error opening News Menu: " + ex.getMessage(),"News Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private Object openGardeningSession() {

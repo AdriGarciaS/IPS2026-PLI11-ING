@@ -89,6 +89,8 @@ public class AddEmployeeView extends JDialog {
         pnBody.add(getPnFooter(), BorderLayout.SOUTH);
 
         contentPane.add(pnBody, BorderLayout.CENTER);
+        
+        rootPane.setDefaultButton(getBtnSubmit());
     }
 
     private HeaderPanel getPnHeader() {

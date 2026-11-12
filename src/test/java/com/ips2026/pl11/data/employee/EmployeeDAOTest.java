@@ -48,7 +48,9 @@ public class EmployeeDAOTest {
                          "category TEXT NOT NULL, " +
                          "position TEXT NOT NULL, " +
                          "gross_annual_salary REAL NOT NULL, " +
-                         "gender TEXT NOT NULL);");
+                         "gender TEXT NOT NULL, " +
+                         "username TEXT UNIQUE COLLATE NOCASE, " +
+                         "password TEXT);");
         }
     }
 
@@ -67,7 +69,7 @@ public class EmployeeDAOTest {
     @DisplayName("insert and getAll: successfully inserts employee and retrieves full list")
     void testInsertAndGetAll_Success() throws SQLException {
         Employee emp = new Employee(null, "Pedri", "González", "11111111A",
-                LocalDate.of(2002, 11, 25), "600000001", "SPORTS", "PLAYER", 5000000.0, "MALE");
+                LocalDate.of(2002, 11, 25), "600000001", "SPORTS", "PLAYER", 5000000.0, "MALE", "pedri_gonzalez", "securePassword123");
 
         employeeDAO.insert(emp);
 
@@ -83,7 +85,7 @@ public class EmployeeDAOTest {
     @DisplayName("findById: returns employee Optional when ID exists")
     void testFindById_Success() throws SQLException {
         Employee emp = new Employee(null, "Hansi", "Flick", "22222222B",
-                LocalDate.of(1965, 2, 24), "611111111", "SPORTS", "COACH", 8000000.0, "MALE");
+                LocalDate.of(1965, 2, 24), "611111111", "SPORTS", "COACH", 8000000.0, "MALE", "pedri_gonzalez", "securePassword123");
 
         employeeDAO.insert(emp);
         List<Employee> all = employeeDAO.getAll();
@@ -106,14 +108,14 @@ public class EmployeeDAOTest {
     @DisplayName("update: updates employee fields in database excluding position")
     void testUpdate_Success() throws SQLException {
         Employee emp = new Employee(null, "Pablo", "Gavi", "33333333C",
-                LocalDate.of(2004, 8, 5), "600000002", "SPORTS", "PLAYER", 4000000.0, "MALE");
+                LocalDate.of(2004, 8, 5), "600000002", "SPORTS", "PLAYER", 4000000.0, "MALE", "pedri_gonzalez", "securePassword123");
         employeeDAO.insert(emp);
 
         List<Employee> all = employeeDAO.getAll();
         int insertedId = all.get(0).getId();
 
         Employee updatedEmp = new Employee(insertedId, "Pablo Martin", "Paez Gavi", "33333333C",
-                LocalDate.of(2004, 8, 5), "699999999", "SPORTS", "MIDFIELDER", 6000000.0, "MALE");
+                LocalDate.of(2004, 8, 5), "699999999", "SPORTS", "MIDFIELDER", 6000000.0, "MALE", "pedri_gonzalez", "securePassword123");
 
         employeeDAO.update(updatedEmp);
 
@@ -131,7 +133,7 @@ public class EmployeeDAOTest {
     @DisplayName("delete: removes employee record from database")
     void testDelete_Success() throws SQLException {
         Employee emp = new Employee(null, "Marcus", "Sorg", "44444444D",
-                LocalDate.of(1965, 12, 24), "600000003", "SPORTS", "COACH", 4000000.0, "MALE");
+                LocalDate.of(1965, 12, 24), "600000003", "SPORTS", "COACH", 4000000.0, "MALE", "pedri_gonzalez", "securePassword123");
         employeeDAO.insert(emp);
 
         List<Employee> all = employeeDAO.getAll();
@@ -148,9 +150,9 @@ public class EmployeeDAOTest {
     @DisplayName("getEmployeesByRole: filters employees strictly by position role")
     void testGetEmployeesByRole_Success() throws SQLException {
         Employee player = new Employee(null, "Pedri", "González", "11111111A",
-                LocalDate.of(2002, 11, 25), "600000001", "SPORTS", "PLAYER", 5000000.0, "MALE");
+                LocalDate.of(2002, 11, 25), "600000001", "SPORTS", "PLAYER", 5000000.0, "MALE", "pedri_gonzalez", "securePassword123");
         Employee coach = new Employee(null, "Hansi", "Flick", "22222222B",
-                LocalDate.of(1965, 2, 24), "611111111", "SPORTS", "COACH", 8000000.0, "MALE");
+                LocalDate.of(1965, 2, 24), "611111111", "SPORTS", "COACH", 8000000.0, "MALE", "hansi_flick", "securePassword123");
 
         employeeDAO.insert(player);
         employeeDAO.insert(coach);

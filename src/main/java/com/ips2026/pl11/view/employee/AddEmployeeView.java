@@ -39,11 +39,9 @@ public class AddEmployeeView extends JDialog {
 
     private final EmployeeController controller = new EmployeeController(new EmployeeDAO());
 
-    private final String[] sportsPositions = {"Player", "Coach"};
-    private final String[] nonSportsPositions = {
-            "General Manager", "Ticket Seller", "Store Employee",
-            "Gardener", "Director of Communications", "Facility Manager", "Social Networks"
-    };
+    private final String[] sportsPositions = { "Player", "Coach" };
+    private final String[] nonSportsPositions = { "General Manager", "Ticket Seller", "Store Employee", "Gardener",
+        "Director of Communications", "Facility Manager", "Social Networks" };
 
     private JPanel contentPane;
     private HeaderPanel pnHeader;
@@ -69,7 +67,7 @@ public class AddEmployeeView extends JDialog {
 
     public AddEmployeeView(JFrame parent) {
         super(parent, "Employee Registration", true);
-        setSize(720, 600);
+        setSize(820, 600);
         setLocationRelativeTo(parent);
         setResizable(false);
 
@@ -95,10 +93,7 @@ public class AddEmployeeView extends JDialog {
 
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
-            pnHeader = new HeaderPanel(
-                    "New Employee",
-                    "Enter personal and contractual information below"
-            );
+            pnHeader = new HeaderPanel("New Employee", "Enter personal and contractual information below");
         }
         return pnHeader;
     }
@@ -107,7 +102,7 @@ public class AddEmployeeView extends JDialog {
         if (pnForm == null) {
             pnForm = new JPanel();
             pnForm.setOpaque(false);
-            pnForm.setLayout(new GridLayout(6, 2, 15, 14));
+            pnForm.setLayout(new GridLayout(6, 2, 10, 14));
 
             pnForm.add(crearLabel("First Name:"));
             pnForm.add(getTxtFirstName());
@@ -127,16 +122,15 @@ public class AddEmployeeView extends JDialog {
             pnForm.add(crearLabel("Phone Number:"));
             pnForm.add(getTxtPhone());
 
-         
         }
         return pnForm;
     }
-    
+
     private JPanel getPnSecondForm() {
         if (pnSecondForm == null) {
             pnSecondForm = new JPanel();
             pnSecondForm.setOpaque(false);
-            pnSecondForm.setLayout(new GridLayout(6, 2, 15, 14));
+            pnSecondForm.setLayout(new GridLayout(6, 2, 5, 14));
 
             pnSecondForm.add(crearLabel("Staff Category:"));
             pnSecondForm.add(getCbCategory());
@@ -146,19 +140,18 @@ public class AddEmployeeView extends JDialog {
 
             pnSecondForm.add(crearLabel("Gross Annual Salary (€):"));
             pnSecondForm.add(getTxtSalary());
-            
+
             pnSecondForm.add(crearLabel("Username:"));
             pnSecondForm.add(getTxtUsername());
-            
+
             pnSecondForm.add(crearLabel("Password:"));
             pnSecondForm.add(getPswPassword());
-            
+
             pnSecondForm.add(crearLabel("Confirm Password:"));
             pnSecondForm.add(getPswConfirmPassword());
         }
         return pnSecondForm;
     }
-
 
     private JPanel getPnFooter() {
         if (pnFooter == null) {
@@ -198,10 +191,8 @@ public class AddEmployeeView extends JDialog {
             dateBirth.setDateFormatString("yyyy-MM-dd");
             dateBirth.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
             dateBirth.setBackground(Color.WHITE);
-            dateBirth.setBorder(BorderFactory.createCompoundBorder(
-                    new LineBorder(Branding.BORDER, 1, true),
-                    BorderFactory.createEmptyBorder(2, 2, 2, 2)
-            ));
+            dateBirth.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Branding.BORDER, 1, true),
+                BorderFactory.createEmptyBorder(2, 2, 2, 2)));
         }
         return dateBirth;
     }
@@ -222,7 +213,7 @@ public class AddEmployeeView extends JDialog {
 
     private JComboBox<String> getCbCategory() {
         if (cbCategory == null) {
-            cbCategory = new JComboBox<>(new String[]{"SPORTS", "NON_SPORTS"});
+            cbCategory = new JComboBox<>(new String[] { "SPORTS", "NON_SPORTS" });
             cbCategory.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
             cbCategory.setBackground(Color.WHITE);
             cbCategory.setForeground(Branding.NAVY);
@@ -235,6 +226,7 @@ public class AddEmployeeView extends JDialog {
     private JComboBox<String> getCbPosition() {
         if (cbPosition == null) {
             cbPosition = new JComboBox<>(sportsPositions);
+            cbPosition.setPrototypeDisplayValue("Director of Communications");
             cbPosition.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
             cbPosition.setBackground(Color.WHITE);
             cbPosition.setForeground(Branding.NAVY);
@@ -245,7 +237,7 @@ public class AddEmployeeView extends JDialog {
 
     private JComboBox<String> getCbGender() {
         if (cbGender == null) {
-            cbGender = new JComboBox<>(new String[]{"MALE", "FEMALE"});
+            cbGender = new JComboBox<>(new String[] { "MALE", "FEMALE" });
             cbGender.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
             cbGender.setBackground(Color.WHITE);
             cbGender.setForeground(Branding.NAVY);
@@ -253,14 +245,14 @@ public class AddEmployeeView extends JDialog {
         }
         return cbGender;
     }
-    
+
     private JTextField getTxtUsername() {
         if (txtUsername == null) {
             txtUsername = crearTextField();
         }
         return txtUsername;
     }
-    
+
     private JPasswordField getPswPassword() {
         if (pswPassword == null) {
             pswPassword = new JPasswordField();
@@ -271,7 +263,7 @@ public class AddEmployeeView extends JDialog {
         }
         return pswPassword;
     }
-    
+
     private JPasswordField getPswConfirmPassword() {
         if (pswConfirmPassword == null) {
             pswConfirmPassword = new JPasswordField();
@@ -293,28 +285,23 @@ public class AddEmployeeView extends JDialog {
             btnSubmit.setCursor(new Cursor(Cursor.HAND_CURSOR));
             btnSubmit.setBackground(Branding.NAVY);
             btnSubmit.setForeground(Color.WHITE);
-            btnSubmit.setBorder(BorderFactory.createCompoundBorder(
-                    new LineBorder(Branding.NAVY, 1, true),
-                    BorderFactory.createEmptyBorder(12, 20, 12, 20)
-            ));
+            btnSubmit.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Branding.NAVY, 1, true),
+                BorderFactory.createEmptyBorder(12, 20, 12, 20)));
 
             btnSubmit.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseEntered(MouseEvent e) {
                     btnSubmit.setBackground(new Color(0x1F, 0x4E, 0x8C));
-                    btnSubmit.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.NAVY_DARKER, 1, true),
-                            BorderFactory.createEmptyBorder(12, 20, 12, 20)
-                    ));
+                    btnSubmit
+                        .setBorder(BorderFactory.createCompoundBorder(new LineBorder(Branding.NAVY_DARKER, 1, true),
+                            BorderFactory.createEmptyBorder(12, 20, 12, 20)));
                 }
 
                 @Override
                 public void mouseExited(MouseEvent e) {
                     btnSubmit.setBackground(Branding.NAVY);
-                    btnSubmit.setBorder(BorderFactory.createCompoundBorder(
-                            new LineBorder(Branding.NAVY, 1, true),
-                            BorderFactory.createEmptyBorder(12, 20, 12, 20)
-                    ));
+                    btnSubmit.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Branding.NAVY, 1, true),
+                        BorderFactory.createEmptyBorder(12, 20, 12, 20)));
                 }
             });
 
@@ -336,26 +323,20 @@ public class AddEmployeeView extends JDialog {
         tf.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 13));
         tf.setBackground(Color.WHITE);
         tf.setForeground(Color.BLACK);
-        tf.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(Branding.BORDER, 1, true),
-                BorderFactory.createEmptyBorder(6, 8, 6, 8)
-        ));
+        tf.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Branding.BORDER, 1, true),
+            BorderFactory.createEmptyBorder(6, 8, 6, 8)));
 
         tf.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
-                tf.setBorder(BorderFactory.createCompoundBorder(
-                        new LineBorder(Branding.NAVY_DARKER, 2, true),
-                        BorderFactory.createEmptyBorder(5, 7, 5, 7)
-                ));
+                tf.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Branding.NAVY_DARKER, 2, true),
+                    BorderFactory.createEmptyBorder(5, 7, 5, 7)));
             }
 
             @Override
             public void focusLost(FocusEvent e) {
-                tf.setBorder(BorderFactory.createCompoundBorder(
-                        new LineBorder(Branding.BORDER, 1, true),
-                        BorderFactory.createEmptyBorder(6, 8, 6, 8)
-                ));
+                tf.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Branding.BORDER, 1, true),
+                    BorderFactory.createEmptyBorder(6, 8, 6, 8)));
             }
         });
 
@@ -377,34 +358,51 @@ public class AddEmployeeView extends JDialog {
         try {
             Date selectedDate = getDateBirth().getDate();
             if (selectedDate == null) {
-                JOptionPane.showMessageDialog(this, "Please select a valid birth date.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Please select a valid birth date.", "Validation Error",
+                    JOptionPane.WARNING_MESSAGE);
                 return;
             }
             LocalDate birthDate = selectedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
             double salary = Double.parseDouble(getTxtSalary().getText().trim());
 
-            controller.registerEmployee(
-                    getTxtFirstName().getText(),
-                    getTxtLastName().getText(),
-                    getTxtNationalId().getText(),
-                    birthDate,
-                    getTxtPhone().getText(),
-                    (String) getCbCategory().getSelectedItem(),
-                    (String) getCbPosition().getSelectedItem(),
-                    salary,
-                    (String) getCbGender().getSelectedItem(),
-                    getTxtUsername().getText(),
-                    new String(getPswPassword().getPassword())
-            );
+            if (!doPasswordsMatch()) {
+                return;
+            }
 
-            JOptionPane.showMessageDialog(this, "Employee successfully registered!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            controller.registerEmployee(
+                getTxtFirstName().getText(),
+                getTxtLastName().getText(),
+                getTxtNationalId().getText(),
+                birthDate,
+                getTxtPhone().getText(),
+                (String) getCbCategory().getSelectedItem(),
+                (String) getCbPosition().getSelectedItem(),
+                salary,
+                (String) getCbGender().getSelectedItem(),
+                getTxtUsername().getText(),
+                new String(getPswPassword().getPassword()));
+
+            JOptionPane.showMessageDialog(this, "Employee successfully registered!", "Success",
+                JOptionPane.INFORMATION_MESSAGE);
             dispose();
 
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Annual gross salary must be a valid number.", "Format Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Annual gross salary must be a valid number.", "Format Error",
+                JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Registration Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private boolean doPasswordsMatch() {
+        String password = new String(getPswPassword().getPassword());
+        String confirmPassword = new String(getPswConfirmPassword().getPassword());
+        if (!password.equals(confirmPassword)) {
+            JOptionPane.showMessageDialog(this, "Passwords do not match.", "Validation Error",
+                JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        return true;
     }
 }

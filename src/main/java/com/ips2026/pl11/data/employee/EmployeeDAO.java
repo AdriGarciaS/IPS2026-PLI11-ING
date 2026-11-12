@@ -17,7 +17,7 @@ public class EmployeeDAO {
 
 	public void insert(Employee employee) throws SQLException {
         String sql = "INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender, username, password) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = ConexionBD.obtenerConexion();
              PreparedStatement statement = connection.prepareStatement(sql)) {

@@ -1,6 +1,7 @@
 package com.ips2026.pl11.data.market;
 
 import com.ips2026.pl11.data.ConexionBD;
+import com.ips2026.pl11.data.shareholder.ShareholderDAO;
 import com.ips2026.pl11.model.market.CartItem;
 import com.ips2026.pl11.model.market.MarketPurchase;
 import com.ips2026.pl11.model.market.ShareListing;
@@ -17,8 +18,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * SQL operations of the share market: the listings that can be bought and
@@ -106,7 +109,8 @@ public class MarketDAO {
     /**
      * Buys the items of the cart: every share changes its owner to the buyer.
      * The buyer gets a new holding for each campaign and price of the shares
-     * bought, and each change of owner is stored in SHARE_TRANSFER.
+     * bought, and each change of owner is stored in SHARE_TRANSFER. A seller
+     * that is left without shares is removed from the system (US 36748).
      *
      * <p>Everything runs in a single transaction: if a share is no longer
      * available (or a pack is no longer complete), nothing is stored.</p>
@@ -133,6 +137,7 @@ public class MarketDAO {
 
                 Map<String, Integer> newHoldings = new LinkedHashMap<>(); // "campaign|price" -> holding of the buyer
                 List<Integer> boughtIds = new ArrayList<>();
+                Set<Integer> sellers = new LinkedHashSet<>();
                 BigDecimal total = BigDecimal.ZERO;
 
                 for (CartItem item : items) {
@@ -194,8 +199,14 @@ public class MarketDAO {
                         moveShare.setInt(2, shareId);
                         moveShare.executeUpdate();
                         boughtIds.add(shareId);
+                        sellers.add(sellerId);
                     }
                     total = total.add(item.getPrice());
+                }
+
+                // US 36748: a seller that has just sold their last share is removed from the system
+                for (int sellerId : sellers) {
+                    ShareholderDAO.deleteIfWithoutShares(connection, sellerId);
                 }
 
                 connection.commit();

@@ -7,12 +7,21 @@ INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_num
     ('Joan', 'García', '65437890W', '2002-04-22', '+34600412444', 'SPORTS', 'Player', 1100000.0, 'MALE', 'joan_garcia', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
     ('Pedri', 'González', '12345678P', '2002-11-25', '+34600111222', 'SPORTS', 'Player', 900000.0, 'MALE', 'pedri_gonzalez', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
     ('Pep', 'Guardiola', '87654321B', '1971-01-18', '+34611223344', 'SPORTS', 'Coach', 12000000.0, 'MALE', 'pep_guardiola', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+    
     ('Sarah', 'Jenkins', '99887766C', '1985-04-12', '+34622334455', 'NON_SPORTS', 'General Manager', 95000.0, 'FEMALE', 'sarah_jenkins', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
-    ('Jackie', 'Taylor', '62671892R', '1978-11-09', '+34669571133', 'NON_SPORTS', 'Manager', 70000.0, 'FEMALE', 'jackie_taylor', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+    ('Jackie', 'Taylor', '62671892R', '1978-11-09', '+34669571133', 'NON_SPORTS', 'Facility Manager', 70000.0, 'FEMALE', 'jackie_taylor', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
     
     ('Carlos', 'Martínez', '74392871L', '2001-12-19', '+34626014732', 'NON_SPORTS', 'Gardener', 30000.0, 'MALE', 'carlos_martinez', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
     ('Rosa', 'Vilas', '87290851K', '1988-02-02', '+34692449181', 'NON_SPORTS', 'Gardener', 30000.0, 'FEMALE', 'rosa_vilas', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
-    ('Clara', 'Díez', '92378567M', '2002-08-21', '+34611311952', 'NON_SPORTS', 'Gardener', 30000.0, 'FEMALE', 'clara_diez', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO');
+    ('Clara', 'Díez', '92378567M', '2002-08-21', '+34611311952', 'NON_SPORTS', 'Gardener', 30000.0, 'FEMALE', 'clara_diez', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+    
+    ('Jaime', 'Gómez', '12345678J', '1990-05-15', '+34600112982', 'NON_SPORTS', 'Doctor', 80000.0, 'MALE', 'jaime_gomez', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+	('Laura', 'Martínez', '87654321L', '1985-09-20', '+34600412444', 'NON_SPORTS', 'Doctor', 80000.0, 'FEMALE', 'laura_martinez', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+	
+	('Celia', 'Lobo', '75829384C', '2003-03-10', '+34601441957', 'NON_SPORTS', 'Store Employee', 30000.0, 'FEMALE', 'celia_lobo', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+	('Llara', 'Molla', '17223479K', '2005-12-18', '+34626665900', 'NON_SPORTS', 'Ticket Seller', 30000.0, 'FEMALE', 'llara_molla', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+	
+	('Jordi', 'Soler', '19283746J', '1995-07-22', '+34600112233', 'NON_SPORTS', 'Press Officer', 30000.0, 'MALE', 'jordi_soler', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO');
 
 INSERT INTO MERCHANDISING (name, type, available_units, price) VALUES
     ('Home Shirt 26/27', 'Clothing', 25, 59.99),

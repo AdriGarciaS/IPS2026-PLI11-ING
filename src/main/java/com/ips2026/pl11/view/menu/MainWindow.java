@@ -38,14 +38,11 @@ import com.ips2026.pl11.view.campaign.CampaignsDialog;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
-import com.ips2026.pl11.view.gardening.GardeningSessionWindow;
 import com.ips2026.pl11.view.interview.InterviewHubDialog;
 import com.ips2026.pl11.view.matches.ScheduleMatchDialog;
-import com.ips2026.pl11.view.news.NewsCreationDialog;
 import com.ips2026.pl11.view.news.NewsMenuDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.sale.SalesMenuDialog;
-import com.ips2026.pl11.view.schedule.ScheduleWindow;
 import com.ips2026.pl11.view.seasonpass.PurchaseSeasonPassDialog;
 import com.ips2026.pl11.view.shareholder.ShareholderPortalDialog;
 import com.ips2026.pl11.view.team.TeamCreationWindow;
@@ -76,7 +73,6 @@ public class MainWindow extends JFrame {
     private JLabel lblFooter;
     private JButton selectedButton;
 
-    private ScheduleWindow workScheduleWindow = new ScheduleWindow(this);
     private MenuCardButton btnOption11;
     private MenuCardButton btnOption12;
     private MenuCardButton btnOption13;
@@ -157,7 +153,6 @@ public class MainWindow extends JFrame {
     private MenuCardButton getBtnOption2() {
         if (btnOption2 == null) {
             btnOption2 = new MenuCardButton("Schedule Management", "Everything related to non sporting employees' schedules");
-            btnOption2.addActionListener(e -> workScheduleWindow.setVisible(true));
             btnOption2.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
             btnOption2.setEnabled(true);
         }
@@ -282,8 +277,6 @@ public class MainWindow extends JFrame {
 
     private Object openGardeningSession() {
         try {
-            GardeningSessionWindow dialog = new GardeningSessionWindow(this);
-            dialog.setVisible(true);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "Error opening Gardening Session dialog: " + ex.getMessage(),

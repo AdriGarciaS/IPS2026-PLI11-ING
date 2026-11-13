@@ -41,7 +41,7 @@ public class AddEmployeeView extends JDialog {
 
     private final String[] sportsPositions = { "Player", "Coach" };
     private final String[] nonSportsPositions = { "General Manager", "Ticket Seller", "Store Employee", "Gardener",
-        "Director of Communications", "Facility Manager", "Social Networks" };
+        "Director of Communications", "Facility Manager", "Social Networks", "Doctor" };
 
     private JPanel contentPane;
     private HeaderPanel pnHeader;

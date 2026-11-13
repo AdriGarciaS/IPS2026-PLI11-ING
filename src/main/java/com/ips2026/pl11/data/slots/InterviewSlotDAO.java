@@ -172,7 +172,7 @@ public class InterviewSlotDAO {
      * Retrieves all coaches from the employees table.
      */
     public List<Employee> getAllCoaches() throws SQLException {
-        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender " +
+        String sql = "SELECT id, first_name, last_name, national_id, birth_date, phone_number, category, position, gross_annual_salary, gender, username, password " +
                      "FROM employees WHERE UPPER(position) = 'COACH' ORDER BY last_name, first_name";
 
         List<Employee> coaches = new ArrayList<>();

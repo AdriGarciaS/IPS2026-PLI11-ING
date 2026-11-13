@@ -25,6 +25,17 @@ import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.ips2026.pl11.view.menu.mainmenus.CoachMenuWindow;
+import com.ips2026.pl11.view.menu.mainmenus.DirectorOfCommsMenuWindow;
+import com.ips2026.pl11.view.menu.mainmenus.DoctorMenuWindow;
+import com.ips2026.pl11.view.menu.mainmenus.FacilityManagerMenuWindow;
+import com.ips2026.pl11.view.menu.mainmenus.GardenerMenuWindow;
+import com.ips2026.pl11.view.menu.mainmenus.GeneralManagerMenuWindow;
+import com.ips2026.pl11.view.menu.mainmenus.PlayerMenuWindow;
+import com.ips2026.pl11.view.menu.mainmenus.PressOfficerMenuWindow;
+import com.ips2026.pl11.view.menu.mainmenus.SocialNetworksMenuWindow;
+import com.ips2026.pl11.view.menu.mainmenus.StoreEmployeeMenuWindow;
+import com.ips2026.pl11.view.menu.mainmenus.TicketSellerMenuWindow;
 
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
@@ -141,7 +152,10 @@ public class LoginWindow extends JFrame {
                         if(PasswordEncrypting.checkPassword(password, oe.get().getPassword())) {
                             JOptionPane.showMessageDialog(LoginWindow.this, "Welcome, " + oe.get().getFirstName() + "!",
                                 "Login Successful", JOptionPane.INFORMATION_MESSAGE);
-                            new MainWindow().setVisible(true);
+                            String position = oe.get().getPosition();
+                            
+                            openPositionMenu(position);
+                            dispose();
                         }
                         
                     } catch (SQLException ex) {
@@ -203,5 +217,51 @@ public class LoginWindow extends JFrame {
         getTxtUsername().requestFocus();
         getTxtUsername().setText("");
         getPswPassword().setText("");
+    }
+    
+    private void openPositionMenu(String position) {
+        switch (position.toLowerCase()) {
+            case "player":
+                new PlayerMenuWindow().setVisible(true);
+                break;
+            case "coach":
+                new CoachMenuWindow().setVisible(true);
+                break;
+            case "general manager":
+                new GeneralManagerMenuWindow().setVisible(true);
+                break;
+            case "ticket seller":
+                new TicketSellerMenuWindow().setVisible(true);
+                break;
+            case "store employee":
+                new StoreEmployeeMenuWindow().setVisible(true);
+                break;
+            case "gardener":
+                new GardenerMenuWindow().setVisible(true);
+                break;
+            case "director of communications":
+                new DirectorOfCommsMenuWindow().setVisible(true);
+                break;
+            case "facility manager":
+                new FacilityManagerMenuWindow().setVisible(true);
+                break;
+            case "social networks":
+                new SocialNetworksMenuWindow().setVisible(true);
+                break;
+            case "doctor":
+                new DoctorMenuWindow().setVisible(true);
+                break;
+            case "press officer":
+                new PressOfficerMenuWindow().setVisible(true);
+                break;
+            case "shareholder":
+//                new ShareholderMenuWindow().setVisible(true); TODO
+                break;
+            default:
+                JOptionPane.showMessageDialog(this, "Unknown position: " + position,
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+        }
+        
     }
 }

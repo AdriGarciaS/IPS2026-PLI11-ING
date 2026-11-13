@@ -65,10 +65,9 @@ public class NSEWorkScheduleWindow extends JDialog {
     private EmployeeController eController = new EmployeeController(new EmployeeDAO());
 
     private List<Employee> workersList = new ArrayList<>();
-
     private List<String> occupiedShiftCells = new ArrayList<>();
 
-    private ScheduleWindow wsw;
+    private JFrame parent;
     private HeaderPanel pnHeader;
     private JPanel pnFooter;
     private JLabel lblFooter;
@@ -144,10 +143,10 @@ public class NSEWorkScheduleWindow extends JDialog {
     /**
      * Create the frame.
      */
-    public NSEWorkScheduleWindow(ScheduleWindow workScheduleWindow) {
+    public NSEWorkScheduleWindow(JFrame parent) {
         setResizable(false);
         setTitle("Football Club Management");
-        this.wsw = workScheduleWindow;
+        this.parent = parent;
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 1067, 611);
@@ -161,7 +160,7 @@ public class NSEWorkScheduleWindow extends JDialog {
         contentPane.add(getLblFooter(), BorderLayout.SOUTH);
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         rootPane.setDefaultButton(btnModify);
-        setLocationRelativeTo(wsw);
+        setLocationRelativeTo(parent);
         setModal(true);
 
         initializeShiftsTable();

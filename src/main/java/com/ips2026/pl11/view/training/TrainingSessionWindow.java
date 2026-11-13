@@ -67,7 +67,6 @@ import com.ips2026.pl11.model.reservation.TimeSlot;
 import com.ips2026.pl11.model.training.TrainingSession;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
-import com.ips2026.pl11.view.menu.MainWindow;
 import com.toedter.calendar.JDateChooser;
 
 public class TrainingSessionWindow extends JDialog {
@@ -75,7 +74,7 @@ public class TrainingSessionWindow extends JDialog {
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
 
-    private MainWindow mw;
+    private JFrame mw;
     private HeaderPanel pnHeader;
     private JPanel pnFooter;
     private JLabel lblFooter;
@@ -135,7 +134,7 @@ public class TrainingSessionWindow extends JDialog {
     /**
      * Create the frame.
      */
-    public TrainingSessionWindow(MainWindow mainWindow) {
+    public TrainingSessionWindow(JFrame mainWindow) {
         setResizable(false);
         setTitle("Football Club Management");
         this.mw = mainWindow;

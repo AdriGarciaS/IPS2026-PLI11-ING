@@ -69,6 +69,7 @@ class MarketDAOTest {
         TestDatabase.execute("INSERT INTO SHARE_LISTING_ITEM (listing_id, share_id) VALUES "
                 + "(1, 1), (1, 2), (1, 3), (1, 6), (2, 20), (2, 21), (2, 22), (2, 23), (2, 24), "
                 + "(3, 30), (3, 31), (3, 32), (3, 33), (4, 5)");
+        // Irene (3) has shares 31, 32 and 33 left: selling them removes her (US 36748)
         TestDatabase.execute("INSERT INTO SHARE_TRANSFER (purchase_number, listing_id, share_id, seller_id, buyer_id, "
                 + "from_holding_id, to_holding_id, sale_type, price, transferred_at) VALUES "
                 + "(1, 3, 30, 3, 2, 13, 14, 'SINGLE', 11.8, '2026-10-31 19:20:00')");
@@ -235,5 +236,71 @@ class MarketDAOTest {
 
         assertThrows(IllegalStateException.class, () -> dao.buy(MARCOS, List.of(CartItem.single(stale, 5)), NOW));
         assertEquals(JAVIER, owner(5));
+    }
+
+    // ------------------------------------------------------------------
+    // US 36748: a shareholder that sells all their shares is removed
+    // ------------------------------------------------------------------
+
+    private static boolean exists(int shareholderId) throws SQLException {
+        return TestDatabase.queryInt("SELECT COUNT(*) FROM SHAREHOLDER WHERE id = " + shareholderId) == 1;
+    }
+
+    @Test
+    @DisplayName("US 36748: a seller that sells their last share is removed from the system")
+    void sellerOfAllSharesRemoved() throws SQLException {
+        ShareListing irene = listing(JAVIER, 3); // Irene only has shares 31, 32 and 33 left
+
+        dao.buy(JAVIER, List.of(CartItem.single(irene, 31), CartItem.single(irene, 32), CartItem.single(irene, 33)), NOW);
+
+        assertFalse(exists(3), "Irene has no shares now");
+        assertEquals(3, count("SHAREHOLDER"));
+        assertTrue(exists(JAVIER), "the buyer is not removed");
+        assertTrue(exists(MARCOS), "a shareholder that bought from Irene before is not removed");
+        assertTrue(dao.findOpenListings(JAVIER).stream().noneMatch(l -> l.getId() == 3));
+    }
+
+    @Test
+    @DisplayName("US 36748: the history of a removed shareholder is kept, without them")
+    void historyOfRemovedShareholderKept() throws SQLException {
+        ShareListing irene = listing(JAVIER, 3);
+
+        dao.buy(JAVIER, List.of(CartItem.single(irene, 31), CartItem.single(irene, 32), CartItem.single(irene, 33)), NOW);
+
+        assertEquals(1, TestDatabase.queryInt("SELECT COUNT(*) FROM SHARE_HOLDING WHERE id = 13 AND shareholder_id IS NULL"),
+                "the campaign purchase of Irene is still there (it is income of the club)");
+        assertEquals(1, TestDatabase.queryInt("SELECT COUNT(*) FROM SHARE_LISTING WHERE id = 3 AND seller_id IS NULL"));
+        assertEquals(4, TestDatabase.queryInt("SELECT COUNT(*) FROM SHARE_TRANSFER WHERE seller_id IS NULL"),
+                "the old sale to Marcos and the three new ones");
+        assertEquals(0, TestDatabase.queryInt("SELECT COUNT(*) FROM SHARE_TRANSFER WHERE seller_id = 3 OR buyer_id = 3"));
+        assertEquals(1, TestDatabase.queryInt("SELECT COUNT(*) FROM SHARE_TRANSFER WHERE buyer_id = 2"),
+                "Marcos is still the buyer of his old purchase");
+    }
+
+    @Test
+    @DisplayName("US 36748: a seller that still has shares is not removed")
+    void sellerWithSharesLeftNotRemoved() throws SQLException {
+        ShareListing irene = listing(JAVIER, 3);
+        ShareListing laura = listing(JAVIER, 1);
+
+        dao.buy(JAVIER, List.of(CartItem.single(irene, 31), CartItem.single(irene, 32), CartItem.pack(laura)), NOW);
+
+        assertTrue(exists(3), "Irene still has share 33");
+        assertTrue(exists(LAURA), "Laura sold her listing but still has shares 4 and 7");
+        assertEquals(4, count("SHAREHOLDER"));
+    }
+
+    @Test
+    @DisplayName("US 36748: if the purchase fails, nobody is removed")
+    void failedPurchaseRemovesNobody() throws SQLException {
+        ShareListing irene = listing(JAVIER, 3);
+        ShareListing stale = new ShareListing(4, LAURA, "Laura Pérez Gil", new BigDecimal("9.00"), null,
+                LocalDateTime.of(2026, 10, 20, 8, 0), List.of(5), 0);
+
+        assertThrows(IllegalStateException.class, () -> dao.buy(MARCOS, List.of(CartItem.single(irene, 31),
+                CartItem.single(irene, 32), CartItem.single(irene, 33), CartItem.single(stale, 5)), NOW));
+
+        assertTrue(exists(3));
+        assertEquals(3, owner(31));
     }
 }

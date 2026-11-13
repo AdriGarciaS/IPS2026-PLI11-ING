@@ -387,5 +387,24 @@ public class ShareholderPortalDialog extends JDialog {
             return;
         }
         new ShareMarketDialog(marketController, this).setVisible(true);
+        reloadShareholders(); // US 36748: a seller that sold all their shares is no longer a shareholder
+    }
+
+    /** Reads the shareholders again, keeping the search typed and the shareholder chosen. */
+    private void reloadShareholders() {
+        Shareholder selected = controller.getSelected();
+        try {
+            controller.load();
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this, "The shareholders could not be loaded:\n" + exception.getMessage(),
+                    "Shareholders Portal", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        searchChanged();
+        int modelRow = controller.search(getTxtSearch().getText()).indexOf(selected);
+        if (modelRow >= 0) {
+            int viewRow = getTblResults().convertRowIndexToView(modelRow);
+            getTblResults().setRowSelectionInterval(viewRow, viewRow);
+        }
     }
 }

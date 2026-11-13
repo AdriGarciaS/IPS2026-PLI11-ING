@@ -280,7 +280,8 @@ INSERT INTO SHAREHOLDER (first_name, last_name, national_id) VALUES
     ('Laura', 'Pérez Gil', '11111111H'),
     ('Marcos', 'Ruiz Soto', '22222222J'),
     ('Irene', 'Castillo Mora', '33333333P'),
-    ('Javier', 'Ortega Lima', '44444444A');
+    ('Javier', 'Ortega Lima', '44444444A'),
+    ('Sofía', 'Navarro Díaz', '55555555K');
 
 INSERT INTO SHARE_CAMPAIGN (name, nominal_price, total_shares, status) VALUES
     ('Founding shares 2023', 9.50, 1000, 'FINISHED'),
@@ -293,7 +294,9 @@ INSERT INTO SHARE_HOLDING (shareholder_id, campaign_id, purchase_date, purchase_
     ((SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2024'), '2024-04-02 09:05:00', 15.00),
     ((SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), datetime('now', 'localtime', 'start of day', '-8 days', '+12 hours', '+30 minutes'), 14.20),
     ((SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), '2023-03-01 17:30:00', 9.80),
-    ((SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), datetime('now', 'localtime', 'start of day', '-20 days', '+16 hours', '+10 minutes'), 14.80);
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), datetime('now', 'localtime', 'start of day', '-20 days', '+16 hours', '+10 minutes'), 14.80),
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '44444444A'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), datetime('now', 'localtime', 'start of day', '-15 days', '+11 hours'), 14.00),
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '55555555K'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2024'), '2024-05-20 18:45:00', 10.00);
 
 WITH RECURSIVE numbers(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM numbers WHERE n < 3000),
 ranges(national_id, campaign, first_id, last_id) AS (
@@ -306,6 +309,8 @@ ranges(national_id, campaign, first_id, last_id) AS (
     UNION ALL SELECT '22222222J', 'Capital increase 2026', 2001, 2250
     UNION ALL SELECT '33333333P', 'Capital increase 2026', 2251, 2500
     UNION ALL SELECT '33333333P', 'Capital increase 2026', 2601, 2700
+    UNION ALL SELECT '44444444A', 'Capital increase 2026', 2701, 2740
+    UNION ALL SELECT '55555555K', 'Capital increase 2024', 1751, 1762
 )
 INSERT INTO SHARE (id, holding_id)
 SELECT n.n, h.id
@@ -351,7 +356,9 @@ INSERT INTO SHARE_LISTING (id, seller_id, price_per_share, pack_price, listed_at
     (2, (SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), 13.00, NULL, datetime('now', 'localtime', 'start of day', '-4 days', '+17 hours', '+15 minutes')),
     (3, (SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), 11.80, 110.00, datetime('now', 'localtime', 'start of day', '-3 days', '+9 hours')),
     (4, (SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), 14.90, 70.00, datetime('now', 'localtime', 'start of day', '-1 days', '+12 hours')),
-    (5, (SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), 15.20, NULL, datetime('now', 'localtime', 'start of day', '+8 hours', '+30 minutes'));
+    (5, (SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), 15.20, NULL, datetime('now', 'localtime', 'start of day', '+8 hours', '+30 minutes')),
+    -- US 36748: Sofía sells ALL her shares here; whoever buys the last one removes her from the system.
+    (6, (SELECT id FROM SHAREHOLDER WHERE national_id = '55555555K'), 13.50, 150.00, datetime('now', 'localtime', 'start of day', '-2 days', '+19 hours'));
 
 WITH RECURSIVE numbers(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM numbers WHERE n < 3000),
 ranges(listing_id, first_id, last_id) AS (
@@ -360,6 +367,7 @@ ranges(listing_id, first_id, last_id) AS (
     UNION ALL SELECT 3, 301, 310
     UNION ALL SELECT 4, 2001, 2005
     UNION ALL SELECT 5, 2251, 2253
+    UNION ALL SELECT 6, 1751, 1762
 )
 INSERT INTO SHARE_LISTING_ITEM (listing_id, share_id)
 SELECT r.listing_id, n.n FROM ranges r JOIN numbers n ON n.n BETWEEN r.first_id AND r.last_id;

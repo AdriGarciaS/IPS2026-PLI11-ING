@@ -189,6 +189,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_team_member_one_team_per_player ON TEAM_MEM
 
 -- People that own shares of the club. There is no login: a shareholder
 -- identifies with the national ID or is searched by name.
+-- US 36748: when a shareholder sells all their shares in the market, their row
+-- is deleted. Their old holdings, listings and transfers are kept (they are
+-- the history of the campaigns and of the market) with the shareholder
+-- columns set to NULL, which means "a shareholder removed from the system".
 CREATE TABLE IF NOT EXISTS SHAREHOLDER (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     first_name  TEXT    NOT NULL,
@@ -223,7 +227,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_share_campaign_one_open ON SHARE_CAMPAIGN (
 -- purchase_date: moment of the purchase (YYYY-MM-DD HH:MM:SS, local time).
 CREATE TABLE IF NOT EXISTS SHARE_HOLDING (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    shareholder_id INTEGER NOT NULL REFERENCES SHAREHOLDER (id),
+    shareholder_id INTEGER REFERENCES SHAREHOLDER (id), -- NULL: removed shareholder (US 36748)
     campaign_id    INTEGER NOT NULL REFERENCES SHARE_CAMPAIGN (id),
     purchase_date  TEXT    NOT NULL,
     purchase_price REAL    NOT NULL CHECK (purchase_price > 0)
@@ -248,7 +252,7 @@ CREATE TABLE IF NOT EXISTS SHARE (
 -- listed_at: moment of the listing (YYYY-MM-DD HH:MM:SS, local time).
 CREATE TABLE IF NOT EXISTS SHARE_LISTING (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    seller_id       INTEGER NOT NULL REFERENCES SHAREHOLDER (id),
+    seller_id       INTEGER REFERENCES SHAREHOLDER (id), -- NULL: removed shareholder (US 36748)
     price_per_share REAL    NOT NULL CHECK (price_per_share > 0),
     pack_price      REAL    CHECK (pack_price IS NULL OR pack_price > 0),
     listed_at       TEXT    NOT NULL
@@ -274,8 +278,8 @@ CREATE TABLE IF NOT EXISTS SHARE_TRANSFER (
     purchase_number INTEGER NOT NULL,
     listing_id      INTEGER NOT NULL REFERENCES SHARE_LISTING (id),
     share_id        INTEGER NOT NULL REFERENCES SHARE (id),
-    seller_id       INTEGER NOT NULL REFERENCES SHAREHOLDER (id),
-    buyer_id        INTEGER NOT NULL REFERENCES SHAREHOLDER (id),
+    seller_id       INTEGER REFERENCES SHAREHOLDER (id), -- NULL: removed shareholder (US 36748)
+    buyer_id        INTEGER REFERENCES SHAREHOLDER (id), -- NULL: removed shareholder (US 36748)
     from_holding_id INTEGER NOT NULL REFERENCES SHARE_HOLDING (id),
     to_holding_id   INTEGER NOT NULL REFERENCES SHARE_HOLDING (id),
     sale_type       TEXT    NOT NULL CHECK (sale_type IN ('PACK', 'SINGLE')),

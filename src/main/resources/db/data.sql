@@ -286,7 +286,25 @@ INSERT INTO SHAREHOLDER (first_name, last_name, national_id) VALUES
 INSERT INTO SHARE_CAMPAIGN (name, nominal_price, total_shares, status) VALUES
     ('Founding shares 2023', 9.50, 1000, 'FINISHED'),
     ('Capital increase 2024', 10.00, 1000, 'FINISHED'),
-    ('Capital increase 2026', 14.00, 1000, 'FINISHED');
+    ('Capital increase 2026', 14.00, 1000, 'FINISHED'),
+    -- US 35778: the open campaign, in phase 1 (only shareholders, up to the shares they own)
+    ('Capital increase 2027', 12.00, 500, 'PHASE_1');
+
+-- US 35778: phase changes of every campaign (each campaign moves forward one phase at a time)
+INSERT INTO SHARE_CAMPAIGN_PHASE_CHANGE (campaign_id, from_status, to_status, changed_at) VALUES
+    ((SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), 'INACTIVE', 'PHASE_1', '2023-01-10 09:00:00'),
+    ((SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), 'PHASE_1', 'PHASE_2', '2023-01-20 09:00:00'),
+    ((SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), 'PHASE_2', 'PHASE_3', '2023-02-01 09:00:00'),
+    ((SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), 'PHASE_3', 'FINISHED', '2023-04-01 09:00:00'),
+    ((SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2024'), 'INACTIVE', 'PHASE_1', '2024-03-01 09:00:00'),
+    ((SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2024'), 'PHASE_1', 'PHASE_2', '2024-03-20 09:00:00'),
+    ((SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2024'), 'PHASE_2', 'PHASE_3', '2024-04-01 09:00:00'),
+    ((SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2024'), 'PHASE_3', 'FINISHED', '2024-06-30 20:00:00'),
+    ((SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), 'INACTIVE', 'PHASE_1', datetime('now', 'localtime', 'start of day', '-30 days', '+9 hours')),
+    ((SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), 'PHASE_1', 'PHASE_2', datetime('now', 'localtime', 'start of day', '-25 days', '+9 hours')),
+    ((SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), 'PHASE_2', 'PHASE_3', datetime('now', 'localtime', 'start of day', '-16 days', '+9 hours')),
+    ((SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), 'PHASE_3', 'FINISHED', datetime('now', 'localtime', 'start of day', '-3 days', '+20 hours')),
+    ((SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2027'), 'INACTIVE', 'PHASE_1', datetime('now', 'localtime', 'start of day', '-2 days', '+9 hours'));
 
 INSERT INTO SHARE_HOLDING (shareholder_id, campaign_id, purchase_date, purchase_price) VALUES
     ((SELECT id FROM SHAREHOLDER WHERE national_id = '11111111H'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), '2023-02-10 10:15:00', 9.50),
@@ -296,9 +314,11 @@ INSERT INTO SHARE_HOLDING (shareholder_id, campaign_id, purchase_date, purchase_
     ((SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Founding shares 2023'), '2023-03-01 17:30:00', 9.80),
     ((SELECT id FROM SHAREHOLDER WHERE national_id = '33333333P'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), datetime('now', 'localtime', 'start of day', '-20 days', '+16 hours', '+10 minutes'), 14.80),
     ((SELECT id FROM SHAREHOLDER WHERE national_id = '44444444A'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2026'), datetime('now', 'localtime', 'start of day', '-15 days', '+11 hours'), 14.00),
-    ((SELECT id FROM SHAREHOLDER WHERE national_id = '55555555K'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2024'), '2024-05-20 18:45:00', 10.00);
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '55555555K'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2024'), '2024-05-20 18:45:00', 10.00),
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '11111111H'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2027'), datetime('now', 'localtime', 'start of day', '-1 days', '+10 hours', '+20 minutes'), 12.00),
+    ((SELECT id FROM SHAREHOLDER WHERE national_id = '22222222J'), (SELECT id FROM SHARE_CAMPAIGN WHERE name = 'Capital increase 2027'), datetime('now', 'localtime', 'start of day', '+8 hours', '+45 minutes'), 12.00);
 
-WITH RECURSIVE numbers(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM numbers WHERE n < 3000),
+WITH RECURSIVE numbers(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM numbers WHERE n < 3100),
 ranges(national_id, campaign, first_id, last_id) AS (
     SELECT '11111111H', 'Founding shares 2023', 1, 300
     UNION ALL SELECT '11111111H', 'Founding shares 2023', 601, 800
@@ -311,6 +331,8 @@ ranges(national_id, campaign, first_id, last_id) AS (
     UNION ALL SELECT '33333333P', 'Capital increase 2026', 2601, 2700
     UNION ALL SELECT '44444444A', 'Capital increase 2026', 2701, 2740
     UNION ALL SELECT '55555555K', 'Capital increase 2024', 1751, 1762
+    UNION ALL SELECT '11111111H', 'Capital increase 2027', 3001, 3050
+    UNION ALL SELECT '22222222J', 'Capital increase 2027', 3051, 3070
 )
 INSERT INTO SHARE (id, holding_id)
 SELECT n.n, h.id

@@ -21,8 +21,11 @@ import javax.swing.border.MatteBorder;
 
 import com.ips2026.pl11.controller.PasswordEncrypting;
 import com.ips2026.pl11.controller.employee.EmployeeController;
+import com.ips2026.pl11.controller.shareholder.ShareholderPortalController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
+import com.ips2026.pl11.data.shareholder.ShareholderDAO;
 import com.ips2026.pl11.model.employee.Employee;
+import com.ips2026.pl11.model.shareholder.Shareholder;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.menu.mainmenus.CoachMenuWindow;
@@ -33,6 +36,7 @@ import com.ips2026.pl11.view.menu.mainmenus.GardenerMenuWindow;
 import com.ips2026.pl11.view.menu.mainmenus.GeneralManagerMenuWindow;
 import com.ips2026.pl11.view.menu.mainmenus.PlayerMenuWindow;
 import com.ips2026.pl11.view.menu.mainmenus.PressOfficerMenuWindow;
+import com.ips2026.pl11.view.menu.mainmenus.ShareholderMenuWindow;
 import com.ips2026.pl11.view.menu.mainmenus.SocialNetworksMenuWindow;
 import com.ips2026.pl11.view.menu.mainmenus.StoreEmployeeMenuWindow;
 import com.ips2026.pl11.view.menu.mainmenus.TicketSellerMenuWindow;
@@ -41,8 +45,9 @@ import com.ips2026.pl11.view.menu.mainmenus.TicketSellerMenuWindow;
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
  */
 public class LoginWindow extends JFrame {
-    
-    private EmployeeController controller = new EmployeeController(new EmployeeDAO());
+
+    private EmployeeController employeeController = new EmployeeController(new EmployeeDAO());
+    private ShareholderPortalController shareholderController = new ShareholderPortalController(new ShareholderDAO());
 
     private static final long serialVersionUID = 1L;
 
@@ -131,33 +136,53 @@ public class LoginWindow extends JFrame {
 
                     try {
                         String password = new String(getPswPassword().getPassword());
-                        Optional<Employee> oe = controller.getEmployeeByUsername(getTxtUsername().getText());
-                        
-                        if(oe.isEmpty()) {
-                            JOptionPane.showMessageDialog(LoginWindow.this, "Invalid username.",
-                                "Authentication Error", JOptionPane.ERROR_MESSAGE);
+                        Optional<Employee> oe = employeeController.getEmployeeByUsername(getTxtUsername().getText());
+                        shareholderController.load();
+                        Optional<Shareholder> os = shareholderController
+                            .findShareholderByUsername(getTxtUsername().getText());
+
+                        if (oe.isEmpty() && os.isEmpty()) {
+                            JOptionPane.showMessageDialog(LoginWindow.this, "Invalid username.", "Authentication Error",
+                                JOptionPane.ERROR_MESSAGE);
                             initialize();
                             return;
-                            
                         }
 
-                        if(!PasswordEncrypting.checkPassword(password, oe.get().getPassword())) {
-                            JOptionPane.showMessageDialog(LoginWindow.this, "Invalid password.",
-                                "Authentication Error", JOptionPane.ERROR_MESSAGE);
-                            getPswPassword().setText("");;
-                            return;
-                            
+                        if (oe.isPresent()) {
+                            if (!PasswordEncrypting.checkPassword(password, oe.get().getPassword())) {
+                                JOptionPane.showMessageDialog(LoginWindow.this, "Invalid password.",
+                                    "Authentication Error", JOptionPane.ERROR_MESSAGE);
+                                getPswPassword().setText("");
+                                return;
+                            }
+
+                            if (PasswordEncrypting.checkPassword(password, oe.get().getPassword())) {
+                                JOptionPane.showMessageDialog(LoginWindow.this,
+                                    "Welcome, " + oe.get().getFirstName() + "!", "Login Successful",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                                String position = oe.get().getPosition();
+                                openPositionMenu(position);
+
+                                dispose();
+                            }
+                        } else if (os.isPresent()) {
+                            if (!PasswordEncrypting.checkPassword(password, os.get().getPassword())) {
+                                JOptionPane.showMessageDialog(LoginWindow.this, "Invalid password.",
+                                    "Authentication Error", JOptionPane.ERROR_MESSAGE);
+                                getPswPassword().setText("");
+                                return;
+                            }
+
+                            if (PasswordEncrypting.checkPassword(password, os.get().getPassword())) {
+                                JOptionPane.showMessageDialog(LoginWindow.this,
+                                    "Welcome, " + os.get().getFirstName() + "!", "Login Successful",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                                openPositionMenu("shareholder");
+
+                                dispose();
+                            }
                         }
-                        
-                        if(PasswordEncrypting.checkPassword(password, oe.get().getPassword())) {
-                            JOptionPane.showMessageDialog(LoginWindow.this, "Welcome, " + oe.get().getFirstName() + "!",
-                                "Login Successful", JOptionPane.INFORMATION_MESSAGE);
-                            String position = oe.get().getPosition();
-                            
-                            openPositionMenu(position);
-                            dispose();
-                        }
-                        
+
                     } catch (SQLException ex) {
                         JOptionPane.showMessageDialog(LoginWindow.this, "Database error: " + ex.getMessage(),
                             "Database Error", JOptionPane.ERROR_MESSAGE);
@@ -192,10 +217,9 @@ public class LoginWindow extends JFrame {
     private JLabel getLblUsername() {
         if (lblUsername == null) {
             lblUsername = new JLabel("Username:");
-            lblUsername.setDisplayedMnemonic('U');
             lblUsername.setLabelFor(getTxtUsername());
             lblUsername.setForeground(new Color(0, 64, 128));
-            lblUsername.setFont(new Font("Tahoma", Font.PLAIN, 21));
+            lblUsername.setFont(new Font("Tahoma", Font.BOLD, 20));
             lblUsername.setBounds(58, 39, 136, 26);
         }
         return lblUsername;
@@ -204,64 +228,62 @@ public class LoginWindow extends JFrame {
     private JLabel getLblPassword() {
         if (lblPassword == null) {
             lblPassword = new JLabel("Password:");
-            lblPassword.setDisplayedMnemonic('P');
             lblPassword.setLabelFor(getPswPassword());
             lblPassword.setForeground(new Color(0, 64, 128));
-            lblPassword.setFont(new Font("Tahoma", Font.PLAIN, 21));
+            lblPassword.setFont(new Font("Tahoma", Font.BOLD, 20));
             lblPassword.setBounds(60, 92, 136, 26);
         }
         return lblPassword;
     }
-    
+
     private void initialize() {
         getTxtUsername().requestFocus();
         getTxtUsername().setText("");
         getPswPassword().setText("");
     }
-    
+
     private void openPositionMenu(String position) {
         switch (position.toLowerCase()) {
-            case "player":
-                new PlayerMenuWindow().setVisible(true);
-                break;
-            case "coach":
-                new CoachMenuWindow().setVisible(true);
-                break;
-            case "general manager":
-                new GeneralManagerMenuWindow().setVisible(true);
-                break;
-            case "ticket seller":
-                new TicketSellerMenuWindow().setVisible(true);
-                break;
-            case "store employee":
-                new StoreEmployeeMenuWindow().setVisible(true);
-                break;
-            case "gardener":
-                new GardenerMenuWindow().setVisible(true);
-                break;
-            case "director of communications":
-                new DirectorOfCommsMenuWindow().setVisible(true);
-                break;
-            case "facility manager":
-                new FacilityManagerMenuWindow().setVisible(true);
-                break;
-            case "social networks":
-                new SocialNetworksMenuWindow().setVisible(true);
-                break;
-            case "doctor":
-                new DoctorMenuWindow().setVisible(true);
-                break;
-            case "press officer":
-                new PressOfficerMenuWindow().setVisible(true);
-                break;
-            case "shareholder":
-//                new ShareholderMenuWindow().setVisible(true); TODO
-                break;
-            default:
-                JOptionPane.showMessageDialog(this, "Unknown position: " + position,
-                    "Error", JOptionPane.ERROR_MESSAGE);
-                return;
+        case "player":
+            new PlayerMenuWindow().setVisible(true);
+            break;
+        case "coach":
+            new CoachMenuWindow().setVisible(true);
+            break;
+        case "general manager":
+            new GeneralManagerMenuWindow().setVisible(true);
+            break;
+        case "ticket seller":
+            new TicketSellerMenuWindow().setVisible(true);
+            break;
+        case "store employee":
+            new StoreEmployeeMenuWindow().setVisible(true);
+            break;
+        case "gardener":
+            new GardenerMenuWindow().setVisible(true);
+            break;
+        case "director of communications":
+            new DirectorOfCommsMenuWindow().setVisible(true);
+            break;
+        case "facility manager":
+            new FacilityManagerMenuWindow().setVisible(true);
+            break;
+        case "social networks":
+            new SocialNetworksMenuWindow().setVisible(true);
+            break;
+        case "doctor":
+            new DoctorMenuWindow().setVisible(true);
+            break;
+        case "press officer":
+            new PressOfficerMenuWindow().setVisible(true);
+            break;
+        case "shareholder":
+            new ShareholderMenuWindow().setVisible(true);
+            break;
+        default:
+            JOptionPane.showMessageDialog(this, "Unknown position: " + position, "Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
-        
+
     }
 }

@@ -5,12 +5,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.ips2026.pl11.data.ConexionBD;
+import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.team.NewTeam;
 import com.ips2026.pl11.model.team.SportsEmployee;
 import com.ips2026.pl11.model.team.StaffAssignment;
@@ -130,6 +132,36 @@ public class TeamDAO {
         return teams;
     }
 
+    public List<Employee> findPlayersByTeam(int teamID) throws SQLException {
+        List<Employee> players = new ArrayList<>();
+        String sql = "SELECT * "
+            + "FROM EMPLOYEES e JOIN TEAM_MEMBER tm ON e.id = tm.employee_id "
+            + "JOIN TEAM t ON tm.team_id = t.id " + "WHERE tm.team_id = ? AND tm.role = 'PLAYER'";
+
+        try (Connection connection = ConexionBD.obtenerConexion();
+            PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, teamID);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    players.add(new Employee(
+                        resultSet.getInt("id"),
+                        resultSet.getString("first_name"),
+                        resultSet.getString("last_name"),
+                        resultSet.getString("national_id"),
+                        LocalDate.parse(resultSet.getString("birth_date")),
+                        resultSet.getString("phone_number"),
+                        resultSet.getString("category"),
+                        resultSet.getString("position"),
+                        resultSet.getDouble("gross_annual_salary"),
+                        resultSet.getString("gender"),
+                        resultSet.getString("username"),
+                        resultSet.getString("password")));
+                }
+            }
+        }
+        return players;
+    }
+
     /**
      * Lightweight DTO representing a saved team for Swing dropdowns (JComboBox).
      */
@@ -171,4 +203,5 @@ public class TeamDAO {
             return name; // Swing displays this in the JComboBox
         }
     }
+
 }

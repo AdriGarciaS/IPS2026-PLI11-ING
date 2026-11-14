@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.ips2026.pl11.data.ConexionBD;
@@ -54,6 +55,37 @@ public class TrainingSessionDAO {
             return trainingSessions;
         } catch (SQLException e) {
             throw new RuntimeException("Error retrieving training sessions: " + e.getMessage(), e);
+        }
+    }
+
+    public List<TrainingSession> findByPlayer(int playerId) {
+        String sql = "SELECT * FROM trainings t "
+                + "JOIN team_member tm ON t.team_id = tm.team_id "
+                + "WHERE tm.employee_id = ? AND tm.role = 'PLAYER'";
+
+        try (Connection connection = ConexionBD.obtenerConexion();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, playerId);
+            var resultSet = statement.executeQuery();
+            List<TrainingSession> trainingSessions = new ArrayList<>();
+
+            while (resultSet.next()) {
+                long id = resultSet.getLong("id");
+                long facilityId = resultSet.getLong("facility_id");
+                long teamId = resultSet.getLong("team_id");
+                long coachId = resultSet.getLong("coach_id");
+                LocalDate date = LocalDate.parse(resultSet.getString("training_date"));
+                LocalTime startTime = LocalTime.parse(resultSet.getString("start_time"));
+                LocalTime endTime = LocalTime.parse(resultSet.getString("end_time"));
+
+                TrainingSession trainingSession = new TrainingSession(id, date, startTime, endTime, facilityId, coachId, teamId);
+                trainingSessions.add(trainingSession);
+            }
+
+            return trainingSessions;
+        } catch (SQLException e) {
+            throw new RuntimeException("Error retrieving training sessions for player: " + e.getMessage(), e);
         }
     }
 }

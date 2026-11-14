@@ -16,6 +16,7 @@ import javax.swing.border.MatteBorder;
 
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.ips2026.pl11.view.doctor.RegisterInjuryWindow;
 import com.ips2026.pl11.view.menu.MenuCardButton;
 import com.ips2026.pl11.view.news.NewsFeedWindow;
 import com.ips2026.pl11.view.schedule.NSEWorkScheduleWindow;
@@ -34,9 +35,11 @@ public class DoctorMenuWindow extends JFrame {
     private JLabel lblFooter;
     
     private MenuCardButton btnOption1;
+    private MenuCardButton btnOption2;
     private MenuCardButton btnOption13;
 
     private NSEWorkScheduleWindow nseWorkScheduleWindow = new NSEWorkScheduleWindow(this);
+    private RegisterInjuryWindow registerInjuryWindow = new RegisterInjuryWindow(this);
 
     public DoctorMenuWindow() {
         setTitle("Football Club Management");
@@ -49,7 +52,7 @@ public class DoctorMenuWindow extends JFrame {
         contentPane.add(getPnHeader(), BorderLayout.NORTH);
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         contentPane.add(getPnFooter(), BorderLayout.SOUTH);
-        Branding.setInitialSize(this, 640, 480, null);
+        Branding.setInitialSize(this, 640, 580, null);
     }
 
     private HeaderPanel getPnHeader() {
@@ -65,8 +68,9 @@ public class DoctorMenuWindow extends JFrame {
             pnButtons = new JPanel();
             pnButtons.setOpaque(false);
             pnButtons.setBorder(new EmptyBorder(24, 24, 16, 24));
-            pnButtons.setLayout(new GridLayout(2, 1, 18, 18));
+            pnButtons.setLayout(new GridLayout(3, 1, 18, 18));
             pnButtons.add(getBtnOption1());
+            pnButtons.add(getBtnOption2());
             pnButtons.add(getBtnOption13());
         }
         return pnButtons;
@@ -90,6 +94,20 @@ public class DoctorMenuWindow extends JFrame {
             btnOption13.addActionListener(event -> openViewNewsDialog());
         }
         return btnOption13;
+    }
+    
+    private MenuCardButton getBtnOption2() {
+        if (btnOption2 == null) {
+            btnOption2 = new MenuCardButton("Register Injury", "For a given player");
+            btnOption2.addActionListener(e -> {
+                registerInjuryWindow.loadTeams(); 
+                registerInjuryWindow.setVisible(true);
+                
+            });
+            btnOption2.setFont(new Font("Tahoma", Font.PLAIN, 16));
+            btnOption2.setEnabled(true);
+        }
+        return btnOption2;
     }
     
     private void openViewNewsDialog() {

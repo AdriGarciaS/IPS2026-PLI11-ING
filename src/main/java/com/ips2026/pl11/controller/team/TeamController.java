@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.ips2026.pl11.data.team.TeamDAO;
 import com.ips2026.pl11.data.team.TeamDAO.TeamItem;
+import com.ips2026.pl11.model.employee.Employee;
 
 public class TeamController {
 
@@ -20,6 +21,10 @@ public class TeamController {
     
     public List<TeamItem> getTeamsByCoach(int coachId) throws SQLException {
         return teamDAO.findTeamsByCoach(coachId);
+    }
+    
+    public List<Employee> getPlayersByTeam(int teamId) throws SQLException {
+        return teamDAO.findPlayersByTeam(teamId);
     }
     
 }

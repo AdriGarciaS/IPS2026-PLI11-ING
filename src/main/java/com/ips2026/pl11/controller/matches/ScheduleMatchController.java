@@ -1,7 +1,10 @@
 package com.ips2026.pl11.controller.matches;
 
+import java.util.List;
+
 import com.ips2026.pl11.data.matches.MatchPriceDAO;
 import com.ips2026.pl11.data.ticket.MatchDAO;
+import com.ips2026.pl11.model.matches.Match;
 
 public class ScheduleMatchController {
 
@@ -38,5 +41,9 @@ public class ScheduleMatchController {
         hours = hours % 24;
 
         return String.format("%02d:%02d", hours, minutes);
+    }
+    
+    public List<Match> getMatchesByPlayer(int playerId) throws Exception {
+        return matchDAO.findMatchesByPlayer(playerId);
     }
 }

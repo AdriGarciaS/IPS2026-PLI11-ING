@@ -406,3 +406,16 @@ CREATE TABLE IF NOT EXISTS NEWS (
     author_id INTEGER NOT NULL
 );
 
+
+CREATE TABLE IF NOT EXISTS INJURY (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	player_id INTEGER NOT NULL,
+	match_id INTEGER,
+	training_id INTEGER,
+	description TEXT NOT NULL,
+	injury_date TEXT NOT NULL,
+	FOREIGN KEY (player_id) REFERENCES employees(id),
+	FOREIGN KEY (match_id) REFERENCES matches(id),
+	FOREIGN KEY (training_id) REFERENCES trainings(id)
+);
+

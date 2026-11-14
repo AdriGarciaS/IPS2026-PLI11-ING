@@ -34,4 +34,8 @@ public class TrainingSessionController {
         return trainingSessionDAO.findAll();
     }
     
+    public List<TrainingSession> getTrainingSessionsByPlayer(int playerId) throws Exception {
+        return trainingSessionDAO.findByPlayer(playerId);
+    }
+    
 }

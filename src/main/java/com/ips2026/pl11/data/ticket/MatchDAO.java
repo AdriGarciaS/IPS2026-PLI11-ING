@@ -5,10 +5,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.ips2026.pl11.data.ConexionBD;
+import com.ips2026.pl11.model.matches.Match;
 import com.ips2026.pl11.model.ticket.HomeMatch;
 
 public class MatchDAO {
@@ -275,5 +277,39 @@ public class MatchDAO {
                 throw ex;
             }
         }
+    }
+
+    public List<Match> findMatchesByPlayer(int playerId) {
+        List<Match> matches = new ArrayList<>();
+        String sql = "SELECT m.id, m.team_id, m.match_date, m.start_time, m.end_time, m.rival, m.is_home, m.is_special_match, m.facility_id " +
+                     "FROM matches m " +
+                     "JOIN team_member tm ON m.team_id = tm.team_id " +
+                     "WHERE tm.employee_id = ? AND tm.role = 'PLAYER'";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, playerId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Match match = new Match(
+                            rs.getInt("id"),
+                            rs.getInt("team_id"),
+                            rs.getString("match_date"),
+                            LocalTime.parse(rs.getString("start_time")),
+                            LocalTime.parse(rs.getString("end_time")),
+                            rs.getString("rival"),
+                            rs.getBoolean("is_home"),
+                            rs.getBoolean("is_special_match"),
+                            rs.getInt("facility_id")
+                    );
+                    matches.add(match);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error retrieving matches for player: " + e.getMessage(), e);
+        }
+
+        return matches;
     }
 }

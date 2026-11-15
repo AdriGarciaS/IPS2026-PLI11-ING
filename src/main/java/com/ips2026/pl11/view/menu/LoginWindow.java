@@ -161,7 +161,7 @@ public class LoginWindow extends JFrame {
                                     "Welcome, " + oe.get().getFirstName() + "!", "Login Successful",
                                     JOptionPane.INFORMATION_MESSAGE);
                                 String position = oe.get().getPosition();
-                                openPositionMenu(position);
+                                openPositionMenu(position, oe.get().getId());
 
                                 dispose();
                             }
@@ -177,7 +177,7 @@ public class LoginWindow extends JFrame {
                                 JOptionPane.showMessageDialog(LoginWindow.this,
                                     "Welcome, " + os.get().getFirstName() + "!", "Login Successful",
                                     JOptionPane.INFORMATION_MESSAGE);
-                                openPositionMenu("shareholder");
+                                openPositionMenu("shareholder", os.get().getId());
 
                                 dispose();
                             }
@@ -242,7 +242,7 @@ public class LoginWindow extends JFrame {
         getPswPassword().setText("");
     }
 
-    private void openPositionMenu(String position) {
+    private void openPositionMenu(String position, int employeeId) {
         switch (position.toLowerCase()) {
         case "player":
             new PlayerMenuWindow().setVisible(true);
@@ -272,7 +272,7 @@ public class LoginWindow extends JFrame {
             new SocialNetworksMenuWindow().setVisible(true);
             break;
         case "doctor":
-            new DoctorMenuWindow().setVisible(true);
+            new DoctorMenuWindow(employeeId).setVisible(true);
             break;
         case "press officer":
             new PressOfficerMenuWindow().setVisible(true);

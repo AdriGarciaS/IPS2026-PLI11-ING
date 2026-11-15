@@ -10,7 +10,7 @@ import com.ips2026.pl11.model.employee.Employee;
 public class TeamController {
 
     private final TeamDAO teamDAO;
-    
+
     public TeamController(TeamDAO teamDAO) {
         this.teamDAO = teamDAO;
     }
@@ -26,5 +26,6 @@ public class TeamController {
     public List<Employee> getPlayersByTeam(int teamId) throws SQLException {
         return teamDAO.findPlayersByTeam(teamId);
     }
+    
     
 }

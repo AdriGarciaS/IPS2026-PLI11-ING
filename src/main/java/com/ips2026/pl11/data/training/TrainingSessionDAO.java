@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.ips2026.pl11.data.ConexionBD;
 import com.ips2026.pl11.model.training.TrainingSession;
@@ -86,6 +87,34 @@ public class TrainingSessionDAO {
             return trainingSessions;
         } catch (SQLException e) {
             throw new RuntimeException("Error retrieving training sessions for player: " + e.getMessage(), e);
+        }
+    }
+
+    public Optional<TrainingSession> findById(int trainingId) {
+        String sql = "SELECT * FROM trainings WHERE id = ?";
+
+        try (Connection connection = ConexionBD.obtenerConexion();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, trainingId);
+            var resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                long id = resultSet.getLong("id");
+                long facilityId = resultSet.getLong("facility_id");
+                long teamId = resultSet.getLong("team_id");
+                long coachId = resultSet.getLong("coach_id");
+                LocalDate date = LocalDate.parse(resultSet.getString("training_date"));
+                LocalTime startTime = LocalTime.parse(resultSet.getString("start_time"));
+                LocalTime endTime = LocalTime.parse(resultSet.getString("end_time"));
+
+                TrainingSession trainingSession = new TrainingSession(id, date, startTime, endTime, facilityId, coachId, teamId);
+                return Optional.of(trainingSession);
+            } else {
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error retrieving training session by ID: " + e.getMessage(), e);
         }
     }
 }

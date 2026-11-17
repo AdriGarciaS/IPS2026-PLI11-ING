@@ -435,34 +435,7 @@ public class UpdateInjuryWindow extends JDialog {
         return tableInjuries;
     }
 
-    private String findFacilityName(Injury selectedInjury) {
-        int matchId = selectedInjury.getMatchId();
-        int trainingId = selectedInjury.getTrainingId();
-        try {
-            if (matchId != -1) {
-                Optional<Match> om = matchController.findMatchById(matchId);
-                if (om.isPresent()) {
-                    Optional<Facility> of = facilityController.findFacilityById(om.get().getFacilityId());
-                    if (of.isPresent()) {
-                        return of.get().getName();
-                    }
-                }
-
-            } else if (trainingId != -1) {
-                Optional<TrainingSession> training = trainingSessionController.findTrainingById(trainingId);
-                if (training.isPresent()) {
-                    Optional<Facility> of = facilityController.findFacilityById((int) training.get().getFacility());
-                    if (of.isPresent()) {
-                        return of.get().getName();
-                    }
-                }
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error finding facility: " + e.getMessage(), "Database Error",
-                JOptionPane.ERROR_MESSAGE);
-        }
-        return "Unknown Facility";
-    }
+   
 
     private JLabel getLblInjuries() {
         if (lblInjuries == null) {
@@ -552,6 +525,35 @@ public class UpdateInjuryWindow extends JDialog {
             .filter(employee -> employee.getId() == injuries.get(0).getPlayerId())
             .map(employee -> employee.getFirstName() + " " + employee.getLastName()).findFirst()
             .orElse("Unknown Player");
+    }
+    
+    private String findFacilityName(Injury selectedInjury) {
+        int matchId = selectedInjury.getMatchId();
+        int trainingId = selectedInjury.getTrainingId();
+        try {
+            if (matchId != -1) {
+                Optional<Match> om = matchController.findMatchById(matchId);
+                if (om.isPresent()) {
+                    Optional<Facility> of = facilityController.findFacilityById(om.get().getFacilityId());
+                    if (of.isPresent()) {
+                        return of.get().getName();
+                    }
+                }
+
+            } else if (trainingId != -1) {
+                Optional<TrainingSession> training = trainingSessionController.findTrainingById(trainingId);
+                if (training.isPresent()) {
+                    Optional<Facility> of = facilityController.findFacilityById((int) training.get().getFacility());
+                    if (of.isPresent()) {
+                        return of.get().getName();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error finding facility: " + e.getMessage(), "Database Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+        return "Unknown Facility";
     }
 
 }

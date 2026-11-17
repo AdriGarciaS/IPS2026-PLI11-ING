@@ -21,7 +21,9 @@ INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_num
 	('Celia', 'Lobo', '75829384C', '2003-03-10', '+34601441957', 'NON_SPORTS', 'Store Employee', 30000.0, 'FEMALE', 'store_employee', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
 	('Llara', 'Molla', '17223479K', '2005-12-18', '+34626665900', 'NON_SPORTS', 'Ticket Seller', 30000.0, 'FEMALE', 'ticket_seller', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
 	
-	('Jordi', 'Soler', '19283746J', '1995-07-22', '+34600112233', 'NON_SPORTS', 'Press Officer', 30000.0, 'MALE', 'press_officer', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO');
+	('Jordi', 'Soler', '19283746J', '1995-07-22', '+34600112233', 'NON_SPORTS', 'Press Officer', 30000.0, 'MALE', 'press_officer', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+	
+	('Lucas', 'Solís', '87234612L', '1988-02-27', '+34626015678', 'NON_SPORTS', 'Director Of Communications', 35000.0, 'MALE', 'director_of_communications', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO');
 
 INSERT INTO MERCHANDISING (name, type, available_units, price) VALUES
     ('Home Shirt 26/27', 'Clothing', 25, 59.99),

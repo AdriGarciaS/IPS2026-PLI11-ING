@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -49,6 +50,8 @@ import com.ips2026.pl11.view.common.HeaderPanel;
 public class RegisterInjuryWindow extends JDialog {
 
     private static final long serialVersionUID = 1L;
+    
+    private int doctorId;
 
     private HeaderPanel pnHeader;
     private JPanel pnButtons;
@@ -83,7 +86,9 @@ public class RegisterInjuryWindow extends JDialog {
     /**
      * Create the dialog.
      */
-    public RegisterInjuryWindow(JFrame parent) {
+    public RegisterInjuryWindow(JFrame parent, int doctorId) {
+        this.doctorId = doctorId;
+        
         setTitle("Football Club Management");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setMinimumSize(new Dimension(550, 480));
@@ -126,7 +131,7 @@ public class RegisterInjuryWindow extends JDialog {
 
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
-            pnHeader = new HeaderPanel("Register a Player Injury", "", false);
+            pnHeader = new HeaderPanel("Register a Player Injury", "Log an injury after a medical revision", false);
         }
         return pnHeader;
     }
@@ -217,6 +222,11 @@ public class RegisterInjuryWindow extends JDialog {
                         loadPlayers();
                         loadTrainings();
                         loadMatches();
+                        
+                        cbTrainings.setSelectedIndex(0);
+                        cbMatches.setSelectedIndex(0);
+                        cbTrainings.setEnabled(true);
+                        cbMatches.setEnabled(true);
                     }
                 }
             });
@@ -233,6 +243,11 @@ public class RegisterInjuryWindow extends JDialog {
                 public void actionPerformed(ActionEvent e) {
                     loadTrainings();
                     loadMatches();
+                    
+                    cbTrainings.setSelectedIndex(0);
+                    cbMatches.setSelectedIndex(0);
+                    cbTrainings.setEnabled(true);
+                    cbMatches.setEnabled(true);
                 }
             });
             cbPlayers.setBounds(204, 102, 228, 38);
@@ -469,18 +484,23 @@ public class RegisterInjuryWindow extends JDialog {
         int trainingId = -1;
         int matchId = -1;
         LocalDate date;
+        LocalTime time;
+        int facilityId = -1;
+        
         if(cbTrainings.getSelectedIndex() > 0) {
             TrainingSession selectedTraining = trainings.get(cbTrainings.getSelectedIndex() - 1);
             trainingId = (int) selectedTraining.getId();
             date = selectedTraining.getDate();
+            time = selectedTraining.getStartTime();
             
         } else {
             Match selectedMatch = matches.get(cbMatches.getSelectedIndex() - 1);
             matchId = selectedMatch.getId();
             date = LocalDate.parse(selectedMatch.getMatchDate());
+            time = selectedMatch.getStartTime();
         } 
 
-        return new Injury(0, playerId, matchId, trainingId, description, date);
+        return new Injury(0, playerId, matchId, trainingId, description, date, false, doctorId, time);
     }
 
 }

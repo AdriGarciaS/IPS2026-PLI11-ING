@@ -17,6 +17,7 @@ import javax.swing.border.MatteBorder;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.doctor.RegisterInjuryWindow;
+import com.ips2026.pl11.view.doctor.UpdateInjuryWindow;
 import com.ips2026.pl11.view.menu.MenuCardButton;
 import com.ips2026.pl11.view.news.NewsFeedWindow;
 import com.ips2026.pl11.view.schedule.NSEWorkScheduleWindow;
@@ -27,7 +28,8 @@ import com.ips2026.pl11.view.schedule.NSEWorkScheduleWindow;
 public class DoctorMenuWindow extends JFrame {
 
     private static final long serialVersionUID = 1L;
-
+    private int doctorId;
+    
     private JPanel contentPane;
     private HeaderPanel pnHeader;
     private JPanel pnButtons;
@@ -36,12 +38,16 @@ public class DoctorMenuWindow extends JFrame {
     
     private MenuCardButton btnOption1;
     private MenuCardButton btnOption2;
+    private MenuCardButton btnOption3;
     private MenuCardButton btnOption13;
 
     private NSEWorkScheduleWindow nseWorkScheduleWindow = new NSEWorkScheduleWindow(this);
-    private RegisterInjuryWindow registerInjuryWindow = new RegisterInjuryWindow(this);
-
-    public DoctorMenuWindow() {
+    private RegisterInjuryWindow registerInjuryWindow = new RegisterInjuryWindow(this, doctorId);
+    private UpdateInjuryWindow updateInjuryWindow = new UpdateInjuryWindow(this, doctorId);
+    
+    public DoctorMenuWindow(int doctorId) {
+        this.doctorId = doctorId;
+        
         setTitle("Football Club Management");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(640, 480));
@@ -52,7 +58,7 @@ public class DoctorMenuWindow extends JFrame {
         contentPane.add(getPnHeader(), BorderLayout.NORTH);
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         contentPane.add(getPnFooter(), BorderLayout.SOUTH);
-        Branding.setInitialSize(this, 640, 580, null);
+        Branding.setInitialSize(this, 640, 480, null);
     }
 
     private HeaderPanel getPnHeader() {
@@ -68,9 +74,10 @@ public class DoctorMenuWindow extends JFrame {
             pnButtons = new JPanel();
             pnButtons.setOpaque(false);
             pnButtons.setBorder(new EmptyBorder(24, 24, 16, 24));
-            pnButtons.setLayout(new GridLayout(3, 1, 18, 18));
+            pnButtons.setLayout(new GridLayout(2, 2, 18, 18));
             pnButtons.add(getBtnOption1());
             pnButtons.add(getBtnOption2());
+            pnButtons.add(getBtnOption3());
             pnButtons.add(getBtnOption13());
         }
         return pnButtons;
@@ -110,6 +117,20 @@ public class DoctorMenuWindow extends JFrame {
         return btnOption2;
     }
     
+    private MenuCardButton getBtnOption3() {
+        if (btnOption3 == null) {
+            btnOption3 = new MenuCardButton("Update Injury", "For a given player");
+            btnOption3.addActionListener(e -> {
+                updateInjuryWindow.loadInjuries(); 
+                updateInjuryWindow.setVisible(true);
+                
+            });
+            btnOption3.setFont(new Font("Tahoma", Font.PLAIN, 16));
+            btnOption3.setEnabled(true);
+        }
+        return btnOption3;
+    }
+    
     private void openViewNewsDialog() {
         try {
             NewsFeedWindow feedWindow = new NewsFeedWindow(this);
@@ -144,6 +165,7 @@ public class DoctorMenuWindow extends JFrame {
         }
         return lblFooter;
     }
+    
     
     
     

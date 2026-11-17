@@ -1,6 +1,7 @@
 package com.ips2026.pl11.controller.training;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.ips2026.pl11.data.training.TrainingSessionDAO;
 import com.ips2026.pl11.model.training.TrainingSession;
@@ -36,6 +37,10 @@ public class TrainingSessionController {
     
     public List<TrainingSession> getTrainingSessionsByPlayer(int playerId) throws Exception {
         return trainingSessionDAO.findByPlayer(playerId);
+    }
+    
+    public Optional<TrainingSession> findTrainingById(int trainingId) throws Exception {
+        return trainingSessionDAO.findById(trainingId);
     }
     
 }

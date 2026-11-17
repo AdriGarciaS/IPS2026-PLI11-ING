@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.ips2026.pl11.data.ConexionBD;
 import com.ips2026.pl11.model.matches.Match;
@@ -313,7 +314,38 @@ public class MatchDAO {
 
         return matches;
     }
-    
+
+    public Optional<Match> findMatchById(int matchId) {
+        String sql = "SELECT id, team_id, match_date, start_time, end_time, rival, is_home, is_special_match, facility_id " +
+                     "FROM matches WHERE id = ?";
+
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, matchId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Match match = new Match(
+                            rs.getInt("id"),
+                            rs.getInt("team_id"),
+                            rs.getString("match_date"),
+                            LocalTime.parse(rs.getString("start_time")),
+                            LocalTime.parse(rs.getString("end_time")),
+                            rs.getString("rival"),
+                            rs.getBoolean("is_home"),
+                            rs.getBoolean("is_special_match"),
+                            rs.getInt("facility_id")
+                    );
+                    return Optional.of(match);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Error retrieving match by ID: " + e.getMessage(), e);
+        }
+
+        return Optional.empty();
+    }
+
     public int insertBatchMatches(List<MatchCSV> matches) {
         String sqlInsert = "INSERT INTO matches (team_id, match_date, start_time, end_time, rival, is_home, is_special_match, facility_id) " +
                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -471,4 +503,6 @@ public class MatchDAO {
         
         return false;
     }
+
 }
+

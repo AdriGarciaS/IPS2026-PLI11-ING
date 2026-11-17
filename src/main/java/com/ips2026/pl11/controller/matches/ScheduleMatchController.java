@@ -1,6 +1,7 @@
 package com.ips2026.pl11.controller.matches;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.ips2026.pl11.data.matches.MatchPriceDAO;
 import com.ips2026.pl11.data.ticket.MatchDAO;
@@ -45,5 +46,9 @@ public class ScheduleMatchController {
     
     public List<Match> getMatchesByPlayer(int playerId) throws Exception {
         return matchDAO.findMatchesByPlayer(playerId);
+    }
+    
+    public Optional<Match> findMatchById(int matchId) throws Exception {
+        return matchDAO.findMatchById(matchId);
     }
 }

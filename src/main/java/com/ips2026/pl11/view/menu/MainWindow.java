@@ -39,6 +39,7 @@ import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
 import com.ips2026.pl11.view.interview.InterviewHubDialog;
+import com.ips2026.pl11.view.matches.ImportMatchesCSV;
 import com.ips2026.pl11.view.matches.ScheduleMatchDialog;
 import com.ips2026.pl11.view.news.NewsMenuDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
@@ -76,6 +77,7 @@ public class MainWindow extends JFrame {
     private MenuCardButton btnOption11;
     private MenuCardButton btnOption12;
     private MenuCardButton btnOption13;
+    private MenuCardButton btnOption14;
 
     public MainWindow() {
         setTitle("Football Club Management");
@@ -118,6 +120,7 @@ public class MainWindow extends JFrame {
             pnButtons.add(getBtnOption11());
             pnButtons.add(getBtnOption12());
             pnButtons.add(getBtnOption13());
+            pnButtons.add(getBtnOption14());
         }
         return pnButtons;
     }
@@ -264,6 +267,27 @@ public class MainWindow extends JFrame {
             btnOption13.addActionListener(event -> openNewsMenu());
         }
         return btnOption13;
+    }
+    
+    private MenuCardButton getBtnOption14() {
+        if (btnOption14 == null) {
+            btnOption14 = new MenuCardButton("Import Schedule", "Upload CSV or JSON file to import full seasonal match schedule");
+            btnOption14.setMnemonic('I');
+            btnOption14.setFont(new Font("Tahoma", Font.PLAIN, 16));
+            btnOption14.addActionListener(event -> openImportSchedule());
+        }
+        return btnOption14;
+    }
+    
+    private void openImportSchedule() {
+        try {
+            ImportMatchesCSV dialog = new ImportMatchesCSV(this);
+            dialog.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error opening Schedule Import dialog: " + ex.getMessage(),
+                    "Import Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     private void openNewsMenu() {

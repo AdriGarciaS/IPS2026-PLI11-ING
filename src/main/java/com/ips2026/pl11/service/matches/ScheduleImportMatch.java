@@ -7,9 +7,12 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ips2026.pl11.data.ticket.MatchDAO;
 import com.ips2026.pl11.model.matches.MatchCSV;
 
 public class ScheduleImportMatch {
+
+	private MatchDAO matchDAO = new MatchDAO();
 
 	public static class ImportResult {
         private final List<MatchCSV> validMatches = new ArrayList<>();
@@ -56,25 +59,43 @@ public class ScheduleImportMatch {
                 }
 
                 String[] parts = line.split(",");
-                if (parts.length < 5) {
+                if (parts.length < 6) {
                     result.getErrorLogs().add("[ERROR] Row " + rowNum + ": Skipped due to missing required fields.");
                     continue;
                 }
 
                 try {
-                    String matchDate = parts[0].trim();
-                    String rival = parts[1].trim();
-                    LocalTime startTime = LocalTime.parse(parts[2].trim());
-                    LocalTime endTime = LocalTime.parse(parts[3].trim());
-                    boolean isHome = Boolean.parseBoolean(parts[4].trim());
-                    boolean isSpecialMatch = parts.length > 5 && Boolean.parseBoolean(parts[5].trim());
+                	int teamId = Integer.parseInt(parts[0].trim());
+                	String matchDate = parts[1].trim();
+                	String rival = parts[2].trim();
+                	LocalTime startTime = LocalTime.parse(parts[3].trim());
+                	LocalTime endTime = LocalTime.parse(parts[4].trim());
+                	boolean isHome = Boolean.parseBoolean(parts[5].trim());
+                	boolean isSpecialMatch = parts.length > 6 && Boolean.parseBoolean(parts[6].trim());
+                    
+                	Integer facilityId = null;
+                    if (isHome) {
+                        if (parts.length > 7 && !parts[7].trim().isEmpty()) {
+                            facilityId = Integer.parseInt(parts[7].trim());
+                        } else {
+                            facilityId = (defaultFacilityId > 0) ? defaultFacilityId : 1;
+                        }
+                    }
 
-                    if (matchDate.isEmpty() || rival.isEmpty()) {
+                	if (matchDate.isEmpty() || rival.isEmpty()) {
                         result.getErrorLogs().add("[ERROR] Row " + rowNum + ": Missing date or rival.");
                         continue;
                     }
 
-                    MatchCSV matchDTO = new MatchCSV(defaultTeamId, matchDate, startTime, endTime, rival, isHome, isSpecialMatch, defaultFacilityId);
+                    if (isHome && facilityId != null) {
+                        boolean conflict = matchDAO.hasConflict(facilityId, matchDate, startTime, endTime);
+                        if (conflict) {
+                            result.getErrorLogs().add("[ERROR] Row " + rowNum + ": Schedule conflict detected! Facility " + facilityId + " is already booked on " + matchDate + " between " + startTime + " and " + endTime + ".");
+                            continue; 
+                        }
+                    }
+
+                    MatchCSV matchDTO = new MatchCSV(teamId, matchDate, startTime, endTime, rival, isHome, isSpecialMatch, facilityId);
                     result.getValidMatches().add(matchDTO);
 
                 } catch (Exception ex) {
@@ -85,5 +106,4 @@ public class ScheduleImportMatch {
             result.getErrorLogs().add("[ERROR] Failed to read CSV file: " + e.getMessage());
         }
     }
-	
 }

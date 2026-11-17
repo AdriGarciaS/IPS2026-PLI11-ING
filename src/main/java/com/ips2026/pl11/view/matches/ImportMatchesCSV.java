@@ -25,6 +25,8 @@ import javax.swing.border.AbstractBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import com.ips2026.pl11.data.ticket.MatchDAO;
+import com.ips2026.pl11.service.matches.ScheduleImportMatch;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 
@@ -38,6 +40,8 @@ public class ImportMatchesCSV extends JDialog {
     private JTextArea txtPreviewArea;
     private JTextArea txtSummaryArea;
     private File selectedFile;
+    private ScheduleImportMatch importService = new ScheduleImportMatch();
+    private MatchDAO matchDAO = new MatchDAO();
 
     public ImportMatchesCSV(JFrame parent) {
         super(parent, "Import Match Schedule", true);
@@ -116,7 +120,7 @@ public class ImportMatchesCSV extends JDialog {
         JPanel pnFooter = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
         pnFooter.setOpaque(false);
 
-        JButton btnCancel = new JButton("CANCEL");
+        JButton btnCancel = new JButton("CLOSE");
         JButton btnImport = new JButton("VALIDATE & IMPORT");
         btnImport.setBackground(Branding.NAVY);
         btnImport.setForeground(Branding.WHITE);
@@ -155,18 +159,46 @@ public class ImportMatchesCSV extends JDialog {
                 "File Required", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
+        int defaultTeamId = 1; 
+        
+        int defaultFacilityId = -1;
+        
+        ScheduleImportMatch.ImportResult result = importService.processFile(selectedFile, defaultTeamId, defaultFacilityId);
+    
         StringBuilder summary = new StringBuilder();
-        summary.append("[OK] Aug 12: Valid match (Man City, Home)\n");
-        summary.append("[OK] Aug 19: Valid match (Liverpool, Away)\n");
-        summary.append("[WARN] Aug 26: Stadium event conflict (U21s match)\n");
-        summary.append("[WARN] Sep 03: Team training overlap detected\n");
-        summary.append("[ERROR] Sep 10: Invalid row format (Missing time)\n\n");
-        summary.append("Import completed:\n- 2 matches successfully imported.\n- 2 warnings flagged.\n- 1 row skipped.");
+        summary.append("--- IMPORT VALIDATION & PERSISTENCE REPORT ---\n\n");
+
+        if (!result.getErrorLogs().isEmpty()) {
+            summary.append("Errors found:\n");
+            for (String err : result.getErrorLogs()) {
+                summary.append(err).append("\n");
+            }
+            summary.append("\n");
+        }
+
+        if (!result.getWarningLogs().isEmpty()) {
+            summary.append("Warnings (Conflicts detected):\n");
+            for (String warn : result.getWarningLogs()) {
+                summary.append(warn).append("\n");
+            }
+            summary.append("\n");
+        }
+
+        int savedCount = 0;
+        if (!result.getValidMatches().isEmpty()) {
+            savedCount = matchDAO.insertBatchMatches(result.getValidMatches());
+            summary.append("[SUCCESS] Successfully imported and saved ").append(savedCount).append(" matches to the database!\n");
+        } else {
+            summary.append("[INFO] No valid matches were found to import.\n");
+        }
 
         txtSummaryArea.setText(summary.toString());
-        JOptionPane.showMessageDialog(this, "Import validation and bulk save process finished.", 
-            "Import Status", JOptionPane.INFORMATION_MESSAGE);
+
+        if (savedCount > 0) {
+            JOptionPane.showMessageDialog(this, 
+                "Schedule imported successfully! " + savedCount + " matches are now available for ticket sales.", 
+                "Import Finished", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 
     

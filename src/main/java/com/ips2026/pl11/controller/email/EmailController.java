@@ -72,10 +72,28 @@ public class EmailController {
     }
 
     public void sendReceipt(String to, SaleReceipt receipt) throws MessagingException {
-        send(to, "Purchase receipt - Sale nº " + receipt.getSaleNumber(), buildReceiptHtml(receipt));
+        send(to, "Purchase receipt - Sale nº " + receipt.getSaleNumber(), buildMerchReceiptHtml(receipt));
     }
 
-    private static String buildReceiptHtml(SaleReceipt receipt) {
+    public void sendSeasonPassReceipt(String to, String dni, String fullName, String team, String grandstand,
+        String section, int i, int j, String ageCategory, double basePrice) throws MessagingException {
+        String html = buildSeasonPassReceipt(dni, fullName, team, grandstand, section, i, j, ageCategory, basePrice);
+
+        send(to, "Season Pass receipt - " + fullName, html);
+    }
+
+    public void sendTicketReceipt(String to, String matchName, String grandstand, String section, List<String> seats,
+        BigDecimal price) throws MessagingException {
+
+        String html = buildTicketReceiptHtml(matchName, grandstand, section, seats, price);
+        send(to, "Ticket receipt - " + matchName, html);
+    }
+
+    // ---- Builder methods ----
+    
+    // Note: The merch and ticket builder methods are used for the PDF invoices. That's why they're public
+    
+    public String buildMerchReceiptHtml(SaleReceipt receipt) {
         StringBuilder html = new StringBuilder("<html><body style='font-family: Arial, sans-serif'>");
 
         html.append("<h2>Thank you for your purchase</h2>").append("<p><b>Sale nº ").append(receipt.getSaleNumber())
@@ -94,8 +112,8 @@ public class EmailController {
         return html.toString();
     }
 
-    public void sendTicketReceipt(String to, String matchName, String grandstand, String section, List<String> seats,
-        BigDecimal price) throws MessagingException {
+    public String buildTicketReceiptHtml(String matchName, String grandstand, String section, List<String> seats,
+        BigDecimal price) {
         StringBuilder html = new StringBuilder("<html><body style='font-family: Arial, sans-serif'>");
 
         html.append("<h2>Thank you for your purchase</h2><p><b>").append(escapeHtml(matchName))
@@ -111,27 +129,27 @@ public class EmailController {
         html.append("<p>Receipt code: ").append(generateTicketCode("TCK")).append("</p>");
         html.append("</body></html>");
 
-        send(to, "Ticket receipt - " + matchName, html.toString());
+        return html.toString();
     }
 
-    public void sendSeasonPassReceipt(String to, String dni, String fullName, String team, String grandstand,
-        String section, int i, int j, String ageCategory, double basePrice) throws MessagingException {
+    private String buildSeasonPassReceipt(String dni, String fullName, String team, String grandstand, String section,
+        int i, int j, String ageCategory, double basePrice) {
         StringBuilder html = new StringBuilder("<html><body style='font-family: Arial, sans-serif'>");
-        
+
         html.append("<h2>Thank you for your purchase</h2><ul><li>Customer name: <b>").append(escapeHtml(fullName))
-            .append("</b></li><li>Customer DNI: ").append(escapeHtml(dni))
-            .append("</li><li>Purchase time: ").append(escapeHtml(DATE_FORMAT.format(LocalDate.now()))).append(" - ")
-            .append(escapeHtml(TIME_FORMAT.format(LocalTime.now())))
-            .append("</li></ul><p>Team: ")
-            .append(escapeHtml(team)).append("</p><p>Grandstand: ").append(escapeHtml(grandstand))
-            .append(", Section: ").append(escapeHtml(section)).append("</p><p>Seat: Row ")
-            .append(i).append(", Seat ").append(j).append("</p><p>Age category: ")
-            .append(escapeHtml(ageCategory)).append("</p><hr><p><b>FINAL PRICE: ")
-            .append(MoneyFormat.format(BigDecimal.valueOf(basePrice)))
-            .append("</b></p><p>Receipt code: ").append(generateTicketCode("SSP")).append("</p>");
-        
-        send(to, "Season Pass receipt - " + fullName, html.toString());
+            .append("</b></li><li>Customer DNI: ").append(escapeHtml(dni)).append("</li><li>Purchase time: ")
+            .append(escapeHtml(DATE_FORMAT.format(LocalDate.now()))).append(" - ")
+            .append(escapeHtml(TIME_FORMAT.format(LocalTime.now()))).append("</li></ul><p>Team: ")
+            .append(escapeHtml(team)).append("</p><p>Grandstand: ").append(escapeHtml(grandstand)).append(", Section: ")
+            .append(escapeHtml(section)).append("</p><p>Seat: Row ").append(i).append(", Seat ").append(j)
+            .append("</p><p>Age category: ").append(escapeHtml(ageCategory)).append("</p><hr><p><b>FINAL PRICE: ")
+            .append(MoneyFormat.format(BigDecimal.valueOf(basePrice))).append("</b></p><p>Receipt code: ")
+            .append(generateTicketCode("SSP")).append("</p>");
+
+        return html.toString();
     }
+
+    // ---- Auxiliary methods ----
 
     private static String generateTicketCode(String string) {
         long timestamp = System.currentTimeMillis();

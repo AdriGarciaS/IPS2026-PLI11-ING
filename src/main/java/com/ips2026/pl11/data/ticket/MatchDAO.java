@@ -448,7 +448,6 @@ public class MatchDAO {
                 pstmt.setString(4, startStr);
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next() && rs.getInt(1) > 0) {
-                        System.out.println("[DEBUG] Conflicto encontrado en MATCHES para facility " + facilityId + " el " + matchDate);
                         return true;
                     }
                 }
@@ -461,10 +460,7 @@ public class MatchDAO {
                 pstmt.setString(4, startStr);
                 try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next() && rs.getInt(1) > 0) {
-                        System.out.println("[DEBUG] Conflicto encontrado en TRAININGS para facility " + facilityId + " el " + matchDate);
                         return true;
-                    } else {
-                        System.out.println("[DEBUG] NO hay conflicto en TRAININGS para facility " + facilityId + " el " + matchDate + " (" + startStr + " - " + endStr + ")");
                     }
                 }
             }

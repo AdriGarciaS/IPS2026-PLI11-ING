@@ -90,10 +90,9 @@ public class EmailController {
     }
 
     // ---- Builder methods ----
+
     
-    // Note: The merch and ticket builder methods are used for the PDF invoices. That's why they're public
-    
-    public String buildMerchReceiptHtml(SaleReceipt receipt) {
+    private static String buildMerchReceiptHtml(SaleReceipt receipt) {
         StringBuilder html = new StringBuilder("<html><body style='font-family: Arial, sans-serif'>");
 
         html.append("<h2>Thank you for your purchase</h2>").append("<p><b>Sale nº ").append(receipt.getSaleNumber())
@@ -107,12 +106,12 @@ public class EmailController {
                 .append(MoneyFormat.format(line.getSubtotal())).append("</td></tr>");
         }
 
-        html.append("</table><hr><p><b>FINAL PRICE: ").append(MoneyFormat.format(receipt.getFinalPrice()))
+        html.append("</table><hr/><p><b>FINAL PRICE: ").append(MoneyFormat.format(receipt.getFinalPrice()))
             .append("</b></p><p>Receipt code: ").append(generateTicketCode("SLE")).append("</p></body></html>");
         return html.toString();
     }
 
-    public String buildTicketReceiptHtml(String matchName, String grandstand, String section, List<String> seats,
+    private static String buildTicketReceiptHtml(String matchName, String grandstand, String section, List<String> seats,
         BigDecimal price) {
         StringBuilder html = new StringBuilder("<html><body style='font-family: Arial, sans-serif'>");
 
@@ -125,7 +124,7 @@ public class EmailController {
             html.append("<li>").append(escapeHtml(seat)).append("</li>");
         }
 
-        html.append("</ul><hr><p><b>FINAL PRICE: ").append(MoneyFormat.format(price)).append("</b></p>");
+        html.append("</ul><hr/><p><b>FINAL PRICE: ").append(MoneyFormat.format(price)).append("</b></p>");
         html.append("<p>Receipt code: ").append(generateTicketCode("TCK")).append("</p>");
         html.append("</body></html>");
 
@@ -142,7 +141,7 @@ public class EmailController {
             .append(escapeHtml(TIME_FORMAT.format(LocalTime.now()))).append("</li></ul><p>Team: ")
             .append(escapeHtml(team)).append("</p><p>Grandstand: ").append(escapeHtml(grandstand)).append(", Section: ")
             .append(escapeHtml(section)).append("</p><p>Seat: Row ").append(i).append(", Seat ").append(j)
-            .append("</p><p>Age category: ").append(escapeHtml(ageCategory)).append("</p><hr><p><b>FINAL PRICE: ")
+            .append("</p><p>Age category: ").append(escapeHtml(ageCategory)).append("</p><hr/><p><b>FINAL PRICE: ")
             .append(MoneyFormat.format(BigDecimal.valueOf(basePrice))).append("</b></p><p>Receipt code: ")
             .append(generateTicketCode("SSP")).append("</p>");
 
@@ -164,4 +163,8 @@ public class EmailController {
         String value = System.getenv(name);
         return value == null || value.isBlank() ? defaultValue : value;
     }
+    
+    // ---- PDF sending ----
+    
+
 }

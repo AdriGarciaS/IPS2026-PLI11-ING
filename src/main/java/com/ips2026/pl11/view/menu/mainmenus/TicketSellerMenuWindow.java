@@ -32,6 +32,7 @@ import com.ips2026.pl11.view.ticket.SellMatchTicketDialog;
 public class TicketSellerMenuWindow extends JFrame {
 
     private static final long serialVersionUID = 1L;
+    private int employeeId;
 
     private JPanel contentPane;
     private HeaderPanel pnHeader;
@@ -47,7 +48,9 @@ public class TicketSellerMenuWindow extends JFrame {
     private NSEWorkScheduleWindow nseWorkScheduleWindow = new NSEWorkScheduleWindow(this);
     private MenuCardButton btnOption8;
 
-    public TicketSellerMenuWindow() {
+    public TicketSellerMenuWindow(int employeeId) {
+        this.employeeId = employeeId;
+        
         setTitle("Football Club Management");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(640, 580));

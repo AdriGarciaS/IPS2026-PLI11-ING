@@ -62,6 +62,13 @@
 		    <artifactId>pdfbox</artifactId>
 		    <version>3.0.8</version>
 		</dependency>
+		
+		<!-- HTML formatting for the invoice with open html to pdf -->
+		<dependency>
+		    <groupId>io.github.openhtmltopdf</groupId>
+		    <artifactId>openhtmltopdf-pdfbox</artifactId>
+		    <version>1.1.97</version>
+		</dependency>
 
     </dependencies>
     

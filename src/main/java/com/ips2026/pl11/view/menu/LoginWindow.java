@@ -254,10 +254,10 @@ public class LoginWindow extends JFrame {
             new GeneralManagerMenuWindow().setVisible(true);
             break;
         case "ticket seller":
-            new TicketSellerMenuWindow().setVisible(true);
+            new TicketSellerMenuWindow(employeeId).setVisible(true);
             break;
         case "store employee":
-            new StoreEmployeeMenuWindow().setVisible(true);
+            new StoreEmployeeMenuWindow(employeeId).setVisible(true);
             break;
         case "gardener":
             new GardenerMenuWindow().setVisible(true);

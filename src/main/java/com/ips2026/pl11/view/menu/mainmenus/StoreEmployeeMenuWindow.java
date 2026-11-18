@@ -134,7 +134,7 @@ public class StoreEmployeeMenuWindow extends JFrame {
                     "Shop Sale", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        new StoreSalesWindow(controller, this).setVisible(true);
+        new StoreSalesWindow(controller, this, employeeId).setVisible(true);
     }
 
     private JPanel getPnFooter() {

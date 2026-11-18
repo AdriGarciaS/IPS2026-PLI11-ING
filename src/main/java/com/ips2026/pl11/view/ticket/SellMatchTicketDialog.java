@@ -1,5 +1,9 @@
 package com.ips2026.pl11.view.ticket;
 
+import static com.ips2026.pl11.controller.email.EmailController.generateTicketCode;
+import static com.ips2026.pl11.controller.pdf.InvoiceGenerator.buildInvoiceHtml;
+import static com.ips2026.pl11.controller.pdf.InvoiceGenerator.generateTicketInvoicePdf;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -11,9 +15,14 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.Window;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -29,10 +38,15 @@ import javax.swing.border.AbstractBorder;
 import javax.swing.border.EmptyBorder;
 
 import com.ips2026.pl11.controller.email.EmailController;
+import com.ips2026.pl11.controller.employee.EmployeeController;
+import com.ips2026.pl11.controller.pdf.InvoiceGenerator.InvoiceData;
+import com.ips2026.pl11.controller.pdf.InvoiceGenerator.InvoiceLine;
 import com.ips2026.pl11.controller.ticket.MatchTicketController;
 import com.ips2026.pl11.controller.ticket.SpecialMatchTicketController;
+import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.data.matches.MatchPriceDAO;
 import com.ips2026.pl11.data.ticket.MatchDAO;
+import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.ticket.HomeMatch;
 import com.ips2026.pl11.model.ticket.SeatStatus;
 import com.ips2026.pl11.view.common.Branding;
@@ -40,13 +54,17 @@ import com.ips2026.pl11.view.common.Branding;
 import jakarta.mail.MessagingException;
 
 /**
- * Dialog for purchasing match tickets, supporting standard seat sales as well as
- * US 35777 / US 36757 Special Match season pass member seat verification and payment check-in.
+ * Dialog for purchasing match tickets, supporting standard seat sales as well
+ * as US 35777 / US 36757 Special Match season pass member seat verification and
+ * payment check-in.
  */
 public class SellMatchTicketDialog extends JDialog {
 
     private static final long serialVersionUID = 1L;
-    private EmailController emailController = new EmailController("smtp.gmail.com", 587, "ipswichmgmt@gmail.com", "lndqblaxqraeetjw");
+
+    private EmployeeController employeeController = new EmployeeController(new EmployeeDAO());
+    private EmailController emailController = new EmailController("smtp.gmail.com", 587, "ipswichmgmt@gmail.com",
+        "lndqblaxqraeetjw");
     private String matchDisplayName;
 
     private final MatchTicketController controller;
@@ -68,13 +86,17 @@ public class SellMatchTicketDialog extends JDialog {
     private JButton btnPayMemberSeat;
     private String[] claimedMemberSeat = null;
 
-    public SellMatchTicketDialog(Window parent, int matchId, String matchDisplayName) {
+    private int employeeId;
+    private String userEmail = "";
+
+    public SellMatchTicketDialog(Window parent, int matchId, String matchDisplayName, int employeeId) {
         super(parent, "Ticket Sales - " + matchDisplayName, ModalityType.APPLICATION_MODAL);
+        this.employeeId = employeeId;
         this.matchId = matchId;
         this.controller = new MatchTicketController();
         this.specialController = new SpecialMatchTicketController();
         this.matchPriceDAO = new MatchPriceDAO();
-        
+
         this.matchDisplayName = matchDisplayName;
 
         try {
@@ -108,7 +130,7 @@ public class SellMatchTicketDialog extends JDialog {
         JPanel pnlGrandstand = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pnlGrandstand.setOpaque(false);
         pnlGrandstand.add(new JLabel("Grandstand:"));
-        cbGrandstand = new JComboBox<>(new String[]{"A", "B", "C", "D"});
+        cbGrandstand = new JComboBox<>(new String[] { "A", "B", "C", "D" });
         cbGrandstand.addActionListener(e -> refreshBoard());
         pnlGrandstand.add(cbGrandstand);
         pnlDetails.add(pnlGrandstand);
@@ -117,7 +139,7 @@ public class SellMatchTicketDialog extends JDialog {
         JPanel pnlSection = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pnlSection.setOpaque(false);
         pnlSection.add(new JLabel("Section:       "));
-        cbSection = new JComboBox<>(new String[]{"A", "B", "C", "D", "E", "F"});
+        cbSection = new JComboBox<>(new String[] { "A", "B", "C", "D", "E", "F" });
         cbSection.addActionListener(e -> refreshBoard());
         pnlSection.add(cbSection);
         pnlDetails.add(pnlSection);
@@ -132,7 +154,8 @@ public class SellMatchTicketDialog extends JDialog {
 
         leftFormPanel.add(pnlDetails);
 
-        // US 35777 / US 36757: Season Pass Member Check-in Panel (Rendered dynamically for Special Matches only)
+        // US 35777 / US 36757: Season Pass Member Check-in Panel (Rendered dynamically
+        // for Special Matches only)
         if (currentMatch != null && currentMatch.isSpecialMatch()) {
             pnlSpecialMemberCheckIn = createSpecialMatchMemberPanel();
             leftFormPanel.add(pnlSpecialMemberCheckIn);
@@ -198,7 +221,8 @@ public class SellMatchTicketDialog extends JDialog {
     private void handleVerifyMemberSeat() {
         String dni = txtMemberDni.getText().trim();
         if (dni.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter your Season Pass Member DNI.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please enter your Season Pass Member DNI.", "Validation Error",
+                JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -208,18 +232,18 @@ public class SellMatchTicketDialog extends JDialog {
             cbSection.setSelectedItem(claimedMemberSeat[1]);
 
             JOptionPane.showMessageDialog(this,
-                    "Regular seat identified!\n" +
-                    "Grandstand: " + claimedMemberSeat[0] + ", Section: " + claimedMemberSeat[1] +
-                    "\nRow: " + claimedMemberSeat[2] + ", Seat: " + claimedMemberSeat[3] +
-                    "\n\nClick 'Pay & Lock Seat' before the cutoff date to confirm your reservation.",
-                    "Member Verified", JOptionPane.INFORMATION_MESSAGE);
+                "Regular seat identified!\n" + "Grandstand: " + claimedMemberSeat[0] + ", Section: "
+                    + claimedMemberSeat[1] + "\nRow: " + claimedMemberSeat[2] + ", Seat: " + claimedMemberSeat[3]
+                    + "\n\nClick 'Pay & Lock Seat' before the cutoff date to confirm your reservation.",
+                "Member Verified", JOptionPane.INFORMATION_MESSAGE);
 
             btnPayMemberSeat.setEnabled(true);
             refreshBoard();
 
         } catch (Exception ex) {
             btnPayMemberSeat.setEnabled(false);
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Special Match Verification Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Special Match Verification Error",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -235,11 +259,11 @@ public class SellMatchTicketDialog extends JDialog {
             int seat = Integer.parseInt(claimedMemberSeat[3]);
 
             double currentPrice = matchPriceDAO.getPriceForMatch(matchId, grandstand, section);
-            boolean success = specialController.confirmMemberSpecialTicket(matchId, grandstand, section, row, seat, currentPrice);
+            boolean success = specialController.confirmMemberSpecialTicket(matchId, grandstand, section, row, seat,
+                currentPrice);
             if (success) {
-                JOptionPane.showMessageDialog(this,
-                        "Payment successful! Your regular seat (Row " + row + ", Seat " + seat + ") is secured for this special match.",
-                        "Ticket Secured", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Payment successful! Your regular seat (Row " + row + ", Seat "
+                    + seat + ") is secured for this special match.", "Ticket Secured", JOptionPane.INFORMATION_MESSAGE);
 
                 btnPayMemberSeat.setEnabled(false);
                 txtMemberDni.setText("");
@@ -247,13 +271,15 @@ public class SellMatchTicketDialog extends JDialog {
                 refreshBoard();
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Payment failed: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Payment failed: " + ex.getMessage(), "Error",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 
     /**
-     * Refreshes the visual seating board by fetching the SeatStatus matrix (US 36757).
-     * Differentiates between Green (Available), Yellow/Orange (Member Reserved in Special Match), and Red (Occupied).
+     * Refreshes the visual seating board by fetching the SeatStatus matrix (US
+     * 36757). Differentiates between Green (Available), Yellow/Orange (Member
+     * Reserved in Special Match), and Red (Occupied).
      */
     private void refreshBoard() {
         String grandstand = (String) cbGrandstand.getSelectedItem();
@@ -268,7 +294,8 @@ public class SellMatchTicketDialog extends JDialog {
             SeatStatus[][] statusMatrix = controller.getSeatMatrix(matchId, grandstand, section);
             boardPanel.updateBoard(statusMatrix);
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error loading seat map: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error loading seat map: " + e.getMessage(), "Database Error",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -281,8 +308,8 @@ public class SellMatchTicketDialog extends JDialog {
             double currentPrice = matchPriceDAO.getPriceForMatch(matchId, grandstand, section);
             var assignedSeats = controller.sellTickets(matchId, grandstand, section, quantity, currentPrice);
 
-            StringBuilder seatsMsg = new StringBuilder("Tickets booked successfully in Grandstand ")
-                    .append(grandstand).append(", Section ").append(section).append(":\n");
+            StringBuilder seatsMsg = new StringBuilder("Tickets booked successfully in Grandstand ").append(grandstand)
+                .append(", Section ").append(section).append(":\n");
 
             List<String> seatLines = new ArrayList<>();
             for (int[] seat : assignedSeats) {
@@ -291,21 +318,21 @@ public class SellMatchTicketDialog extends JDialog {
                 seatLines.add("Row " + row + ", Seat " + col);
                 seatsMsg.append("• Row ").append(row).append(", Seat ").append(col).append("\n");
             }
-            
-            String email = askForEmail();
-            if (email == null) {
-                return;
-            }
-            
-            try {
-                BigDecimal totalPrice = BigDecimal.valueOf(quantity * currentPrice);
-                emailController.sendTicketReceipt(email, matchDisplayName, grandstand, section, seatLines, totalPrice);
-                JOptionPane.showMessageDialog(this, seatsMsg.toString() + "\nReceipt sent to " + email, "Success",
-                    JOptionPane.INFORMATION_MESSAGE);
-            } catch (MessagingException | IllegalStateException exception) {
-                JOptionPane.showMessageDialog(this,
-                    "The receipt could not be sent:\n" + exception.getMessage(),
-                    "Email error", JOptionPane.ERROR_MESSAGE);
+
+            boolean wantsInvoice = askForInvoice();
+            if(!wantsInvoice) {
+                askForEmail();
+                if (userEmail == null || userEmail.isEmpty()) {
+                    return;
+                }
+                sendReceipt(seatsMsg, quantity, currentPrice, grandstand, section, seatLines);                
+            } else {
+                String[] customerDetails = askForCustomerDetails();
+                if (customerDetails == null) {
+                    return;
+                }
+                sendReceipt(seatsMsg, quantity, currentPrice, grandstand, section, seatLines);
+                sendInvoice(seatLines, quantity, currentPrice, grandstand, section, customerDetails);
             }
 
             refreshBoard();
@@ -313,10 +340,97 @@ public class SellMatchTicketDialog extends JDialog {
         } catch (IllegalStateException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "No Contiguous Seats", JOptionPane.WARNING_MESSAGE);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "An error occurred: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "An error occurred: " + ex.getMessage(), "Error",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
+    private void sendInvoice(List<String> seatLines, int quantity, double currentPrice, String grandstand,
+        String section, String[] customerDetails) {
+        try {
+            String[] employeeData = getEmployeeDetails();
+            BigDecimal ticketPrice = BigDecimal.valueOf(currentPrice).setScale(2, RoundingMode.HALF_UP);
+
+            List<InvoiceLine> lines = new ArrayList<>();
+            for (String seat : seatLines) {
+                lines.add(new InvoiceLine(1, matchDisplayName + "\n G.S " + grandstand + ", Sec. " + section + ", " + seat,
+                    ticketPrice));
+            }
+
+            InvoiceData data = new InvoiceData(customerDetails[0], customerDetails[1], userEmail, employeeData[0],
+                employeeData[1], "Ticket sale", "ipswichmgmt@gmail.com", LocalDateTime.now(), generateTicketCode("SLE"),
+                lines);
+
+            String html = buildInvoiceHtml(data);
+            generateTicketInvoicePdf("C:/Users/ASUS/Desktop/invoice.pdf", html);
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Invoice generation failed: " + e.getMessage(), "Error",
+                JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Employee data retrieval failed: " + e.getMessage(), "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+
+    }
+
+    private String[] getEmployeeDetails() throws SQLException {
+        Optional<Employee> employeeOpt = employeeController.getEmployeeById(employeeId);
+        if (employeeOpt.isPresent()) {
+            Employee employee = employeeOpt.get();
+            return new String[] { employee.getFirstName() + " " + employee.getLastName(), employee.getNationalId() };
+        } else {
+            throw new SQLException("Employee not found for ID: " + employeeId);
+        }
+    }
+
+    private String[] askForCustomerDetails() {
+        while (true) {
+            JTextField txtName = new JTextField(25);
+            JTextField txtDni = new JTextField(25);
+            JTextField txtEmail = new JTextField(25);
+
+            int result = JOptionPane.showConfirmDialog(this,
+                new Object[] { "Customer full name:", txtName, "Customer DNI:", txtDni, "Customer e-mail:", txtEmail }, "Invoice details",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+            if (result != JOptionPane.OK_OPTION) {
+                return null;
+            }
+
+            String name = txtName.getText().trim();
+            String dni = txtDni.getText().trim();
+            userEmail = txtEmail.getText().trim();
+            if (!name.isEmpty() && !dni.isEmpty()) {
+                return new String[] { name, dni };
+            }
+
+            JOptionPane.showMessageDialog(this, "Name and DNI are required for an invoice.", "Missing data",
+                JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private void sendReceipt(StringBuilder seatsMsg, int quantity, double currentPrice, String grandstand,
+        String section, List<String> seatLines) {
+        try {
+            BigDecimal totalPrice = BigDecimal.valueOf(quantity * currentPrice);
+            emailController.sendTicketReceipt(userEmail, matchDisplayName, grandstand, section, seatLines, totalPrice);
+            JOptionPane.showMessageDialog(this, seatsMsg.toString() + "\nReceipt sent to " + userEmail, "Success",
+                JOptionPane.INFORMATION_MESSAGE);
+        } catch (MessagingException | IllegalStateException exception) {
+            JOptionPane.showMessageDialog(this, "The receipt could not be sent:\n" + exception.getMessage(),
+                "Email error", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }
+
+    private boolean askForInvoice() {
+        int result = JOptionPane.showConfirmDialog(this, "Would you like an invoice for this purchase?",
+            "Invoice Request", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+        return result == JOptionPane.YES_OPTION;
+    }
+
     private String askForEmail() {
         while (true) {
             JTextField txtEmail = new JTextField(25);
@@ -329,10 +443,10 @@ public class SellMatchTicketDialog extends JDialog {
                 return null;
             }
 
-            String email = txtEmail.getText().trim();
+            userEmail = txtEmail.getText().trim();
 
-            if (email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-                return email;
+            if (userEmail.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                return userEmail;
             }
 
             JOptionPane.showMessageDialog(this, "Please enter a valid email address.", "Invalid email",

@@ -34,33 +34,14 @@ public class InvoiceGenerator {
         }
     }
 
-    // ---------- Demo ----------
-
-    public static void main(String[] args) {
-        try {
-            InvoiceData data = new InvoiceData("Customer full name", "12345678Z", "customerEmail@gmail.com",
-                "Seller full name", "87654321A", "Ticket sale/ Store sale", "ipswichmgmt@gmail.com",
-                LocalDateTime.of(2026, 11, 17, 17, 45, 32), "SLE-1794934025253",
-                List.of(new InvoiceLine(1, "Club Hoodie", new BigDecimal("49.90")),
-                    new InvoiceLine(2, "Club Keyring", new BigDecimal("9.00")),
-                    new InvoiceLine(1, "Club Hoodie", new BigDecimal("49.90")),
-                    new InvoiceLine(2, "Club Keyring", new BigDecimal("9.00"))));
-
-            String html = buildInvoiceHtml(data);
-            generateMerchInvoicePdf("C:/Users/ASUS/Desktop/invoice.pdf", html);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void generateMerchInvoicePdf(String filePath, String htmlContent) throws IOException {
+    public static void generateInvoicePdf(String filePath, String htmlContent) throws IOException {
         try (OutputStream os = new FileOutputStream(filePath)) {
             renderPdf(htmlContent, os);
         }
     }
 
     public static void generateTicketInvoicePdf(String filePath, String htmlContent) throws IOException {
-        generateMerchInvoicePdf(filePath, htmlContent);
+        generateInvoicePdf(filePath, htmlContent);
     }
 
     public static byte[] generateInvoicePdfBytes(String htmlContent) throws IOException {
@@ -84,9 +65,16 @@ public class InvoiceGenerator {
 
     public static String buildInvoiceHtml(InvoiceData d) {
         StringBuilder rows = new StringBuilder();
+        int i = 0;
         for (InvoiceLine l : d.lines()) {
-            rows.append("<tr><td>").append(l.amount()).append("</td><td>").append(esc(l.product()))
-                .append("</td><td class=\"right\">").append(money(l.price())).append("</td></tr>\n");
+            String rowClass = "";
+            if (i++ % 2 == 1) {
+                rowClass = " class=\"alt\"" ;
+            }
+            
+            rows.append("<tr").append(rowClass).append("><td>").append(l.amount()).append("</td><td>")
+                .append(esc(l.product()).replace("\n", "<br/>")).append("</td><td class=\"right\">")
+                .append(money(l.price())).append("</td></tr>\n");
         }
 
         DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -115,6 +103,7 @@ public class InvoiceGenerator {
                 .info td { width: 33%%; line-height: 1.5; font-size: 10pt; }
                 .info h3 { font-size: 12pt; margin: 0 0 4px 0; }
                 .items { margin-top: 45px; }
+                .items tr.alt td { background: #c9d3f0; }
                 .items th { background: #000; color: #fff; text-align: left; padding: 8px 10px; }
                 .items td { padding: 8px 10px; font-size: 11pt; }
                 .items .col-amount { width: 30%%; }

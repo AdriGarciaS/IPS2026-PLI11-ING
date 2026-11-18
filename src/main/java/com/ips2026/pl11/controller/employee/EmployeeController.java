@@ -96,5 +96,9 @@ public class EmployeeController {
         return employeeDAO.findByUsername(username);
     }
     
+    public Optional<Employee> getEmployeeById(int employeeId) throws SQLException {
+        return employeeDAO.findById(employeeId);
+    }
+    
     
 }

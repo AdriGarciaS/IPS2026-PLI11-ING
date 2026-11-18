@@ -150,7 +150,7 @@ public class EmailController {
 
     // ---- Auxiliary methods ----
 
-    private static String generateTicketCode(String string) {
+    public static String generateTicketCode(String string) {
         long timestamp = System.currentTimeMillis();
         return string + "-" + timestamp;
     }

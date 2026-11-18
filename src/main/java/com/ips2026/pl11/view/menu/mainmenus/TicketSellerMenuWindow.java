@@ -140,7 +140,7 @@ public class TicketSellerMenuWindow extends JFrame {
 
             HomeMatch selected = selector.getSelectedMatch();
             if (selected != null) {
-                new SellMatchTicketDialog(this, selected.getId(), selected.getDisplayName()).setVisible(true);
+                new SellMatchTicketDialog(this, selected.getId(), selected.getDisplayName(), employeeId).setVisible(true);
             }
         } catch (Exception exception) {
             JOptionPane.showMessageDialog(this,

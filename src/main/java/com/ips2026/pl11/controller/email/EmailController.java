@@ -1,5 +1,9 @@
 package com.ips2026.pl11.controller.email;
 
+
+import static com.ips2026.pl11.controller.pdf.InvoiceGenerator.generateInvoicePdfBytes;
+
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -11,14 +15,20 @@ import com.ips2026.pl11.model.store.CartLine;
 import com.ips2026.pl11.model.store.SaleReceipt;
 import com.ips2026.pl11.view.common.MoneyFormat;
 
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
+import jakarta.mail.Multipart;
 import jakarta.mail.PasswordAuthentication;
 import jakarta.mail.Session;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
 
 public class EmailController {
 
@@ -91,7 +101,6 @@ public class EmailController {
 
     // ---- Builder methods ----
 
-    
     private static String buildMerchReceiptHtml(SaleReceipt receipt) {
         StringBuilder html = new StringBuilder("<html><body style='font-family: Arial, sans-serif'>");
 
@@ -111,8 +120,8 @@ public class EmailController {
         return html.toString();
     }
 
-    private static String buildTicketReceiptHtml(String matchName, String grandstand, String section, List<String> seats,
-        BigDecimal price) {
+    private static String buildTicketReceiptHtml(String matchName, String grandstand, String section,
+        List<String> seats, BigDecimal price) {
         StringBuilder html = new StringBuilder("<html><body style='font-family: Arial, sans-serif'>");
 
         html.append("<h2>Thank you for your purchase</h2><p><b>").append(escapeHtml(matchName))
@@ -163,8 +172,49 @@ public class EmailController {
         String value = System.getenv(name);
         return value == null || value.isBlank() ? defaultValue : value;
     }
-    
+
     // ---- PDF sending ----
-    
+
+    public void sendInvoiceByEmail(String recipient, String htmlContent, String fileName)
+        throws MessagingException, IOException {
+
+        // Generate the PDF in memory
+        byte[] pdfBytes = generateInvoicePdfBytes(htmlContent);
+
+        Properties properties = new Properties();
+
+        properties.put("mail.smtp.host", "smtp.gmail.com");
+        properties.put("mail.smtp.port", "587");
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.smtp.starttls.enable", "true");
+        
+        Session session = Session.getInstance(properties, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(user, password);
+            }
+        });
+
+        MimeMessage message = new MimeMessage(session);
+
+        message.setFrom(new InternetAddress(user));
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipient));
+        message.setSubject("Your purchase invoice - Ipswich Town");
+
+        MimeBodyPart attachmentPart = new MimeBodyPart();
+        DataSource source = new ByteArrayDataSource(pdfBytes, "application/pdf");
+
+        attachmentPart.setDataHandler(new DataHandler(source));
+        attachmentPart.setFileName(fileName);
+        
+        Multipart multipart = new MimeMultipart();
+        multipart.addBodyPart(new MimeBodyPart() {{
+            setContent("Please find attached your purchase invoice.", "text/plain; charset=UTF-8");
+        }});
+        multipart.addBodyPart(attachmentPart);
+        message.setContent(multipart);
+
+        Transport.send(message);
+    }
 
 }

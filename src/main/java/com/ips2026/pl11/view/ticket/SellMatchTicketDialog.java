@@ -2,7 +2,6 @@ package com.ips2026.pl11.view.ticket;
 
 import static com.ips2026.pl11.controller.email.EmailController.generateTicketCode;
 import static com.ips2026.pl11.controller.pdf.InvoiceGenerator.buildInvoiceHtml;
-import static com.ips2026.pl11.controller.pdf.InvoiceGenerator.generateTicketInvoicePdf;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -320,12 +319,12 @@ public class SellMatchTicketDialog extends JDialog {
             }
 
             boolean wantsInvoice = askForInvoice();
-            if(!wantsInvoice) {
+            if (!wantsInvoice) {
                 askForEmail();
                 if (userEmail == null || userEmail.isEmpty()) {
                     return;
                 }
-                sendReceipt(seatsMsg, quantity, currentPrice, grandstand, section, seatLines);                
+                sendReceipt(seatsMsg, quantity, currentPrice, grandstand, section, seatLines);
             } else {
                 String[] customerDetails = askForCustomerDetails();
                 if (customerDetails == null) {
@@ -340,6 +339,7 @@ public class SellMatchTicketDialog extends JDialog {
         } catch (IllegalStateException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "No Contiguous Seats", JOptionPane.WARNING_MESSAGE);
         } catch (Exception ex) {
+            ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "An error occurred: " + ex.getMessage(), "Error",
                 JOptionPane.ERROR_MESSAGE);
         }
@@ -353,22 +353,29 @@ public class SellMatchTicketDialog extends JDialog {
 
             List<InvoiceLine> lines = new ArrayList<>();
             for (String seat : seatLines) {
-                lines.add(new InvoiceLine(1, matchDisplayName + "\n G.S " + grandstand + ", Sec. " + section + ", " + seat,
-                    ticketPrice));
+                lines.add(new InvoiceLine(1,
+                    matchDisplayName + "\n G.S " + grandstand + ", Sec. " + section + ", " + seat, ticketPrice));
             }
 
             InvoiceData data = new InvoiceData(customerDetails[0], customerDetails[1], userEmail, employeeData[0],
-                employeeData[1], "Ticket sale", "ipswichmgmt@gmail.com", LocalDateTime.now(), generateTicketCode("SLE"),
+                employeeData[1], "Ticket sale", "ipswichmgmt@gmail.com", LocalDateTime.now(), generateTicketCode("TCK"),
                 lines);
 
             String html = buildInvoiceHtml(data);
-            generateTicketInvoicePdf("C:/Users/ASUS/Desktop/invoice.pdf", html);
+            String fileName = "invoice_" + data.code() + ".pdf";
+
+            emailController.sendInvoiceByEmail(data.customerEmail(), html, fileName);
+            JOptionPane.showMessageDialog(this, "Invoice sent to " + data.customerEmail(), "Invoice sent",
+                JOptionPane.INFORMATION_MESSAGE);
 
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Invoice generation failed: " + e.getMessage(), "Error",
                 JOptionPane.ERROR_MESSAGE);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Employee data retrieval failed: " + e.getMessage(), "Error",
+                JOptionPane.ERROR_MESSAGE);
+        } catch (MessagingException e) {
+            JOptionPane.showMessageDialog(this, "Invoice email sending failed: " + e.getMessage(), "Error",
                 JOptionPane.ERROR_MESSAGE);
         }
 
@@ -391,8 +398,8 @@ public class SellMatchTicketDialog extends JDialog {
             JTextField txtEmail = new JTextField(25);
 
             int result = JOptionPane.showConfirmDialog(this,
-                new Object[] { "Customer full name:", txtName, "Customer DNI:", txtDni, "Customer e-mail:", txtEmail }, "Invoice details",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+                new Object[] { "Customer full name:", txtName, "Customer DNI:", txtDni, "Customer e-mail:", txtEmail },
+                "Invoice details", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 
             if (result != JOptionPane.OK_OPTION) {
                 return null;

@@ -2,7 +2,6 @@ package com.ips2026.pl11.view.store;
 
 import static com.ips2026.pl11.controller.email.EmailController.generateTicketCode;
 import static com.ips2026.pl11.controller.pdf.InvoiceGenerator.buildInvoiceHtml;
-import static com.ips2026.pl11.controller.pdf.InvoiceGenerator.generateTicketInvoicePdf;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -725,13 +724,20 @@ public class StoreSalesWindow extends JDialog {
                 lines);
 
             String html = buildInvoiceHtml(data);
-            generateTicketInvoicePdf("C:/Users/ASUS/Desktop/invoice.pdf", html);
+            String fileName = "invoice_" + data.code() + ".pdf";
+
+            emailController.sendInvoiceByEmail(data.customerEmail(), html, fileName);
+            JOptionPane.showMessageDialog(this, "Invoice sent to " + data.customerEmail(), "Invoice sent",
+                JOptionPane.INFORMATION_MESSAGE);
 
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Invoice generation failed: " + e.getMessage(), "Error",
                 JOptionPane.ERROR_MESSAGE);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Employee data retrieval failed: " + e.getMessage(), "Error",
+                JOptionPane.ERROR_MESSAGE);
+        } catch (MessagingException e) {
+            JOptionPane.showMessageDialog(this, "Invoice email sending failed: " + e.getMessage(), "Error",
                 JOptionPane.ERROR_MESSAGE);
         }
 

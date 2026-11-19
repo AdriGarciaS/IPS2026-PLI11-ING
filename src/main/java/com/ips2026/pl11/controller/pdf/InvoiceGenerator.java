@@ -16,12 +16,7 @@ import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
 public class InvoiceGenerator {
 
-    // ---------- Data model (Java 16+ records) ----------
 
-    /**
-     * price = total price of the line (as shown in your sample: 2 keyrings -> 9,00
-     * €)
-     */
     public record InvoiceLine(int amount, String product, BigDecimal price) {
     }
 
@@ -56,6 +51,7 @@ public class InvoiceGenerator {
             builder.withHtmlContent(htmlContent, null);
             builder.toStream(os);
             builder.run();
+            
         } catch (IOException e) {
             throw e;
         } catch (Exception e) {
@@ -177,11 +173,6 @@ public class InvoiceGenerator {
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
     }
 
-    /**
-     * Embeds the logo as a base64 data URI so no external file/URL resolution is
-     * needed. Put the PNG at src/main/resources/images/ipswich_logo.png (or change
-     * the path).
-     */
     private static String logoImgTag() {
         try (InputStream in = InvoiceGenerator.class.getResourceAsStream("/images/ipswich.png")) {
             if (in == null) {

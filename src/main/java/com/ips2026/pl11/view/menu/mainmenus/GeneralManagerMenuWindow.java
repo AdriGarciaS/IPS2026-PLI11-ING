@@ -28,6 +28,7 @@ import com.ips2026.pl11.model.history.SalesHistory;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
+import com.ips2026.pl11.view.financialreports.FinancialReportsMenu;
 import com.ips2026.pl11.view.history.SalesHistoryDialog;
 import com.ips2026.pl11.view.matches.ImportMatchesCSV;
 import com.ips2026.pl11.view.matches.ScheduleMatchDialog;
@@ -57,6 +58,7 @@ public class GeneralManagerMenuWindow extends JFrame {
     private MenuCardButton btnOption13;    
     private MenuCardButton btnOption4;
     private MenuCardButton btnOption14;
+    private MenuCardButton btnOption15;
     private JPanel pnFooter;
     private JLabel lblFooter;
     private JButton selectedButton;
@@ -103,6 +105,7 @@ public class GeneralManagerMenuWindow extends JFrame {
             pnButtons.add(getBtnOption13());
             pnButtons.add(getBtnOption4());
             pnButtons.add(getBtnOption14());
+            pnButtons.add(getBtnOption15());
         }
         return pnButtons;
     }
@@ -217,6 +220,27 @@ public class GeneralManagerMenuWindow extends JFrame {
             btnOption14.addActionListener(event -> openImportSchedule());
         }
         return btnOption14;
+    }
+    
+    private MenuCardButton getBtnOption15() {
+        if (btnOption15 == null) {
+            btnOption15 = new MenuCardButton("See Financial Reports", "Display all the info regarding the financial situation of the club");
+            btnOption15.setMnemonic('F');
+            btnOption15.setFont(new Font("Tahoma", Font.PLAIN, 16));
+            btnOption15.addActionListener(event -> openFinancialReports());
+        }
+        return btnOption15;
+    }
+    
+    private void openFinancialReports() {
+        try {
+            FinancialReportsMenu dialog = new FinancialReportsMenu(this);
+            dialog.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error opening Financial Reports menu dialog: " + ex.getMessage(),
+                    "Import Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     private void openImportSchedule() {

@@ -81,7 +81,7 @@ public class FinancialReportsMenu extends JFrame {
 
     private void initListeners() {
         btnIncomesGlossary.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Opening INCOMES GLOSSARY...");
+        	new IncomesGlossaryView(this).setVisible(true);
         });
 
         btnIncomesVsOutcomes.addActionListener(e -> {

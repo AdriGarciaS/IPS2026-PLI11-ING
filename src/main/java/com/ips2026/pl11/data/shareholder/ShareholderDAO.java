@@ -38,6 +38,38 @@ public class ShareholderDAO {
         return shareholders;
     }
 
+    /** US 35828: whether a shareholder already has this national ID (ignoring upper/lower case). */
+    public boolean existsNationalId(String nationalId) throws SQLException {
+        return exists("SELECT 1 FROM SHAREHOLDER WHERE national_id = ? COLLATE NOCASE", nationalId);
+    }
+
+    /** US 35828: whether a shareholder already has this email (ignoring upper/lower case). */
+    public boolean existsEmail(String email) throws SQLException {
+        return exists("SELECT 1 FROM SHAREHOLDER WHERE email = ? COLLATE NOCASE", email);
+    }
+
+    /**
+     * US 35828: whether this username is already used by a shareholder or by
+     * an employee (ignoring upper/lower case). Both log in from the same
+     * window, so a username cannot be repeated between them.
+     */
+    public boolean existsUsername(String username) throws SQLException {
+        return exists("SELECT 1 FROM SHAREHOLDER WHERE username = ? COLLATE NOCASE "
+                + "UNION ALL SELECT 1 FROM employees WHERE username = ? COLLATE NOCASE", username, username);
+    }
+
+    private static boolean exists(String sql, String... values) throws SQLException {
+        try (Connection connection = ConexionBD.obtenerConexion();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            for (int i = 0; i < values.length; i++) {
+                statement.setString(i + 1, values[i]);
+            }
+            try (ResultSet result = statement.executeQuery()) {
+                return result.next();
+            }
+        }
+    }
+
     /**
      * US 36748: removes the shareholder from the system if they no longer own
      * any share (they have sold all of them). Their row of SHAREHOLDER is

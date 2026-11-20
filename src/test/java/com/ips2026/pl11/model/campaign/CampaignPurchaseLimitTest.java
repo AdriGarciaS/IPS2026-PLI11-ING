@@ -67,6 +67,33 @@ class CampaignPurchaseLimitTest {
     }
 
     @Test
+    @DisplayName("US 35828: an external user can buy any number of the remaining shares in phase 3")
+    void externalUserPhase3() {
+        CampaignPurchaseLimit external = CampaignPurchaseLimit.forExternalUser(CampaignStatus.PHASE_3, 430);
+        assertTrue(external.isExternalUser());
+        assertEquals(0, external.getOwnedShares());
+        assertEquals(430, external.getMax());
+        assertTrue(external.findQuantityProblem("430").isEmpty());
+        assertEquals("You can buy at most 430 shares.", external.findQuantityProblem("431").orElseThrow());
+
+        CampaignPurchaseLimit soldOut = CampaignPurchaseLimit.forExternalUser(CampaignStatus.PHASE_3, 0);
+        assertEquals(0, soldOut.getMax());
+        assertTrue(soldOut.getReasonForNone().contains("have been sold"));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = CampaignStatus.class, names = { "INACTIVE", "PHASE_1", "PHASE_2", "FINISHED" })
+    @DisplayName("US 35828: an external user cannot buy shares outside phase 3")
+    void externalUserOtherPhases(CampaignStatus status) {
+        CampaignPurchaseLimit external = CampaignPurchaseLimit.forExternalUser(status, 430);
+        assertEquals(0, external.getMax());
+        assertEquals("External users can buy shares when the campaign reaches phase 3 (now: "
+                + status.getLabel() + ").", external.getReasonForNone());
+        assertEquals(external.getReasonForNone(), external.findQuantityProblem("1").orElseThrow());
+        assertEquals(status == CampaignStatus.PHASE_3, status.allowsExternalPurchases());
+    }
+
+    @Test
     @DisplayName("the total of a purchase is the price per share times the shares")
     void purchaseTotal() {
         CampaignPurchase purchase = new CampaignPurchase("Laura Pérez Gil", "Capital increase 2027", 20, 3101, 3120,

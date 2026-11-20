@@ -13,11 +13,13 @@ import com.ips2026.pl11.model.campaign.Campaign;
 import com.ips2026.pl11.model.campaign.CampaignPurchase;
 import com.ips2026.pl11.model.campaign.CampaignPurchaseLimit;
 import com.ips2026.pl11.model.campaign.CampaignStatus;
+import com.ips2026.pl11.model.campaign.ShareholderRegistration;
 import com.ips2026.pl11.model.shareholder.Shareholder;
 
 /**
  * US 35947: SQL queries to buy shares of a campaign (tables SHARE_CAMPAIGN,
- * SHARE_HOLDING, SHARE and SHARE_TRANSFER).
+ * SHARE_HOLDING, SHARE and SHARE_TRANSFER). US 35828: an external user
+ * registers as a shareholder (SHAREHOLDER) and buys shares at the same time.
  */
 public class CampaignPurchaseDAO {
 
@@ -50,10 +52,20 @@ public class CampaignPurchaseDAO {
 
     private static final String SQL_INSERT_SHARE = "INSERT INTO SHARE (id, holding_id) VALUES (?, ?)";
 
+    private static final String SQL_INSERT_SHAREHOLDER = "INSERT INTO SHAREHOLDER "
+            + "(first_name, last_name, national_id, email, username, password) VALUES (?, ?, ?, ?, ?, ?)";
+
     /** How many shares of the campaign the shareholder can buy now. */
     public CampaignPurchaseLimit findLimit(int campaignId, int shareholderId) throws SQLException {
         try (Connection connection = ConexionBD.obtenerConexion()) {
             return readLimit(connection, campaignId, shareholderId);
+        }
+    }
+
+    /** US 35828: how many shares of the campaign an external user (not a shareholder yet) can buy now. */
+    public CampaignPurchaseLimit findExternalLimit(int campaignId) throws SQLException {
+        try (Connection connection = ConexionBD.obtenerConexion()) {
+            return readExternalLimit(connection, campaignId);
         }
     }
 
@@ -72,49 +84,109 @@ public class CampaignPurchaseDAO {
             throws SQLException {
         try (Connection connection = ConexionBD.obtenerConexion()) {
             connection.setAutoCommit(false);
-            try (PreparedStatement insertHolding = connection.prepareStatement(SQL_INSERT_HOLDING,
-                         Statement.RETURN_GENERATED_KEYS);
-                 PreparedStatement insertShare = connection.prepareStatement(SQL_INSERT_SHARE);
-                 Statement nextId = connection.createStatement()) {
-
-                CampaignPurchaseLimit limit = readLimit(connection, campaign.getId(), shareholder.getId());
-                if (quantity < 1 || quantity > limit.getMax()) {
-                    throw new IllegalStateException(limit.getMax() == 0 ? limit.getReasonForNone()
-                            : "You can no longer buy " + quantity + " shares: the maximum now is "
-                                    + limit.getMax() + ".");
-                }
-
-                insertHolding.setInt(1, shareholder.getId());
-                insertHolding.setInt(2, campaign.getId());
-                insertHolding.setString(3, moment.format(DATE_TIME_FORMAT));
-                insertHolding.setBigDecimal(4, campaign.getNominalPrice());
-                insertHolding.executeUpdate();
-                int holdingId;
-                try (ResultSet keys = insertHolding.getGeneratedKeys()) {
-                    keys.next();
-                    holdingId = keys.getInt(1);
-                }
-
-                int firstId;
-                try (ResultSet result = nextId.executeQuery(SQL_NEXT_SHARE_ID)) {
-                    result.next();
-                    firstId = result.getInt(1);
-                }
-                for (int id = firstId; id < firstId + quantity; id++) {
-                    insertShare.setInt(1, id);
-                    insertShare.setInt(2, holdingId);
-                    insertShare.addBatch();
-                }
-                insertShare.executeBatch();
-
+            try {
+                checkQuantity(readLimit(connection, campaign.getId(), shareholder.getId()), quantity);
+                CampaignPurchase purchase = insertPurchase(connection, campaign, shareholder.getId(),
+                        shareholder.getFullName(), quantity, moment);
                 connection.commit();
-                return new CampaignPurchase(shareholder.getFullName(), campaign.getName(), quantity, firstId,
-                        firstId + quantity - 1, campaign.getNominalPrice());
+                return purchase;
             } catch (SQLException | RuntimeException exception) {
                 connection.rollback();
                 throw exception;
             }
         }
+    }
+
+    /**
+     * US 35828: registers an external user as a new shareholder and buys the
+     * shares for them (see {@link #buy}), all in a single transaction: if the
+     * campaign is no longer in phase 3, there are not enough shares, or the
+     * national ID, email or username were registered meanwhile, nothing is
+     * stored.
+     *
+     * @param passwordHash the password already hashed (it is never stored as typed)
+     * @throws IllegalStateException if the user can no longer buy that many shares
+     */
+    public CampaignPurchase registerAndBuy(Campaign campaign, ShareholderRegistration registration,
+            String passwordHash, int quantity, LocalDateTime moment) throws SQLException {
+        try (Connection connection = ConexionBD.obtenerConexion()) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement insertShareholder = connection.prepareStatement(SQL_INSERT_SHAREHOLDER,
+                    Statement.RETURN_GENERATED_KEYS)) {
+                checkQuantity(readExternalLimit(connection, campaign.getId()), quantity);
+
+                insertShareholder.setString(1, registration.getFirstName());
+                insertShareholder.setString(2, registration.getLastName());
+                insertShareholder.setString(3, registration.getNationalId());
+                insertShareholder.setString(4, registration.getEmail());
+                insertShareholder.setString(5, registration.getUsername());
+                insertShareholder.setString(6, passwordHash);
+                insertShareholder.executeUpdate();
+                int shareholderId;
+                try (ResultSet keys = insertShareholder.getGeneratedKeys()) {
+                    keys.next();
+                    shareholderId = keys.getInt(1);
+                }
+
+                CampaignPurchase purchase = insertPurchase(connection, campaign, shareholderId,
+                        registration.getFullName(), quantity, moment);
+                connection.commit();
+                return purchase;
+            } catch (SQLException | RuntimeException exception) {
+                connection.rollback();
+                throw exception;
+            }
+        }
+    }
+
+    /** @throws IllegalStateException if the quantity is not between 1 and the maximum of the limit */
+    private static void checkQuantity(CampaignPurchaseLimit limit, int quantity) {
+        if (quantity < 1 || quantity > limit.getMax()) {
+            throw new IllegalStateException(limit.getMax() == 0 ? limit.getReasonForNone()
+                    : "You can no longer buy " + quantity + " shares: the maximum now is " + limit.getMax() + ".");
+        }
+    }
+
+    /** A new holding of the shareholder with {@code quantity} new shares with consecutive IDs. */
+    private static CampaignPurchase insertPurchase(Connection connection, Campaign campaign, int shareholderId,
+            String shareholderName, int quantity, LocalDateTime moment) throws SQLException {
+        try (PreparedStatement insertHolding = connection.prepareStatement(SQL_INSERT_HOLDING,
+                     Statement.RETURN_GENERATED_KEYS);
+             PreparedStatement insertShare = connection.prepareStatement(SQL_INSERT_SHARE);
+             Statement nextId = connection.createStatement()) {
+
+            insertHolding.setInt(1, shareholderId);
+            insertHolding.setInt(2, campaign.getId());
+            insertHolding.setString(3, moment.format(DATE_TIME_FORMAT));
+            insertHolding.setBigDecimal(4, campaign.getNominalPrice());
+            insertHolding.executeUpdate();
+            int holdingId;
+            try (ResultSet keys = insertHolding.getGeneratedKeys()) {
+                keys.next();
+                holdingId = keys.getInt(1);
+            }
+
+            int firstId;
+            try (ResultSet result = nextId.executeQuery(SQL_NEXT_SHARE_ID)) {
+                result.next();
+                firstId = result.getInt(1);
+            }
+            for (int id = firstId; id < firstId + quantity; id++) {
+                insertShare.setInt(1, id);
+                insertShare.setInt(2, holdingId);
+                insertShare.addBatch();
+            }
+            insertShare.executeBatch();
+
+            return new CampaignPurchase(shareholderName, campaign.getName(), quantity, firstId,
+                    firstId + quantity - 1, campaign.getNominalPrice());
+        }
+    }
+
+    private static CampaignPurchaseLimit readExternalLimit(Connection connection, int campaignId)
+            throws SQLException {
+        CampaignPurchaseLimit limit = readLimit(connection, campaignId, 0); // no shareholder has id 0
+        return CampaignPurchaseLimit.forExternalUser(limit.getStatus(), limit.getRemainingShares());
     }
 
     private static CampaignPurchaseLimit readLimit(Connection connection, int campaignId, int shareholderId)

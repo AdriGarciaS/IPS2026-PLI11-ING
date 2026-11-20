@@ -36,6 +36,11 @@ public enum CampaignStatus {
         return this == PHASE_1 || this == PHASE_2 || this == PHASE_3;
     }
 
+    /** US 35828: whether external users (not shareholders yet) can buy shares in this phase (only phase 3). */
+    public boolean allowsExternalPurchases() {
+        return this == PHASE_3;
+    }
+
     /**
      * The phase that comes after this one (phases only move forward, one at
      * a time), or null for {@link #FINISHED}, which cannot be reactivated.

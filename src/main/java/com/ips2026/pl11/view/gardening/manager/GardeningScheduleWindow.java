@@ -61,7 +61,7 @@ import com.ips2026.pl11.model.reservation.TimeSlot;
 import com.ips2026.pl11.model.schedule.WeeklyShift;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
-import com.ips2026.pl11.view.gardening.GardeningSessionWindow;
+import com.ips2026.pl11.view.menu.mainmenus.FacilityManagerMenuWindow;
 import com.toedter.calendar.IDateEvaluator;
 import com.toedter.calendar.JDateChooser;
 
@@ -74,7 +74,7 @@ public class GardeningScheduleWindow extends JDialog {
     private int maxHours = 1;
     private int maxMinutes = 1;
 
-    private GardeningSessionWindow gsw;
+    private FacilityManagerMenuWindow gsw;
     private HeaderPanel pnHeader;
     private JPanel pnFooter;
     private JLabel lblFooter;
@@ -137,10 +137,10 @@ public class GardeningScheduleWindow extends JDialog {
     /**
      * Create the frame.
      */
-    public GardeningScheduleWindow(GardeningSessionWindow gardeningSessionWindow) {
+    public GardeningScheduleWindow(FacilityManagerMenuWindow facilityManagerMenuWindow) {
         setResizable(false);
         setTitle("Football Club Management");
-        this.gsw = gardeningSessionWindow;
+        this.gsw = facilityManagerMenuWindow;
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 629, 638);

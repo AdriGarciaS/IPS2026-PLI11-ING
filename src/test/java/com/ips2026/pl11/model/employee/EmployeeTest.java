@@ -30,8 +30,11 @@ public class EmployeeTest {
         double grossAnnualSalary = 5000000.0;
         String gender = "MALE";
 
+        String username = "pedri_gonzalez";
+        String password = "securePassword123";
+        
         Employee employee = new Employee(id, firstName, lastName, nationalId, birthDate,
-                                         phoneNumber, category, position, grossAnnualSalary, gender);
+                                         phoneNumber, category, position, grossAnnualSalary, gender, username, password);
 
         assertNotNull(employee, "The created Employee instance must not be null.");
         assertEquals(id, employee.getId(), "Employee ID must match constructor argument.");
@@ -52,7 +55,7 @@ public class EmployeeTest {
         // Birth date set 16 years ago from current date
         LocalDate minorBirthDate = LocalDate.now().minusYears(16);
         Employee employee = new Employee(1, "Young", "Talent", "22222222B", minorBirthDate,
-                                         "600000002", "SPORTS", "PLAYER", 100000.0, "MALE");
+                                         "600000002", "SPORTS", "PLAYER", 100000.0, "MALE", "young_talent", "securePassword123");
 
         assertTrue(employee.isUnderage(), "isUnderage must return true for employees under 18 years old.");
     }
@@ -63,7 +66,7 @@ public class EmployeeTest {
         // Birth date set exactly 18 years ago from current date
         LocalDate adultBirthDate = LocalDate.now().minusYears(18);
         Employee adultEmployee = new Employee(2, "Adult", "Player", "33333333C", adultBirthDate,
-                                              "600000003", "SPORTS", "PLAYER", 500000.0, "MALE");
+                                              "600000003", "SPORTS", "PLAYER", 500000.0, "MALE", "adult_player", "securePassword123");
 
         assertFalse(adultEmployee.isUnderage(), "isUnderage must return false for employees who are 18 or older.");
     }
@@ -72,7 +75,7 @@ public class EmployeeTest {
     @DisplayName("isUnderage: returns false when birth date is null")
     void testIsUnderage_NullBirthDate_ReturnsFalse() {
         Employee employee = new Employee(3, "Unknown", "Age", "44444444D", null,
-                                         "600000004", "NON_SPORTS", "STAFF", 30000.0, "FEMALE");
+                                         "600000004", "NON_SPORTS", "STAFF", 30000.0, "FEMALE", "employee", "securePassword123");
 
         assertFalse(employee.isUnderage(), "isUnderage must return false when birth date is null.");
     }

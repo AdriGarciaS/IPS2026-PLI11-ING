@@ -511,7 +511,9 @@ public class ModifyEmployeeView extends JDialog {
                     (String) getCbCategory().getSelectedItem(),
                     selectedEmployee.getPosition(), 
                     salary,
-                    (String) getCbGender().getSelectedItem()
+                    (String) getCbGender().getSelectedItem(),
+                    selectedEmployee.getUsername(),
+                    selectedEmployee.getPassword()
             );
 
             JOptionPane.showMessageDialog(this, "Employee updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);

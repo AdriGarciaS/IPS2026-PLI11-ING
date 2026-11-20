@@ -54,7 +54,7 @@ public class GMWorkScheduleWindow extends JDialog {
     private List<WorkSchedule> schedulesList = new ArrayList<>();
     private List<Employee> workersList = new ArrayList<>();
 
-    private ScheduleWindow wsw;
+    private JFrame parent;
     private HeaderPanel pnHeader;
     private JPanel pnFooter;
     private JLabel lblFooter;
@@ -107,10 +107,10 @@ public class GMWorkScheduleWindow extends JDialog {
     /**
      * Create the frame.
      */
-    public GMWorkScheduleWindow(ScheduleWindow workScheduleWindow) {
+    public GMWorkScheduleWindow(JFrame parent) {
         setResizable(false);
         setTitle("Football Club Management");
-        this.wsw = workScheduleWindow;
+        this.parent = parent;
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 1000, 559);
@@ -124,7 +124,7 @@ public class GMWorkScheduleWindow extends JDialog {
         contentPane.add(getLblFooter(), BorderLayout.SOUTH);
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         rootPane.setDefaultButton(btnAdd);
-        setLocationRelativeTo(wsw);
+        setLocationRelativeTo(parent);
         setModal(true);
         
         initializeShiftsTable();

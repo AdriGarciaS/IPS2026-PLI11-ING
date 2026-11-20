@@ -1,14 +1,14 @@
 package com.ips2026.pl11.controller.shareholder;
 
-import com.ips2026.pl11.data.shareholder.ShareholderDAO;
-import com.ips2026.pl11.model.shareholder.Shareholder;
-
 import java.sql.SQLException;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+
+import com.ips2026.pl11.data.shareholder.ShareholderDAO;
+import com.ips2026.pl11.model.shareholder.Shareholder;
 
 /**
  * Controller of the shareholders portal: finds the shareholder (there is no
@@ -69,5 +69,10 @@ public class ShareholderPortalController {
         }
         String withoutAccents = Normalizer.normalize(text.strip(), Normalizer.Form.NFD).replaceAll("\\p{M}", "");
         return withoutAccents.toLowerCase(Locale.ROOT);
+    }
+
+    public Optional<Shareholder> findShareholderByUsername(String text) {
+        String search = normalize(text);
+        return shareholders.stream().filter(s -> normalize(s.getUsername()).equals(search)).findFirst();
     }
 }

@@ -48,6 +48,7 @@ import com.ips2026.pl11.model.schedule.DaySchedule;
 import com.ips2026.pl11.model.schedule.WorkSchedule;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.ips2026.pl11.view.menu.mainmenus.FacilityManagerMenuWindow;
 
 public class DayScheduleWindow extends JDialog {
 
@@ -71,7 +72,7 @@ public class DayScheduleWindow extends JDialog {
     private List<DaySchedule> daySchedulesList = new ArrayList<>();
     private List<Employee> workersList = new ArrayList<>();
 
-    private ScheduleWindow sw;
+    private FacilityManagerMenuWindow sw;
     private HeaderPanel pnHeader;
     private JPanel pnFooter;
     private JLabel lblFooter;
@@ -126,10 +127,10 @@ public class DayScheduleWindow extends JDialog {
     /**
      * Create the frame.
      */
-    public DayScheduleWindow(ScheduleWindow scheduleWindow) {
+    public DayScheduleWindow(FacilityManagerMenuWindow facilityManagerMenuWindow) {
         setResizable(false);
         setTitle("Football Club Management");
-        this.sw = scheduleWindow;
+        this.sw = facilityManagerMenuWindow;
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 1128, 559);

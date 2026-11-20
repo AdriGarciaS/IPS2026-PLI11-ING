@@ -9,12 +9,20 @@ public final class Shareholder {
     private final String firstName;
     private final String lastName;
     private final String nationalId;
+    private final String username;
+    private final String password;
 
     public Shareholder(int id, String firstName, String lastName, String nationalId) {
+        this(id, firstName, lastName, nationalId, null, null);
+    }
+    
+    public Shareholder(int id, String firstName, String lastName, String nationalId, String username, String password) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.nationalId = nationalId;
+        this.username = username;
+        this.password = password;
     }
 
     public int getId() {
@@ -35,6 +43,14 @@ public final class Shareholder {
 
     public String getNationalId() {
         return nationalId;
+    }
+    
+    public String getUsername() {
+        return username;
+    }
+    
+    public String getPassword() {
+        return password;
     }
 
     /** "Name (national ID)". */

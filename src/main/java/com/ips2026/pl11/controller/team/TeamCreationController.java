@@ -1,14 +1,5 @@
 package com.ips2026.pl11.controller.team;
 
-import com.ips2026.pl11.data.team.SportsEmployeeDAO;
-import com.ips2026.pl11.data.team.TeamDAO;
-import com.ips2026.pl11.model.team.NewTeam;
-import com.ips2026.pl11.model.team.SportsEmployee;
-import com.ips2026.pl11.model.team.StaffAssignment;
-import com.ips2026.pl11.model.team.TeamCategory;
-import com.ips2026.pl11.model.team.TeamGender;
-import com.ips2026.pl11.model.team.TeamRules;
-
 import java.sql.SQLException;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -17,6 +8,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+
+import com.ips2026.pl11.data.team.SportsEmployeeDAO;
+import com.ips2026.pl11.data.team.TeamDAO;
+import com.ips2026.pl11.model.team.NewTeam;
+import com.ips2026.pl11.model.team.SportsEmployee;
+import com.ips2026.pl11.model.team.StaffAssignment;
+import com.ips2026.pl11.model.team.TeamCategory;
+import com.ips2026.pl11.model.team.TeamGender;
+import com.ips2026.pl11.model.team.TeamRules;
 
 /**
  * Controller of the team creation window: keeps the players and technical
@@ -182,5 +182,9 @@ public class TeamCreationController {
         teamStaff.clear();
         allPlayers = current;
         return id;
+    }
+    
+    public List<SportsEmployee> getAllPlayers() throws SQLException {
+        return employeeDAO.findPlayers();
     }
 }

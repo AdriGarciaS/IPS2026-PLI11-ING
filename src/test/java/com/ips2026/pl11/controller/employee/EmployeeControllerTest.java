@@ -52,7 +52,9 @@ public class EmployeeControllerTest {
                          "category TEXT NOT NULL, " +
                          "position TEXT NOT NULL, " +
                          "gross_annual_salary REAL NOT NULL, " +
-                         "gender TEXT NOT NULL);");
+                         "gender TEXT NOT NULL, " +
+                         "username TEXT UNIQUE COLLATE NOCASE, " +
+                         "password TEXT);");
         }
     }
 
@@ -71,7 +73,7 @@ public class EmployeeControllerTest {
 
         assertDoesNotThrow(() ->
             controller.registerEmployee("Pedri", "González", "11111111A", adultBirthDate,
-                "600000001", "SPORTS", "Player", 5000000.0, "MALE")
+                "600000001", "SPORTS", "Player", 5000000.0, "MALE", "pedri_gonzalez", "securePassword123")
         );
 
         assertDoesNotThrow(() -> {
@@ -88,13 +90,13 @@ public class EmployeeControllerTest {
 
         IllegalArgumentException ex1 = assertThrows(IllegalArgumentException.class, () ->
             controller.registerEmployee("  ", "González", "11111111A", birthDate,
-                "600000001", "SPORTS", "Player", 5000000.0, "MALE")
+                "600000001", "SPORTS", "Player", 5000000.0, "MALE", "pedri_gonzalez", "securePassword123")
         );
         assertEquals("All personal information fields are required.", ex1.getMessage());
 
         IllegalArgumentException ex2 = assertThrows(IllegalArgumentException.class, () ->
             controller.registerEmployee("Pedri", "González", null, birthDate,
-                "600000001", "SPORTS", "Player", 5000000.0, "MALE")
+                "600000001", "SPORTS", "Player", 5000000.0, "MALE", "pedri_gonzalez", "securePassword123")
         );
         assertEquals("All personal information fields are required.", ex2.getMessage());
     }
@@ -106,7 +108,7 @@ public class EmployeeControllerTest {
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
             controller.registerEmployee("Hansi", "Flick", "22222222B", birthDate,
-                "611111111", "SPORTS", "COACH", -100.0, "MALE")
+                "611111111", "SPORTS", "COACH", -100.0, "MALE", "pedri_gonzalez", "securePassword123")
         );
         assertEquals("Gross annual salary must be greater than or equal to 0.", ex.getMessage());
     }
@@ -118,7 +120,7 @@ public class EmployeeControllerTest {
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
             controller.registerEmployee("Pedri", "González", "11111111A", birthDate,
-                "600000001", "SPORTS", "Player", 5000000.0, "OTHER")
+                "600000001", "SPORTS", "Player", 5000000.0, "OTHER", "pedri_gonzalez", "securePassword123")
         );
         assertEquals("Choose the gender of the employee.", ex.getMessage());
     }
@@ -130,12 +132,12 @@ public class EmployeeControllerTest {
 
         assertDoesNotThrow(() ->
             controller.registerEmployee("Young", "Talent", "33333333C", minorBirthDate,
-                "600000002", "SPORTS", "Player", 100000.0, "MALE")
+                "600000002", "SPORTS", "Player", 100000.0, "MALE", "pedri_gonzalez", "securePassword123")
         );
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
             controller.registerEmployee("Young", "Coach", "44444444D", minorBirthDate,
-                "600000003", "SPORTS", "COACH", 100000.0, "MALE")
+                "600000003", "SPORTS", "COACH", 100000.0, "MALE", "pedri_gonzalez", "securePassword123")
         );
         assertEquals("Only players can be under 18 years of age.", ex.getMessage());
     }
@@ -145,14 +147,14 @@ public class EmployeeControllerTest {
     void testUpdateEmployee_Success() throws Exception {
         LocalDate birthDate = LocalDate.now().minusYears(25);
         controller.registerEmployee("Pablo", "Gavi", "55555555E", birthDate,
-            "600000004", "SPORTS", "Player", 4000000.0, "MALE");
+            "600000004", "SPORTS", "Player", 4000000.0, "MALE", "pedri_gonzalez", "securePassword123");
 
         List<Employee> list = controller.getEmployees();
         int id = list.get(0).getId();
 
         assertDoesNotThrow(() ->
             controller.updateEmployee(id, "Pablo Martin", "Paez Gavi", "55555555E", birthDate,
-                "699999999", "SPORTS", "Player", 6000000.0, "MALE")
+                "699999999", "SPORTS", "Player", 6000000.0, "MALE", "pedri_gonzalez", "securePassword123")
         );
 
         Optional<Employee> updated = employeeDAO.findById(id);
@@ -167,13 +169,13 @@ public class EmployeeControllerTest {
     void testUpdateEmployee_UnderagePositionConflict_ThrowsException() throws Exception {
         LocalDate minorBirthDate = LocalDate.now().minusYears(16);
         controller.registerEmployee("Young", "Player", "66666666F", minorBirthDate,
-            "600000005", "SPORTS", "Player", 50000.0, "FEMALE");
+            "600000005", "SPORTS", "Player", 50000.0, "FEMALE", "pedri_gonzalez", "securePassword123");
 
         int id = controller.getEmployees().get(0).getId();
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
             controller.updateEmployee(id, "Young", "Player", "66666666F", minorBirthDate,
-                "600000005", "SPORTS", "ASSISTANT", 50000.0, "FEMALE")
+                "600000005", "SPORTS", "ASSISTANT", 50000.0, "FEMALE", "pedri_gonzalez", "securePassword123")
         );
         assertEquals("Only players can be under 18 years of age.", ex.getMessage());
     }
@@ -183,7 +185,7 @@ public class EmployeeControllerTest {
     void testDeleteEmployee_Success() throws Exception {
         LocalDate birthDate = LocalDate.now().minusYears(30);
         controller.registerEmployee("Marcus", "Sorg", "77777777G", birthDate,
-            "600000006", "SPORTS", "COACH", 3000000.0, "MALE");
+            "600000006", "SPORTS", "COACH", 3000000.0, "MALE", "pedri_gonzalez", "securePassword123");
 
         int id = controller.getEmployees().get(0).getId();
         controller.deleteEmployee(id);
@@ -196,9 +198,9 @@ public class EmployeeControllerTest {
     void testGetEmployeesByRole_Success() throws Exception {
         LocalDate birthDate = LocalDate.now().minusYears(30);
         controller.registerEmployee("Pedri", "González", "11111111A", birthDate,
-            "600000001", "SPORTS", "Player", 5000000.0, "MALE");
+            "600000001", "SPORTS", "Player", 5000000.0, "MALE", "pedri_gonzalez1", "securePassword123");
         controller.registerEmployee("Hansi", "Flick", "22222222B", birthDate,
-            "611111111", "SPORTS", "COACH", 8000000.0, "MALE");
+            "611111111", "SPORTS", "COACH", 8000000.0, "MALE", "pedri_gonzalez2", "securePassword123");
 
         List<Employee> coaches = controller.getEmployeesByRole("COACH");
         assertNotNull(coaches);

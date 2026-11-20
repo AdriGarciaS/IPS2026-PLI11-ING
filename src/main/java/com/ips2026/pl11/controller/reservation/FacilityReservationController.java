@@ -150,4 +150,13 @@ public class FacilityReservationController {
         reservationDAO.deleteByDateTime(facility.getId(), date, start);
         selectDay(facility, date);
     }
+    
+    public Optional<Facility> findFacilityById(int facilityId) throws SQLException {
+        for(Facility f : facilities) {
+            if(f.getId() == facilityId) {
+                return Optional.of(f);
+            }
+        }
+        return Optional.empty();
+    }
 }

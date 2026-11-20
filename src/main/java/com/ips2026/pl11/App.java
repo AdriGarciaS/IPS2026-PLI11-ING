@@ -11,7 +11,7 @@ import javax.swing.SwingUtilities;
 import com.ips2026.pl11.data.ConexionBD;
 import com.ips2026.pl11.data.shareholder.MarketPriceDAO;
 import com.ips2026.pl11.view.common.Branding;
-import com.ips2026.pl11.view.menu.MainWindow;
+import com.ips2026.pl11.view.menu.LoginWindow;
 
 /**
  * Punto de entrada de la aplicacion.
@@ -53,7 +53,7 @@ public final class App {
             return;
         }
 
-        new MainWindow().setVisible(true);
+        new LoginWindow().setVisible(true);
     }
 }
 

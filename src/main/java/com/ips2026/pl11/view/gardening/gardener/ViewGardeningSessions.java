@@ -53,7 +53,7 @@ import com.ips2026.pl11.model.gardening.GardeningSession;
 import com.ips2026.pl11.model.reservation.Facility;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
-import com.ips2026.pl11.view.gardening.GardeningSessionWindow;
+import com.ips2026.pl11.view.menu.mainmenus.GardenerMenuWindow;
 import com.toedter.calendar.IDateEvaluator;
 import com.toedter.calendar.JCalendar;
 import com.toedter.calendar.JDateChooser;
@@ -65,7 +65,7 @@ public class ViewGardeningSessions extends JDialog {
 
     private List<Employee> gardenersList = new ArrayList<>();
 
-    private GardeningSessionWindow gsw;
+    private GardenerMenuWindow gsw;
     private HeaderPanel pnHeader;
     private JPanel pnFooter;
     private JLabel lblFooter;
@@ -121,7 +121,7 @@ public class ViewGardeningSessions extends JDialog {
     /**
      * Create the frame.
      */
-    public ViewGardeningSessions(GardeningSessionWindow gsw) {
+    public ViewGardeningSessions(GardenerMenuWindow gsw) {
         setResizable(false);
         setTitle("Football Club Management");
         this.gsw = gsw;

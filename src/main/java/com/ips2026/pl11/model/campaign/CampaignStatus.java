@@ -31,6 +31,11 @@ public enum CampaignStatus {
         return rule;
     }
 
+    /** US 35947: whether shareholders can buy shares of the campaign in this phase (phases 1, 2 and 3). */
+    public boolean allowsShareholderPurchases() {
+        return this == PHASE_1 || this == PHASE_2 || this == PHASE_3;
+    }
+
     /**
      * The phase that comes after this one (phases only move forward, one at
      * a time), or null for {@link #FINISHED}, which cannot be reactivated.

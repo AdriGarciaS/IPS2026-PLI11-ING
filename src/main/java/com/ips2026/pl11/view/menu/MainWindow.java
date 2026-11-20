@@ -22,14 +22,12 @@ import javax.swing.border.MatteBorder;
 
 import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.controller.reservation.FacilityReservationController;
-import com.ips2026.pl11.controller.shareholder.ShareholderPortalController;
 import com.ips2026.pl11.controller.slots.InterviewSlotsController;
 import com.ips2026.pl11.controller.team.TeamCreationController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.data.reservation.FacilityDAO;
 import com.ips2026.pl11.data.reservation.ReservationDAO;
 import com.ips2026.pl11.data.reservation.TeamUseDAO;
-import com.ips2026.pl11.data.shareholder.ShareholderDAO;
 import com.ips2026.pl11.data.slots.InterviewSlotDAO;
 import com.ips2026.pl11.data.team.SportsEmployeeDAO;
 import com.ips2026.pl11.data.team.TeamDAO;
@@ -45,7 +43,6 @@ import com.ips2026.pl11.view.news.NewsMenuDialog;
 import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.sale.SalesMenuDialog;
 import com.ips2026.pl11.view.seasonpass.PurchaseSeasonPassDialog;
-import com.ips2026.pl11.view.shareholder.ShareholderPortalDialog;
 import com.ips2026.pl11.view.team.TeamCreationWindow;
 import com.ips2026.pl11.view.training.TrainingSessionWindow;
 
@@ -65,7 +62,6 @@ public class MainWindow extends JFrame {
     private MenuCardButton btnOption4;
     private MenuCardButton btnOption5;
     private MenuCardButton btnOption6;
-    private MenuCardButton btnOption7;
     private MenuCardButton btnOption8;
     private MenuCardButton btnOption9;
     private MenuCardButton btnOption10;
@@ -113,7 +109,6 @@ public class MainWindow extends JFrame {
             pnButtons.add(getBtnOption4());
             pnButtons.add(getBtnOption5());
             pnButtons.add(getBtnOption6());
-            pnButtons.add(getBtnOption7());
             pnButtons.add(getBtnOption8());
             pnButtons.add(getBtnOption9());
             pnButtons.add(getBtnOption10());
@@ -198,15 +193,6 @@ public class MainWindow extends JFrame {
             btnOption6.addActionListener(event -> openTeamCreation());
         }
         return btnOption6;
-    }
-
-    private MenuCardButton getBtnOption7() {
-        if (btnOption7 == null) {
-            btnOption7 = new MenuCardButton("Shareholders Portal", "Shares wallet and other options for shareholders");
-            btnOption7.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
-            btnOption7.addActionListener(event -> openShareholderPortal());
-        }
-        return btnOption7;
     }
 
     private MenuCardButton getBtnOption8() {
@@ -331,19 +317,6 @@ public class MainWindow extends JFrame {
                     "Error opening Schedule Match dialog: " + ex.getMessage(),
                     "Schedule Error", JOptionPane.ERROR_MESSAGE);
         }
-    }
-
-    private void openShareholderPortal() {
-        ShareholderPortalController controller = new ShareholderPortalController(new ShareholderDAO());
-        try {
-            controller.load();
-        } catch (SQLException exception) {
-            JOptionPane.showMessageDialog(this,
-                    "The shareholders could not be loaded:" + System.lineSeparator() + exception.getMessage(),
-                    "Shareholders Portal", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        new ShareholderPortalDialog(controller, this).setVisible(true);
     }
 
     private void openTeamCreation() {

@@ -15,15 +15,19 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
+import com.ips2026.pl11.controller.campaign.BuyCampaignSharesController;
 import com.ips2026.pl11.controller.market.SellSharesController;
 import com.ips2026.pl11.controller.market.ShareMarketController;
 import com.ips2026.pl11.controller.shareholder.SharesWalletController;
+import com.ips2026.pl11.data.campaign.CampaignDAO;
+import com.ips2026.pl11.data.campaign.CampaignPurchaseDAO;
 import com.ips2026.pl11.data.market.ListingDAO;
 import com.ips2026.pl11.data.market.MarketDAO;
 import com.ips2026.pl11.data.shareholder.MarketPriceDAO;
 import com.ips2026.pl11.data.shareholder.ShareHoldingDAO;
 import com.ips2026.pl11.model.shareholder.Shareholder;
 import com.ips2026.pl11.model.shareholder.SharesWallet;
+import com.ips2026.pl11.view.campaign.BuyCampaignSharesDialog;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.market.SellSharesDialog;
@@ -53,6 +57,7 @@ public class ShareholderMenuWindow extends JFrame {
     private MenuCardButton btnWallet;
     private MenuCardButton btnSellShares;
     private MenuCardButton btnShareMarket;
+    private MenuCardButton btnBuyCampaignShares;
 
     /** @param shareholder the shareholder who has logged in */
     public ShareholderMenuWindow(Shareholder shareholder) {
@@ -88,6 +93,7 @@ public class ShareholderMenuWindow extends JFrame {
             pnButtons.add(getBtnWallet());
             pnButtons.add(getBtnSellShares());
             pnButtons.add(getBtnShareMarket());
+            pnButtons.add(getBtnBuyCampaignShares());
         }
         return pnButtons;
     }
@@ -130,6 +136,16 @@ public class ShareholderMenuWindow extends JFrame {
             btnShareMarket.addActionListener(event -> openMarket());
         }
         return btnShareMarket;
+    }
+
+    private MenuCardButton getBtnBuyCampaignShares() {
+        if (btnBuyCampaignShares == null) {
+            btnBuyCampaignShares = new MenuCardButton("Buy Campaign Shares", "Buy shares in the active campaign");
+            btnBuyCampaignShares.setMnemonic('B');
+            btnBuyCampaignShares.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnBuyCampaignShares.addActionListener(event -> openBuyCampaignShares());
+        }
+        return btnBuyCampaignShares;
     }
 
     private JPanel getPnFooter() {
@@ -205,5 +221,23 @@ public class ShareholderMenuWindow extends JFrame {
             return;
         }
         new ShareMarketDialog(marketController, this).setVisible(true);
+    }
+
+    /** US 35947: buy shares of the active campaign (only while it is in phase 1, 2 or 3). */
+    private void openBuyCampaignShares() {
+        BuyCampaignSharesController buyController =
+                new BuyCampaignSharesController(new CampaignDAO(), new CampaignPurchaseDAO(), shareholder);
+        try {
+            if (!buyController.load()) {
+                JOptionPane.showMessageDialog(this, "There is no campaign open for purchases right now.",
+                        "Buy Campaign Shares", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this, "The active campaign could not be loaded:\n" + exception.getMessage(),
+                    "Buy Campaign Shares", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        new BuyCampaignSharesDialog(buyController, this).setVisible(true);
     }
 }

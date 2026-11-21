@@ -11,16 +11,16 @@ import com.ips2026.pl11.data.shareholder.ShareholderDAO;
 import com.ips2026.pl11.model.shareholder.Shareholder;
 
 /**
- * Controller of the shareholders portal: finds the shareholder (there is no
- * login, the shareholder types the national ID or searches by name) and
- * keeps the one chosen for the portal options.
+ * Finds the shareholder who logs into the application by their username.
+ * (The old Shareholders Portal, where the shareholder was searched by
+ * national ID or name, no longer exists: the shareholder options are in the
+ * shareholder main menu.)
  */
 public class ShareholderPortalController {
 
     private final ShareholderDAO shareholderDAO;
 
     private List<Shareholder> shareholders = new ArrayList<>();
-    private Shareholder selected;
 
     public ShareholderPortalController(ShareholderDAO shareholderDAO) {
         this.shareholderDAO = shareholderDAO;
@@ -30,36 +30,13 @@ public class ShareholderPortalController {
         shareholders = shareholderDAO.findAll();
     }
 
-    /**
-     * Shareholders whose national ID or name contains {@code text}, ignoring
-     * upper/lower case and accents ("perez" finds "Pérez"). An empty text
-     * finds everybody.
-     */
-    public List<Shareholder> search(String text) {
+    /** The shareholder with this username (ignoring upper/lower case, accents and outer spaces), if any. */
+    public Optional<Shareholder> findShareholderByUsername(String text) {
         String search = normalize(text);
-        List<Shareholder> result = new ArrayList<>();
-        for (Shareholder shareholder : shareholders) {
-            if (normalize(shareholder.getNationalId()).contains(search)
-                    || normalize(shareholder.getFullName()).contains(search)) {
-                result.add(shareholder);
-            }
+        if (search.isEmpty()) {
+            return Optional.empty(); // a shareholder without username can not log in
         }
-        return result;
-    }
-
-    /** The shareholder whose national ID is exactly {@code text} (ignoring case and spaces), if any. */
-    public Optional<Shareholder> findByNationalId(String text) {
-        String search = normalize(text);
-        return shareholders.stream().filter(s -> normalize(s.getNationalId()).equals(search)).findFirst();
-    }
-
-    public void select(Shareholder shareholder) {
-        this.selected = shareholder;
-    }
-
-    /** The shareholder chosen in the portal, or null if none is chosen yet. */
-    public Shareholder getSelected() {
-        return selected;
+        return shareholders.stream().filter(s -> normalize(s.getUsername()).equals(search)).findFirst();
     }
 
     /** Lower case, without accents and without spaces at the start and end. */
@@ -69,10 +46,5 @@ public class ShareholderPortalController {
         }
         String withoutAccents = Normalizer.normalize(text.strip(), Normalizer.Form.NFD).replaceAll("\\p{M}", "");
         return withoutAccents.toLowerCase(Locale.ROOT);
-    }
-
-    public Optional<Shareholder> findShareholderByUsername(String text) {
-        String search = normalize(text);
-        return shareholders.stream().filter(s -> normalize(s.getUsername()).equals(search)).findFirst();
     }
 }

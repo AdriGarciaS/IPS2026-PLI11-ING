@@ -2,10 +2,12 @@ package com.ips2026.pl11.controller.campaign;
 
 import com.ips2026.pl11.data.campaign.CampaignDAO;
 import com.ips2026.pl11.model.campaign.Campaign;
+import com.ips2026.pl11.model.campaign.CampaignStatus;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +16,8 @@ import java.util.Optional;
  * Controller of the shareholder campaigns: the manager creates a new
  * campaign with a name, a nominal price per share and the number of shares
  * offered. It is always created inactive, and only one campaign can be open
- * (not finished) at a time.
+ * (not finished) at a time. Then the manager moves the open campaign
+ * forward through its phases (US 35778).
  */
 public class CampaignController {
 
@@ -27,6 +30,37 @@ public class CampaignController {
     /** The campaign that is not finished yet, if any (while there is one, no other can be created). */
     public Optional<Campaign> findOpenCampaign() throws SQLException {
         return campaignDAO.findOpen();
+    }
+
+    /** Number of shares of the campaign already sold. */
+    public int countSoldShares(Campaign campaign) throws SQLException {
+        return campaignDAO.countSoldShares(campaign.getId());
+    }
+
+    /**
+     * US 35778: moves the open campaign to the next phase (inactive, phase 1,
+     * phase 2, phase 3, finished) and records the change. Phases only move
+     * forward and a finished campaign cannot be reactivated.
+     *
+     * @param campaign the open campaign, as the manager sees it
+     * @return the campaign in its new phase
+     * @throws IllegalStateException if the campaign is finished, or it is no
+     *                               longer the open campaign in that phase
+     */
+    public Campaign moveToNextPhase(Campaign campaign) throws SQLException {
+        CampaignStatus next = campaign.getStatus().next();
+        if (next == null) {
+            throw new IllegalStateException("Campaign '" + campaign.getName()
+                    + "' is finished: it cannot be reactivated.");
+        }
+        Optional<Campaign> open = campaignDAO.findOpen();
+        if (open.isEmpty() || open.get().getId() != campaign.getId()
+                || open.get().getStatus() != campaign.getStatus()) {
+            throw new IllegalStateException("Campaign '" + campaign.getName()
+                    + "' has changed meanwhile. Close the window and open it again.");
+        }
+        campaignDAO.changePhase(campaign.getId(), campaign.getStatus(), next, LocalDateTime.now());
+        return campaign.withStatus(next);
     }
 
     /**

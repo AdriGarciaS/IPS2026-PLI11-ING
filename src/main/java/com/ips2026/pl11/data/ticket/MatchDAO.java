@@ -12,6 +12,7 @@ import java.util.Optional;
 
 import com.ips2026.pl11.data.ConexionBD;
 import com.ips2026.pl11.model.matches.Match;
+import com.ips2026.pl11.model.matches.MatchCSV;
 import com.ips2026.pl11.model.ticket.HomeMatch;
 
 public class MatchDAO {
@@ -344,4 +345,164 @@ public class MatchDAO {
 
         return Optional.empty();
     }
+
+    public int insertBatchMatches(List<MatchCSV> matches) {
+        String sqlInsert = "INSERT INTO matches (team_id, match_date, start_time, end_time, rival, is_home, is_special_match, facility_id) " +
+                           "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        String sqlCancelReservations = "DELETE FROM FACILITY_RESERVATION " +
+                "WHERE facility_id = ? AND reservation_date = ? " +
+                "AND (start_time < ? AND end_time > ?)";
+
+        String sqlCancelGardening = "DELETE FROM gardening_session " +
+                "WHERE facility_id = ? AND date = ? " +
+                "AND (start_time < ? AND end_time > ?)";
+
+        String sqlCancelInterviews = "DELETE FROM interviews WHERE slot_id IN (" +
+                "SELECT id FROM interview_slots WHERE slot_date = ? " +
+                "AND (start_time < ? AND end_time > ?))";
+
+        String sqlCancelInterviewSlots = "DELETE FROM interview_slots " +
+                "WHERE slot_date = ? " +
+                "AND (start_time < ? AND end_time > ?)";
+
+        int insertedCount = 0;
+
+        try (Connection conn = ConexionBD.obtenerConexion()) {
+            conn.setAutoCommit(false); 
+
+            try (PreparedStatement pstmtInsert = conn.prepareStatement(sqlInsert);
+                 PreparedStatement pstmtRes = conn.prepareStatement(sqlCancelReservations);
+                 PreparedStatement pstmtGard = conn.prepareStatement(sqlCancelGardening);
+                 PreparedStatement pstmtInt = conn.prepareStatement(sqlCancelInterviews);
+                 PreparedStatement pstmtIntSlots = conn.prepareStatement(sqlCancelInterviewSlots)) {
+
+                for (MatchCSV match : matches) {
+                    Integer facilityId = match.getFacilityId();
+                    if (match.isHome() && (facilityId == null || facilityId <= 0)) {
+                        facilityId = 1;
+                    }
+
+                    if (match.isHome()) {
+                        boolean conflict = hasConflict(
+                            facilityId, 
+                            match.getMatchDate(), 
+                            match.getStartTime(), 
+                            match.getEndTime()
+                        );
+                        
+                        if (conflict) {
+                            System.out.println("[BLOCKED] Match against " + match.getRival() + " on " + match.getMatchDate() + " due to schedule conflict.");
+                            continue; 
+                        }
+                    }
+
+                    pstmtInsert.setInt(1, match.getTeamId());
+                    pstmtInsert.setString(2, match.getMatchDate());
+                    pstmtInsert.setString(3, match.getStartTime() != null ? match.getStartTime().toString() : "00:00");
+                    pstmtInsert.setString(4, match.getEndTime() != null ? match.getEndTime().toString() : "00:00");
+                    pstmtInsert.setString(5, match.getRival());
+                    pstmtInsert.setBoolean(6, match.isHome());
+                    pstmtInsert.setBoolean(7, match.isSpecialMatch());
+                    
+                    if (match.isHome()) {
+                        pstmtInsert.setInt(8, facilityId);
+                    } else {
+                        pstmtInsert.setNull(8, java.sql.Types.INTEGER);
+                    }
+                    
+                    pstmtInsert.executeUpdate();
+                    insertedCount++;
+
+                    if (match.isHome() && facilityId != null) {
+                        String dateStr = match.getMatchDate();
+                        String startStr = match.getStartTime().toString();
+                        String endStr = match.getEndTime().toString();
+
+                        pstmtRes.setInt(1, facilityId);
+                        pstmtRes.setString(2, dateStr);
+                        pstmtRes.setString(3, endStr);
+                        pstmtRes.setString(4, startStr);
+                        pstmtRes.executeUpdate();
+
+                        pstmtGard.setInt(1, facilityId);
+                        pstmtGard.setString(2, dateStr);
+                        pstmtGard.setString(3, endStr);
+                        pstmtGard.setString(4, startStr);
+                        pstmtGard.executeUpdate();
+
+                        pstmtInt.setString(1, dateStr);
+                        pstmtInt.setString(2, endStr);
+                        pstmtInt.setString(3, startStr);
+                        pstmtInt.executeUpdate();
+
+                        pstmtIntSlots.setString(1, dateStr);
+                        pstmtIntSlots.setString(2, endStr);
+                        pstmtIntSlots.setString(3, startStr);
+                        pstmtIntSlots.executeUpdate();
+                    }
+                }
+
+                conn.commit(); 
+
+            } catch (SQLException ex) {
+                conn.rollback();
+                throw ex;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return insertedCount;
+    }
+    
+    public boolean hasConflict(int facilityId, String matchDate, LocalTime startTime, LocalTime endTime) {
+        if (startTime == null || endTime == null) {
+            return false;
+        }
+
+        String startStr = startTime.toString();
+        String endStr = endTime.toString();
+
+        String sqlMatch = "SELECT COUNT(*) FROM matches WHERE facility_id = ? AND match_date = ? " +
+                          "AND time(start_time) < time(?) AND time(end_time) > time(?)";
+
+        String sqlTraining = "SELECT COUNT(*) FROM trainings WHERE facility_id = ? AND training_date = ? " +
+                             "AND time(start_time) < time(?) AND time(end_time) > time(?)";
+
+        try (Connection conn = ConexionBD.obtenerConexion()) {
+            
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlMatch)) {
+                pstmt.setInt(1, facilityId);
+                pstmt.setString(2, matchDate);
+                pstmt.setString(3, endStr);
+                pstmt.setString(4, startStr);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        return true;
+                    }
+                }
+            }
+
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlTraining)) {
+                pstmt.setInt(1, facilityId);
+                pstmt.setString(2, matchDate);
+                pstmt.setString(3, endStr);
+                pstmt.setString(4, startStr);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        return true;
+                    }
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return false;
+    }
+
 }
+

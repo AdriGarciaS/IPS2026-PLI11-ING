@@ -8,8 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -18,6 +21,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.ips2026.pl11.data.ConexionBD;
+import com.ips2026.pl11.model.matches.MatchCSV;
 
 public class MatchDAOTest {
 
@@ -30,7 +34,6 @@ public class MatchDAOTest {
         try (Connection conn = ConexionBD.obtenerConexion();
              Statement stmt = conn.createStatement()) {
 
-            // Prevenir errores de esquema limpiando las tablas antes de volver a crearlas
             stmt.execute("DROP TABLE IF EXISTS interviews;");
             stmt.execute("DROP TABLE IF EXISTS interview_slots;");
             stmt.execute("DROP TABLE IF EXISTS gardening_session;");
@@ -125,5 +128,72 @@ public class MatchDAOTest {
         assertNotNull(activities);
         assertFalse(activities.isEmpty(), "Activities list should contain the inserted training and interview");
         assertTrue(activities.size() >= 1);
+    }
+    
+    @Test
+    @DisplayName("Bulk Import: Inserts valid matches and automatically clears concurrent activities")
+    void testInsertBatchMatches_SuccessAndAutomaticActivityDeletion() throws SQLException {
+        try (Connection conn = ConexionBD.obtenerConexion()) {           
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    "INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, reservation_date, start_time, end_time) VALUES (1, 'Test User', '2026-11-28', '18:00', '20:00')")) {
+                stmt.executeUpdate();
+            }
+            
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    "INSERT INTO gardening_session (facility_id, date, start_time, end_time, type) VALUES (1, '2026-11-28', '18:00', '20:00', 'Mowing')")) {
+                stmt.executeUpdate();
+            }
+            
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    "INSERT INTO interview_slots (id, player_id, coach_id, slot_date, start_time, end_time, status) VALUES (10, 1, 2, '2026-11-28', '18:00', '20:00', 'ASSIGNED')")) {
+                stmt.executeUpdate();
+            }
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    "INSERT INTO interviews (slot_id, player_id, interviewer_name, media_outlet) VALUES (10, 1, 'Journalist', 'AS')")) {
+                stmt.executeUpdate();
+            }
+        }
+
+        MatchCSV matchCSV = new MatchCSV(1, "2026-11-28", LocalTime.of(18, 0), LocalTime.of(20, 0), "Rayo Vallecano", true, false, 1);
+
+        // Act
+        int inserted = matchDAO.insertBatchMatches(Arrays.asList(matchCSV));
+
+        // Assert
+        assertEquals(1, inserted, "Match should be successfully imported");
+
+        try (Connection conn = ConexionBD.obtenerConexion()) {
+            try (Statement stmt = conn.createStatement()) {
+                ResultSet rsRes = stmt.executeQuery("SELECT COUNT(*) FROM FACILITY_RESERVATION");
+                rsRes.next();
+                assertEquals(0, rsRes.getInt(1), "Facility reservation should be cleared");
+
+                ResultSet rsGard = stmt.executeQuery("SELECT COUNT(*) FROM gardening_session");
+                rsGard.next();
+                assertEquals(0, rsGard.getInt(1), "Gardening session should be cleared");
+
+                ResultSet rsInt = stmt.executeQuery("SELECT COUNT(*) FROM interviews");
+                rsInt.next();
+                assertEquals(0, rsInt.getInt(1), "Interviews should be cleared");
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("Bulk Import: Blocks batch import when scheduling conflict exists with training")
+    void testInsertBatchMatches_BlocksOnTrainingConflict() throws SQLException {
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement stmt = conn.prepareStatement(
+                "INSERT INTO trainings (facility_id, training_date, start_time, end_time, coach_id) VALUES (1, '2026-11-30', '10:00', '12:00', 2)")) {
+            stmt.executeUpdate();
+        }
+
+        MatchCSV conflictingMatch = new MatchCSV(1, "2026-11-30", LocalTime.of(10, 0), LocalTime.of(12, 0), "Valencia CF", true, false, 1);
+
+        // Act
+        int inserted = matchDAO.insertBatchMatches(Arrays.asList(conflictingMatch));
+
+        // Assert
+        assertEquals(0, inserted, "Conflicting match must be blocked and 0 matches imported");
     }
 }

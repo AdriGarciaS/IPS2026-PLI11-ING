@@ -36,6 +36,7 @@ public class CampaignsDialog extends JDialog {
     private static final long serialVersionUID = 1L;
 
     private static final String COMING_SOON = "Coming soon";
+    private static final String PHASES_DESCRIPTION = "Move the open campaign to its next phase";
 
     private final transient CampaignController controller = new CampaignController(new CampaignDAO());
 
@@ -44,7 +45,7 @@ public class CampaignsDialog extends JDialog {
     private JPanel pnBody;
     private JPanel pnOptions;
     private MenuCardButton btnCreate;
-    private MenuCardButton btnOption2;
+    private MenuCardButton btnPhases;
     private MenuCardButton btnOption3;
     private JPanel pnButtons;
     private JButton btnClose;
@@ -66,6 +67,8 @@ public class CampaignsDialog extends JDialog {
         contentPane.add(getPnHeader(), BorderLayout.NORTH);
         contentPane.add(getPnBody(), BorderLayout.CENTER);
         Branding.setInitialSize(this, 480, 540, owner); // small: it only has three options
+
+        refreshPhasesOption();
     }
 
     // ------------------------------------------------------------------
@@ -98,7 +101,7 @@ public class CampaignsDialog extends JDialog {
             pnOptions.setBorder(BorderFactory.createCompoundBorder(titled("Options"), new EmptyBorder(6, 6, 6, 6)));
             pnOptions.setLayout(new GridLayout(3, 1, 0, 12));
             pnOptions.add(getBtnCreate());
-            pnOptions.add(getBtnOption2());
+            pnOptions.add(getBtnPhases());
             pnOptions.add(getBtnOption3());
         }
         return pnOptions;
@@ -114,13 +117,15 @@ public class CampaignsDialog extends JDialog {
         return btnCreate;
     }
 
-    private MenuCardButton getBtnOption2() {
-        if (btnOption2 == null) {
-            btnOption2 = new MenuCardButton("Option 2", COMING_SOON);
-            btnOption2.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
-            btnOption2.setEnabled(false);
+    /** US 35778: only enabled while there is an open campaign (see {@link #refreshPhasesOption()}). */
+    private MenuCardButton getBtnPhases() {
+        if (btnPhases == null) {
+            btnPhases = new MenuCardButton("Campaign Phases", PHASES_DESCRIPTION);
+            btnPhases.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnPhases.setMnemonic('P');
+            btnPhases.addActionListener(event -> openCampaignPhases());
         }
-        return btnOption2;
+        return btnPhases;
     }
 
     private MenuCardButton getBtnOption3() {
@@ -180,5 +185,37 @@ public class CampaignsDialog extends JDialog {
             return;
         }
         new CreateCampaignDialog(controller, this).setVisible(true);
+        refreshPhasesOption(); // the new campaign is open: its phases can be changed now
+    }
+
+    /** US 35778: "Campaign Phases" can only be opened while there is an open campaign. */
+    private void refreshPhasesOption() {
+        boolean open;
+        try {
+            open = controller.findOpenCampaign().isPresent();
+        } catch (SQLException exception) {
+            open = false;
+        }
+        getBtnPhases().setEnabled(open);
+        getBtnPhases().setText("Campaign Phases", open ? PHASES_DESCRIPTION : "There is no open campaign");
+    }
+
+    /** US 35778: opens the phases of the open campaign. */
+    private void openCampaignPhases() {
+        Optional<Campaign> open;
+        try {
+            open = controller.findOpenCampaign();
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this,
+                    "The campaigns could not be loaded:" + System.lineSeparator() + exception.getMessage(),
+                    "Campaign Phases", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (open.isEmpty()) {
+            refreshPhasesOption();
+            return;
+        }
+        new CampaignPhasesDialog(controller, open.get(), this).setVisible(true);
+        refreshPhasesOption(); // after finishing the campaign there is no open campaign
     }
 }

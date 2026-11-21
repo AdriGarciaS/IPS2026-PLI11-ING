@@ -7,20 +7,40 @@ package com.ips2026.pl11.model.campaign;
  */
 public enum CampaignStatus {
 
-    INACTIVE("Inactive"),
-    PHASE_1("Phase 1"),
-    PHASE_2("Phase 2"),
-    PHASE_3("Phase 3"),
-    FINISHED("Finished");
+    INACTIVE("Inactive", "nobody can buy shares yet"),
+    PHASE_1("Phase 1", "only shareholders can buy shares, up to the number they already own"),
+    PHASE_2("Phase 2", "only shareholders can buy the remaining shares, with no limit"),
+    PHASE_3("Phase 3", "anyone (shareholders or external users) can buy the remaining shares, with no limit"),
+    FINISHED("Finished", "no more shares can be bought");
 
     private final String label;
+    private final String rule;
 
-    CampaignStatus(String label) {
+    CampaignStatus(String label, String rule) {
         this.label = label;
+        this.rule = rule;
     }
 
     /** Text shown to the user (for example "Phase 2"). */
     public String getLabel() {
         return label;
+    }
+
+    /** Who can buy shares in this phase, and how many (US 35778). */
+    public String getRule() {
+        return rule;
+    }
+
+    /** US 35947: whether shareholders can buy shares of the campaign in this phase (phases 1, 2 and 3). */
+    public boolean allowsShareholderPurchases() {
+        return this == PHASE_1 || this == PHASE_2 || this == PHASE_3;
+    }
+
+    /**
+     * The phase that comes after this one (phases only move forward, one at
+     * a time), or null for {@link #FINISHED}, which cannot be reactivated.
+     */
+    public CampaignStatus next() {
+        return this == FINISHED ? null : values()[ordinal() + 1];
     }
 }

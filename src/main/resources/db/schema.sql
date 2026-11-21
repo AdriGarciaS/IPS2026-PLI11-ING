@@ -224,6 +224,18 @@ CREATE TABLE IF NOT EXISTS SHARE_CAMPAIGN (
 -- Only one campaign can be open (not FINISHED) at a time.
 CREATE UNIQUE INDEX IF NOT EXISTS ux_share_campaign_one_open ON SHARE_CAMPAIGN ((status <> 'FINISHED')) WHERE status <> 'FINISHED';
 
+-- US 35778: every phase change of a campaign (the manager moves it forward
+-- one phase at a time, so each campaign reaches each phase only once).
+-- changed_at: moment of the change (YYYY-MM-DD HH:MM:SS, local time).
+CREATE TABLE IF NOT EXISTS SHARE_CAMPAIGN_PHASE_CHANGE (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    campaign_id INTEGER NOT NULL REFERENCES SHARE_CAMPAIGN (id),
+    from_status TEXT    NOT NULL CHECK (from_status IN ('INACTIVE', 'PHASE_1', 'PHASE_2', 'PHASE_3')),
+    to_status   TEXT    NOT NULL CHECK (to_status IN ('PHASE_1', 'PHASE_2', 'PHASE_3', 'FINISHED')),
+    changed_at  TEXT    NOT NULL,
+    UNIQUE (campaign_id, to_status)
+);
+
 -- Shares that a shareholder bought together: in a campaign, or in the share
 -- market from other shareholders (a market purchase creates one holding per
 -- campaign of the shares bought; see SHARE_TRANSFER). A shareholder can have

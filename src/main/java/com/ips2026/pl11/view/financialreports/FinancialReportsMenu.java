@@ -85,7 +85,7 @@ public class FinancialReportsMenu extends JFrame {
         });
 
         btnIncomesVsOutcomes.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Opening INCOMES VS OUTCOMES...");
+        	new IncomesVsOutcomesView(this).setVisible(true);
         });
     }
 }

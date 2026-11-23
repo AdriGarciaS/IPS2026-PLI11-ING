@@ -69,6 +69,14 @@
 		    <artifactId>openhtmltopdf-pdfbox</artifactId>
 		    <version>1.1.97</version>
 		</dependency>
+		
+		
+		<!-- Financial Charts with JFreeChart-->
+		<dependency>
+		    <groupId>org.jfree</groupId>
+		    <artifactId>jfreechart</artifactId>
+		    <version>1.5.6</version>
+		</dependency>
 
     </dependencies>
     

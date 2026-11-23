@@ -480,3 +480,383 @@ INSERT INTO news (id, headline, body_text, image_paths, publication_date, author
 (2, 'New improvements in training facilities', 'Renovation work has started a couple of days ago on the club training pitches and medical recovery center. These state-of-the-art upgrades will ensure our professional and youth academy players have world-class infrastructure for the upcoming seasons.', 'images/training1.png,images/training2.png,images/training3.png,images/training4.jpg', '2026-11-05', 1),
 
 (3, 'Intense prep for upcoming match', 'The coaching staff has designed a week of rigorous tactical sessions and physical conditioning to prepare the squad for the next away fixture. Morale is exceptionally high following the recent victories and support from traveling supporters.', 'images/prep1.jpg,images/prep2.jpg,images/prep3.jpeg,images/prep4.jpg', '2026-11-02', 2);
+
+-- ============================================================
+-- INCOMES FOR SEASON: SEPTEMBER 2026 TO JUNE 2027
+-- ============================================================
+
+INSERT INTO MERCHANDISING_SALE (sale_number, merch_id, units_sold, total_price, sale_date) VALUES
+    -- SEPTEMBER 2026
+    (1001, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2400, 143976.00, '2026-09-02 11:15:00'),
+    (1002, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 1500,  89985.00, '2026-09-04 17:20:00'),
+    (1003, (SELECT id FROM MERCHANDISING WHERE name = 'Club Scarf'),       3000,  44850.00, '2026-09-06 12:30:00'),
+    (1004, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2600, 155974.00, '2026-09-09 10:45:00'),
+    (1005, (SELECT id FROM MERCHANDISING WHERE name = 'Club Hoodie'),      1800,  89820.00, '2026-09-11 18:10:00'),
+    (1006, (SELECT id FROM MERCHANDISING WHERE name = 'Club Cap'),         2200,  43890.00, '2026-09-13 13:00:00'),
+    (1007, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2500, 149975.00, '2026-09-16 11:25:00'),
+    (1008, (SELECT id FROM MERCHANDISING WHERE name = 'Training Shirt'),   2100,  73395.00, '2026-09-18 16:40:00'),
+    (1009, (SELECT id FROM MERCHANDISING WHERE name = 'Club Mug'),         3500,  34825.00, '2026-09-20 12:05:00'),
+    (1010, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2300, 137977.00, '2026-09-23 10:50:00'),
+    (1011, (SELECT id FROM MERCHANDISING WHERE name = 'Signed Team Poster'),1600,  39840.00, '2026-09-26 17:55:00'),
+    (1012, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2700, 161973.00, '2026-09-29 14:15:00'),
+
+    -- OCTOBER 2026
+    (1013, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2500, 149975.00, '2026-10-01 11:10:00'),
+    (1014, (SELECT id FROM MERCHANDISING WHERE name = 'Club Hoodie'),      2000,  99800.00, '2026-10-03 17:30:00'),
+    (1015, (SELECT id FROM MERCHANDISING WHERE name = 'Club Keyring'),     4000,  18000.00, '2026-10-04 12:20:00'),
+    (1016, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2200, 131978.00, '2026-10-07 10:35:00'),
+    (1017, (SELECT id FROM MERCHANDISING WHERE name = 'Official Match Ball'),1900, 56905.00, '2026-10-09 18:00:00'),
+    (1018, (SELECT id FROM MERCHANDISING WHERE name = 'Club Scarf'),       2800,  41860.00, '2026-10-11 13:15:00'),
+    (1019, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2800, 167972.00, '2026-10-14 11:40:00'),
+    (1020, (SELECT id FROM MERCHANDISING WHERE name = 'Goalkeeper Gloves'),1400,  55930.00, '2026-10-16 17:25:00'),
+    (1021, (SELECT id FROM MERCHANDISING WHERE name = 'Training Shirt'),   2400,  83880.00, '2026-10-18 12:50:00'),
+    (1022, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2600, 155974.00, '2026-10-21 10:20:00'),
+    (1023, (SELECT id FROM MERCHANDISING WHERE name = 'Club Hoodie'),      2100, 104790.00, '2026-10-24 16:45:00'),
+    (1024, (SELECT id FROM MERCHANDISING WHERE name = 'Club Cap'),         2500,  49875.00, '2026-10-28 11:30:00'),
+
+    -- NOVEMBER 2026
+    (1025, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2700, 161973.00, '2026-11-02 11:00:00'),
+    (1026, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 1900, 113981.00, '2026-11-04 17:15:00'),
+    (1027, (SELECT id FROM MERCHANDISING WHERE name = 'Club Scarf'),       2600,  38870.00, '2026-11-06 12:40:00'),
+    (1028, (SELECT id FROM MERCHANDISING WHERE name = 'Club Hoodie'),      2300, 114770.00, '2026-11-09 10:15:00'),
+    (1029, (SELECT id FROM MERCHANDISING WHERE name = 'Training Shirt'),   2200,  76890.00, '2026-11-11 16:30:00'),
+    (1030, (SELECT id FROM MERCHANDISING WHERE name = 'Club Mug'),         3200,  31840.00, '2026-11-13 13:20:00'),
+    (1031, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2900, 173971.00, '2026-11-16 10:30:00'),
+    (1032, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2100, 125979.00, '2026-11-17 17:10:00'),
+    (1033, (SELECT id FROM MERCHANDISING WHERE name = 'Club Hoodie'),      2200, 109780.00, '2026-11-18 12:00:00'),
+    (1034, (SELECT id FROM MERCHANDISING WHERE name = 'Training Shirt'),   2400,  83880.00, '2026-11-19 18:05:00'),
+    (1035, (SELECT id FROM MERCHANDISING WHERE name = 'Official Match Ball'),1800, 53910.00, '2026-11-20 11:20:00'),
+    (1036, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 3100, 185969.00, '2026-11-22 14:45:00'),
+
+    -- DECEMBER 2026
+    (1037, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 3600, 215964.00, '2026-12-02 11:15:00'),
+    (1038, (SELECT id FROM MERCHANDISING WHERE name = 'Club Hoodie'),      2800, 139720.00, '2026-12-04 17:40:00'),
+    (1039, (SELECT id FROM MERCHANDISING WHERE name = 'Club Scarf'),       3500,  52325.00, '2026-12-06 12:10:00'),
+    (1040, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2900, 173971.00, '2026-12-09 10:50:00'),
+    (1041, (SELECT id FROM MERCHANDISING WHERE name = 'Signed Team Poster'),2200,  54780.00, '2026-12-11 18:20:00'),
+    (1042, (SELECT id FROM MERCHANDISING WHERE name = 'Club Mug'),         3800,  37810.00, '2026-12-13 13:30:00'),
+    (1043, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 3800, 227962.00, '2026-12-16 11:05:00'),
+    (1044, (SELECT id FROM MERCHANDISING WHERE name = 'Training Shirt'),   2600,  90870.00, '2026-12-18 17:00:00'),
+    (1045, (SELECT id FROM MERCHANDISING WHERE name = 'Club Hoodie'),      2900, 144710.00, '2026-12-20 12:45:00'),
+    (1046, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 3400, 203966.00, '2026-12-23 10:40:00'),
+    (1047, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2500, 149975.00, '2026-12-27 16:55:00'),
+    (1048, (SELECT id FROM MERCHANDISING WHERE name = 'Club Cap'),         2700,  53865.00, '2026-12-30 12:25:00'),
+
+    -- JANUARY 2027
+    (1049, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2600, 155974.00, '2027-01-04 11:20:00'),
+    (1050, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2000, 119980.00, '2027-01-06 17:15:00'),
+    (1051, (SELECT id FROM MERCHANDISING WHERE name = 'Training Shirt'),   2400,  83880.00, '2027-01-08 12:30:00'),
+    (1052, (SELECT id FROM MERCHANDISING WHERE name = 'Club Hoodie'),      2200, 109780.00, '2027-01-11 10:15:00'),
+    (1053, (SELECT id FROM MERCHANDISING WHERE name = 'Official Match Ball'),1800, 53910.00, '2027-01-13 18:05:00'),
+    (1054, (SELECT id FROM MERCHANDISING WHERE name = 'Club Scarf'),       2500,  37375.00, '2027-01-15 13:10:00'),
+    (1055, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2700, 161973.00, '2027-01-18 11:45:00'),
+    (1056, (SELECT id FROM MERCHANDISING WHERE name = 'Goalkeeper Gloves'),1500,  59925.00, '2027-01-20 16:50:00'),
+    (1057, (SELECT id FROM MERCHANDISING WHERE name = 'Club Keyring'),     3600,  16200.00, '2027-01-22 12:00:00'),
+    (1058, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2300, 137977.00, '2027-01-25 10:30:00'),
+    (1059, (SELECT id FROM MERCHANDISING WHERE name = 'Training Shirt'),   2500,  87375.00, '2027-01-27 17:40:00'),
+    (1060, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2800, 167972.00, '2027-01-29 14:10:00'),
+
+    -- FEBRUARY 2027
+    (1061, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2500, 149975.00, '2027-02-01 11:10:00'),
+    (1062, (SELECT id FROM MERCHANDISING WHERE name = 'Club Hoodie'),      2100, 104790.00, '2027-02-03 17:20:00'),
+    (1063, (SELECT id FROM MERCHANDISING WHERE name = 'Club Mug'),         3000,  29850.00, '2027-02-05 12:25:00'),
+    (1064, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2200, 131978.00, '2027-02-08 10:40:00'),
+    (1065, (SELECT id FROM MERCHANDISING WHERE name = 'Official Match Ball'),2000, 59900.00, '2027-02-10 18:15:00'),
+    (1066, (SELECT id FROM MERCHANDISING WHERE name = 'Club Cap'),         2400,  47880.00, '2027-02-12 13:05:00'),
+    (1067, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2600, 155974.00, '2027-02-15 11:30:00'),
+    (1068, (SELECT id FROM MERCHANDISING WHERE name = 'Training Shirt'),   2300,  80385.00, '2027-02-17 16:55:00'),
+    (1069, (SELECT id FROM MERCHANDISING WHERE name = 'Club Scarf'),       2700,  40365.00, '2027-02-19 12:15:00'),
+    (1070, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2400, 143976.00, '2027-02-22 10:50:00'),
+    (1071, (SELECT id FROM MERCHANDISING WHERE name = 'Goalkeeper Gloves'),1600,  63920.00, '2027-02-24 17:35:00'),
+    (1072, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2700, 161973.00, '2027-02-26 13:45:00'),
+
+    -- MARCH 2027
+    (1073, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2800, 167972.00, '2027-03-01 11:05:00'),
+    (1074, (SELECT id FROM MERCHANDISING WHERE name = 'Training Shirt'),   2500,  87375.00, '2027-03-03 17:10:00'),
+    (1075, (SELECT id FROM MERCHANDISING WHERE name = 'Club Hoodie'),      2200, 109780.00, '2027-03-05 12:20:00'),
+    (1076, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2300, 137977.00, '2027-03-08 10:25:00'),
+    (1077, (SELECT id FROM MERCHANDISING WHERE name = 'Signed Team Poster'),1800,  44820.00, '2027-03-10 18:00:00'),
+    (1078, (SELECT id FROM MERCHANDISING WHERE name = 'Club Scarf'),       2600,  38870.00, '2027-03-12 13:15:00'),
+    (1079, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2900, 173971.00, '2027-03-15 11:40:00'),
+    (1080, (SELECT id FROM MERCHANDISING WHERE name = 'Official Match Ball'),2100, 62895.00, '2027-03-17 16:30:00'),
+    (1081, (SELECT id FROM MERCHANDISING WHERE name = 'Club Mug'),         3200,  31840.00, '2027-03-19 12:50:00'),
+    (1082, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2400, 143976.00, '2027-03-22 10:15:00'),
+    (1083, (SELECT id FROM MERCHANDISING WHERE name = 'Training Shirt'),   2600,  90870.00, '2027-03-25 17:45:00'),
+    (1084, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 3000, 179970.00, '2027-03-29 14:20:00'),
+
+    -- APRIL 2027
+    (1085, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2700, 161973.00, '2027-04-01 11:15:00'),
+    (1086, (SELECT id FROM MERCHANDISING WHERE name = 'Club Cap'),         2500,  49875.00, '2027-04-03 17:25:00'),
+    (1087, (SELECT id FROM MERCHANDISING WHERE name = 'Club Keyring'),     3800,  17100.00, '2027-04-05 12:05:00'),
+    (1088, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2200, 131978.00, '2027-04-07 10:35:00'),
+    (1089, (SELECT id FROM MERCHANDISING WHERE name = 'Goalkeeper Gloves'),1700,  67915.00, '2027-04-09 18:10:00'),
+    (1090, (SELECT id FROM MERCHANDISING WHERE name = 'Training Shirt'),   2400,  83880.00, '2027-04-11 13:20:00'),
+    (1091, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2800, 167972.00, '2027-04-14 11:00:00'),
+    (1092, (SELECT id FROM MERCHANDISING WHERE name = 'Club Hoodie'),      2200, 109780.00, '2027-04-16 17:30:00'),
+    (1093, (SELECT id FROM MERCHANDISING WHERE name = 'Club Scarf'),       2700,  40365.00, '2027-04-18 12:40:00'),
+    (1094, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2300, 137977.00, '2027-04-21 10:45:00'),
+    (1095, (SELECT id FROM MERCHANDISING WHERE name = 'Official Match Ball'),2000, 59900.00, '2027-04-24 16:50:00'),
+    (1096, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2900, 173971.00, '2027-04-28 13:10:00'),
+
+    -- MAY 2027
+    (1097, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 3000, 179970.00, '2027-05-03 11:20:00'),
+    (1098, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2400, 143976.00, '2027-05-05 17:15:00'),
+    (1099, (SELECT id FROM MERCHANDISING WHERE name = 'Club Mug'),         3300,  32835.00, '2027-05-07 12:30:00'),
+    (1100, (SELECT id FROM MERCHANDISING WHERE name = 'Training Shirt'),   2600,  90870.00, '2027-05-10 10:15:00'),
+    (1101, (SELECT id FROM MERCHANDISING WHERE name = 'Club Hoodie'),      2300, 114770.00, '2027-05-12 18:05:00'),
+    (1102, (SELECT id FROM MERCHANDISING WHERE name = 'Signed Team Poster'),1900,  47310.00, '2027-05-14 13:25:00'),
+    (1103, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 3100, 185969.00, '2027-05-17 11:40:00'),
+    (1104, (SELECT id FROM MERCHANDISING WHERE name = 'Club Cap'),         2600,  51870.00, '2027-05-19 16:40:00'),
+    (1105, (SELECT id FROM MERCHANDISING WHERE name = 'Club Scarf'),       2800,  41860.00, '2027-05-21 12:15:00'),
+    (1106, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2500, 149975.00, '2027-05-24 10:30:00'),
+    (1107, (SELECT id FROM MERCHANDISING WHERE name = 'Official Match Ball'),2200, 65890.00, '2027-05-26 17:50:00'),
+    (1108, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 3200, 191968.00, '2027-05-29 14:00:00'),
+
+    -- JUNE 2027
+    (1109, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 2900, 173971.00, '2027-06-02 11:10:00'),
+    (1110, (SELECT id FROM MERCHANDISING WHERE name = 'Training Shirt'),   2500,  87375.00, '2027-06-04 17:20:00'),
+    (1111, (SELECT id FROM MERCHANDISING WHERE name = 'Club Keyring'),     3700,  16650.00, '2027-06-06 12:00:00'),
+    (1112, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2300, 137977.00, '2027-06-09 10:40:00'),
+    (1113, (SELECT id FROM MERCHANDISING WHERE name = 'Club Hoodie'),      2200, 109780.00, '2027-06-11 18:10:00'),
+    (1114, (SELECT id FROM MERCHANDISING WHERE name = 'Goalkeeper Gloves'),1600,  63920.00, '2027-06-13 13:30:00'),
+    (1115, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 3000, 179970.00, '2027-06-16 11:25:00'),
+    (1116, (SELECT id FROM MERCHANDISING WHERE name = 'Club Scarf'),       2700,  40365.00, '2027-06-18 17:05:00'),
+    (1117, (SELECT id FROM MERCHANDISING WHERE name = 'Club Mug'),         3400,  33830.00, '2027-06-20 12:45:00'),
+    (1118, (SELECT id FROM MERCHANDISING WHERE name = 'Away Shirt 26/27'), 2400, 143976.00, '2027-06-23 10:20:00'),
+    (1119, (SELECT id FROM MERCHANDISING WHERE name = 'Training Shirt'),   2600,  90870.00, '2027-06-26 16:50:00'),
+    (1120, (SELECT id FROM MERCHANDISING WHERE name = 'Home Shirt 26/27'), 3100, 185969.00, '2027-06-29 13:15:00');
+    
+    
+-- =========================================================================
+-- SEASON PASSES (SEASON_PASS) - FIRST TEAM: 10 PER SECTION (ROWS 1 TO 10)
+-- =========================================================================
+
+INSERT INTO SEASON_PASS (fan_id, team_id, grandstand, section, row_num, seat_num, age_category, price, start_date, end_date) VALUES
+    -- Section AA (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'A', 1,  11, 'Adults', 250.00, '2027-01-11', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'A', 2,  12, 'Adults', 250.00, '2027-01-12', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'A', 3,  13, 'Adults', 250.00, '2027-01-13', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'A', 4,  14, 'Adults', 250.00, '2027-01-14', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'A', 5,  15, 'Adults', 250.00, '2027-01-15', '2027-06-30'),
+
+    -- Section AB (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'B', 1,  11, 'Adults', 240.00, '2027-02-11', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'B', 2,  12, 'Adults', 240.00, '2027-02-12', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'B', 3,  13, 'Adults', 240.00, '2027-02-13', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'B', 4,  14, 'Adults', 240.00, '2027-02-14', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'B', 5,  15, 'Adults', 240.00, '2027-02-15', '2027-06-30'),
+
+    -- Section AC (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'C', 1,  11, 'Adults', 230.00, '2027-03-11', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'C', 2,  12, 'Adults', 230.00, '2027-03-12', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'C', 3,  13, 'Adults', 230.00, '2027-03-13', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'C', 4,  14, 'Adults', 230.00, '2027-03-14', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'C', 5,  15, 'Adults', 230.00, '2027-03-15', '2027-06-30'),
+
+    -- Section AD (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'D', 1,  11, 'Adults', 225.00, '2027-04-11', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'D', 2,  12, 'Adults', 225.00, '2027-04-12', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'D', 3,  13, 'Adults', 225.00, '2027-04-13', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'D', 4,  14, 'Adults', 225.00, '2027-04-14', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'D', 5,  15, 'Adults', 225.00, '2027-04-15', '2027-06-30'),
+
+    -- Section BA (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'A', 1,  11, 'Adults', 220.00, '2026-11-21', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'A', 2,  12, 'Adults', 220.00, '2026-11-22', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'A', 3,  13, 'Adults', 220.00, '2026-11-23', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'A', 4,  14, 'Adults', 220.00, '2026-11-24', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'A', 5,  15, 'Adults', 220.00, '2026-11-25', '2027-06-30'),
+
+    -- Section BB (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'B', 1,  11, 'Adults', 215.00, '2026-12-21', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'B', 2,  12, 'Adults', 215.00, '2026-12-22', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'B', 3,  13, 'Adults', 215.00, '2026-12-23', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'B', 4,  14, 'Adults', 215.00, '2026-12-24', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'B', 5,  15, 'Adults', 215.00, '2026-12-25', '2027-06-30'),
+
+    -- Section BC (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'C', 1,  11, 'Adults', 210.00, '2027-01-21', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'C', 2,  12, 'Adults', 210.00, '2027-01-22', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'C', 3,  13, 'Adults', 210.00, '2027-01-23', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'C', 4,  14, 'Adults', 210.00, '2027-01-24', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'C', 5,  15, 'Adults', 210.00, '2027-01-25', '2027-06-30'),
+
+    -- Section BD (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'D', 1,  11, 'Adults', 205.00, '2027-02-21', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'D', 2,  12, 'Adults', 205.00, '2027-02-22', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'D', 3,  13, 'Adults', 205.00, '2027-02-23', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'D', 4,  14, 'Adults', 205.00, '2027-02-24', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'D', 5,  15, 'Adults', 205.00, '2027-02-25', '2027-06-30'),
+
+    -- Section CA (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'A', 1,  11, 'Adults', 200.00, '2027-03-21', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'A', 2,  12, 'Adults', 200.00, '2027-03-22', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'A', 3,  13, 'Adults', 200.00, '2027-03-23', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'A', 4,  14, 'Adults', 200.00, '2027-03-24', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'A', 5,  15, 'Adults', 200.00, '2027-03-25', '2027-06-30'),
+
+    -- Section CB (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'B', 1,  11, 'Adults', 195.00, '2027-04-21', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'B', 2,  12, 'Adults', 195.00, '2027-04-22', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'B', 3,  13, 'Adults', 195.00, '2027-04-23', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'B', 4,  14, 'Adults', 195.00, '2027-04-24', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'B', 5,  15, 'Adults', 195.00, '2027-04-25', '2027-06-30'),
+
+    -- Section CC (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'C', 1,  11, 'Adults', 190.00, '2027-05-01', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'C', 2,  12, 'Adults', 190.00, '2027-05-02', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'C', 3,  13, 'Adults', 190.00, '2027-05-03', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'C', 4,  14, 'Adults', 190.00, '2027-05-04', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'C', 5,  15, 'Adults', 190.00, '2027-05-05', '2027-06-30'),
+
+    -- Section CD (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'D', 1,  11, 'Adults', 185.00, '2027-05-11', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'D', 2,  12, 'Adults', 185.00, '2027-05-12', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'D', 3,  13, 'Adults', 185.00, '2027-05-13', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'D', 4,  14, 'Adults', 185.00, '2027-05-14', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'D', 5,  15, 'Adults', 185.00, '2027-05-15', '2027-06-30'),
+
+    -- Section DA (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'A', 1,  11, 'Adults', 180.00, '2027-05-21', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'A', 2,  12, 'Adults', 180.00, '2027-05-22', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'A', 3,  13, 'Adults', 180.00, '2027-05-23', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'A', 4,  14, 'Adults', 180.00, '2027-05-24', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'A', 5,  15, 'Adults', 180.00, '2027-05-25', '2027-06-30'),
+
+    -- Section DB (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'B', 1,  11, 'Adults', 175.00, '2027-06-01', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'B', 2,  12, 'Adults', 175.00, '2027-06-02', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'B', 3,  13, 'Adults', 175.00, '2027-06-03', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'B', 4,  14, 'Adults', 175.00, '2027-06-04', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'B', 5,  15, 'Adults', 175.00, '2027-06-05', '2027-06-30'),
+
+    -- Section DC (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'C', 1,  11, 'Adults', 170.00, '2027-06-11', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'C', 2,  12, 'Adults', 170.00, '2027-06-12', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'C', 3,  13, 'Adults', 170.00, '2027-06-13', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'C', 4,  14, 'Adults', 170.00, '2027-06-14', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'C', 5,  15, 'Adults', 170.00, '2027-06-15', '2027-06-30'),
+
+    -- Section DD (Seats 11 to 15)
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'D', 1,  11, 'Adults', 165.00, '2027-06-21', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'D', 2,  12, 'Adults', 165.00, '2027-06-22', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'D', 3,  13, 'Adults', 165.00, '2027-06-23', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'D', 4,  14, 'Adults', 165.00, '2027-06-24', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'D', 5,  15, 'Adults', 165.00, '2027-06-25', '2027-06-30');
+
+-- Sections E and F across Grandstands A, B, C, and D (Rows 1 to 10, Seats 1 to 10)
+INSERT INTO SEASON_PASS (fan_id, team_id, grandstand, section, row_num, seat_num, age_category, price, start_date, end_date) VALUES
+    -- Section AE
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'E', 1,  1,  'Adults', 220.00, '2026-09-01', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'E', 2,  2,  'Adults', 220.00, '2026-09-02', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'E', 3,  3,  'Adults', 220.00, '2026-09-03', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'E', 4,  4,  'Adults', 220.00, '2026-09-04', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'E', 5,  5,  'Adults', 220.00, '2026-09-05', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'E', 6,  6,  'Adults', 220.00, '2026-09-06', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'E', 7,  7,  'Adults', 220.00, '2026-09-07', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'E', 8,  8,  'Adults', 220.00, '2026-09-08', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'E', 9,  9,  'Adults', 220.00, '2026-09-09', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'E', 10, 10, 'Adults', 220.00, '2026-09-10', '2027-06-30'),
+
+    -- Section AF
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'F', 1,  1,  'Adults', 215.00, '2026-09-11', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'F', 2,  2,  'Adults', 215.00, '2026-09-12', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'F', 3,  3,  'Adults', 215.00, '2026-09-13', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'F', 4,  4,  'Adults', 215.00, '2026-09-14', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'F', 5,  5,  'Adults', 215.00, '2026-09-15', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'F', 6,  6,  'Adults', 215.00, '2026-09-16', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'F', 7,  7,  'Adults', 215.00, '2026-09-17', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'F', 8,  8,  'Adults', 215.00, '2026-09-18', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'F', 9,  9,  'Adults', 215.00, '2026-09-19', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'A', 'F', 10, 10, 'Adults', 215.00, '2026-09-20', '2027-06-30'),
+
+    -- Section BE
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'E', 1,  1,  'Adults', 200.00, '2026-10-01', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'E', 2,  2,  'Adults', 200.00, '2026-10-02', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'E', 3,  3,  'Adults', 200.00, '2026-10-03', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'E', 4,  4,  'Adults', 200.00, '2026-10-04', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'E', 5,  5,  'Adults', 200.00, '2026-10-05', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'E', 6,  6,  'Adults', 200.00, '2026-10-06', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'E', 7,  7,  'Adults', 200.00, '2026-10-07', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'E', 8,  8,  'Adults', 200.00, '2026-10-08', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'E', 9,  9,  'Adults', 200.00, '2026-10-09', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'E', 10, 10, 'Adults', 200.00, '2026-10-10', '2027-06-30'),
+
+    -- Section BF
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'F', 1,  1,  'Adults', 195.00, '2026-10-11', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'F', 2,  2,  'Adults', 195.00, '2026-10-12', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'F', 3,  3,  'Adults', 195.00, '2026-10-13', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'F', 4,  4,  'Adults', 195.00, '2026-10-14', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'F', 5,  5,  'Adults', 195.00, '2026-10-15', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'F', 6,  6,  'Adults', 195.00, '2026-10-16', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'F', 7,  7,  'Adults', 195.00, '2026-10-17', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'F', 8,  8,  'Adults', 195.00, '2026-10-18', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'F', 9,  9,  'Adults', 195.00, '2026-10-19', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'B', 'F', 10, 10, 'Adults', 195.00, '2026-10-20', '2027-06-30'),
+
+    -- Section CE
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'E', 1,  1,  'Adults', 180.00, '2026-11-01', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'E', 2,  2,  'Adults', 180.00, '2026-11-02', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'E', 3,  3,  'Adults', 180.00, '2026-11-03', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'E', 4,  4,  'Adults', 180.00, '2026-11-04', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'E', 5,  5,  'Adults', 180.00, '2026-11-05', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'E', 6,  6,  'Adults', 180.00, '2026-11-06', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'E', 7,  7,  'Adults', 180.00, '2026-11-07', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'E', 8,  8,  'Adults', 180.00, '2026-11-08', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'E', 9,  9,  'Adults', 180.00, '2026-11-09', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'E', 10, 10, 'Adults', 180.00, '2026-11-10', '2027-06-30'),
+
+    -- Section CF
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'F', 1,  1,  'Adults', 175.00, '2026-11-11', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'F', 2,  2,  'Adults', 175.00, '2026-11-12', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'F', 3,  3,  'Adults', 175.00, '2026-11-13', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'F', 4,  4,  'Adults', 175.00, '2026-11-14', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'F', 5,  5,  'Adults', 175.00, '2026-11-15', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'F', 6,  6,  'Adults', 175.00, '2026-11-16', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'F', 7,  7,  'Adults', 175.00, '2026-11-17', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'F', 8,  8,  'Adults', 175.00, '2026-11-18', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'F', 9,  9,  'Adults', 175.00, '2026-11-19', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'C', 'F', 10, 10, 'Adults', 175.00, '2026-11-20', '2027-06-30'),
+
+    -- Section DE
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'E', 1,  1,  'Adults', 160.00, '2026-12-01', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'E', 2,  2,  'Adults', 160.00, '2026-12-02', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'E', 3,  3,  'Adults', 160.00, '2026-12-03', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'E', 4,  4,  'Adults', 160.00, '2026-12-04', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'E', 5,  5,  'Adults', 160.00, '2026-12-05', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'E', 6,  6,  'Adults', 160.00, '2026-12-06', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'E', 7,  7,  'Adults', 160.00, '2026-12-07', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'E', 8,  8,  'Adults', 160.00, '2026-12-08', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'E', 9,  9,  'Adults', 160.00, '2026-12-09', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'E', 10, 10, 'Adults', 160.00, '2026-12-10', '2027-06-30'),
+
+    -- Section DF
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'F', 1,  1,  'Adults', 155.00, '2026-12-11', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'F', 2,  2,  'Adults', 155.00, '2026-12-12', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'F', 3,  3,  'Adults', 155.00, '2026-12-13', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'F', 4,  4,  'Adults', 155.00, '2026-12-14', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'F', 5,  5,  'Adults', 155.00, '2026-12-15', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'F', 6,  6,  'Adults', 155.00, '2026-12-16', '2027-06-30'),
+    (103, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'F', 7,  7,  'Adults', 155.00, '2026-12-17', '2027-06-30'),
+    (104, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'F', 8,  8,  'Adults', 155.00, '2026-12-18', '2027-06-30'),
+    (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'F', 9,  9,  'Adults', 155.00, '2026-12-19', '2027-06-30'),
+    (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'F', 10, 10, 'Adults', 155.00, '2026-12-20', '2027-06-30');
+    
+-- FACILITY RESERVATIONS (Realistic hourly rates in Jun - Aug 2026)
+INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reservation_date, start_time, end_time, hours, total_price, created_at) VALUES
+    (1, 'Asturias Summer Camp',   '**** **** **** 4001', '2026-06-08', '09:00', '11:00', 2, 200.00, '2026-06-05 10:00:00'),
+    (2, 'Oviedo Youth Academy',   '**** **** **** 4002', '2026-06-15', '16:00', '18:00', 2, 100.00, '2026-06-12 11:30:00'),
+    (3, 'Nalon Football Group',   '**** **** **** 4003', '2026-06-24', '10:00', '12:00', 2,  90.00, '2026-06-20 14:15:00'),
+    (4, 'Cantabrica Fitness SL',  '**** **** **** 4004', '2026-06-29', '18:00', '19:00', 1,  50.00, '2026-06-27 09:20:00'),
+    (1, 'Atlantic Preseason Cup', '**** **** **** 4005', '2026-07-06', '18:00', '20:00', 2, 200.00, '2026-07-02 12:00:00'),
+    (2, 'Gijon Training Stage',   '**** **** **** 4006', '2026-07-14', '09:00', '11:00', 2, 100.00, '2026-07-10 16:40:00'),
+    (5, 'Indoor Summer Clinic',   '**** **** **** 4007', '2026-07-21', '17:00', '19:00', 2,  80.00, '2026-07-18 10:10:00'),
+    (3, 'Aviles Sports Club',     '**** **** **** 4008', '2026-07-28', '11:00', '12:00', 1,  45.00, '2026-07-25 15:00:00'),
+    (1, 'Friendly Match Hire',    '**** **** **** 4009', '2026-08-05', '19:00', '21:00', 2, 200.00, '2026-08-01 11:45:00'),
+    (2, 'Late August Stage',      '**** **** **** 4010', '2026-08-13', '16:00', '18:00', 2, 100.00, '2026-08-10 09:50:00'),
+    (4, 'Squad Conditioning',     '**** **** **** 4011', '2026-08-20', '10:00', '11:00', 1,  50.00, '2026-08-18 13:20:00'),
+    (5, 'Summer Tournament Hall', '**** **** **** 4012', '2026-08-27', '17:00', '19:00', 2,  80.00, '2026-08-24 17:10:00'); 
+    
+-- Lower-priority facility reservation for testing [WARN] on CSV match import (2026-11-24)
+INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reservation_date, start_time, end_time, hours, total_price, created_at) VALUES
+    (2, 'Carlos Warning Test', '**** **** **** 5555', '2026-11-24', '14:00', '16:00', 2, 100.0, '2026-11-23 18:00:00');

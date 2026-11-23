@@ -31,6 +31,7 @@ import com.ips2026.pl11.view.store.StoreSalesWindow;
 public class StoreEmployeeMenuWindow extends JFrame {
 
     private static final long serialVersionUID = 1L;
+    private int employeeId;
 
     private JPanel contentPane;
     private HeaderPanel pnHeader;
@@ -45,7 +46,9 @@ public class StoreEmployeeMenuWindow extends JFrame {
 
     private NSEWorkScheduleWindow nseWorkScheduleWindow = new NSEWorkScheduleWindow(this);
 
-    public StoreEmployeeMenuWindow() {
+    public StoreEmployeeMenuWindow(int employeeId) {
+        this.employeeId = employeeId;
+        
         setTitle("Football Club Management");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(640, 580));
@@ -131,7 +134,7 @@ public class StoreEmployeeMenuWindow extends JFrame {
                     "Shop Sale", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        new StoreSalesWindow(controller, this).setVisible(true);
+        new StoreSalesWindow(controller, this, employeeId).setVisible(true);
     }
 
     private JPanel getPnFooter() {

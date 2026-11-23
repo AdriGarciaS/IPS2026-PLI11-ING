@@ -44,4 +44,9 @@ public class Campaign {
     public CampaignStatus getStatus() {
         return status;
     }
+
+    /** The same campaign in another phase. */
+    public Campaign withStatus(CampaignStatus newStatus) {
+        return new Campaign(id, name, nominalPrice, totalShares, newStatus);
+    }
 }

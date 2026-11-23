@@ -177,7 +177,7 @@ public class LoginWindow extends JFrame {
                                 JOptionPane.showMessageDialog(LoginWindow.this,
                                     "Welcome, " + os.get().getFirstName() + "!", "Login Successful",
                                     JOptionPane.INFORMATION_MESSAGE);
-                                openPositionMenu("shareholder", os.get().getId());
+                                new ShareholderMenuWindow(os.get()).setVisible(true);
 
                                 dispose();
                             }
@@ -254,10 +254,10 @@ public class LoginWindow extends JFrame {
             new GeneralManagerMenuWindow().setVisible(true);
             break;
         case "ticket seller":
-            new TicketSellerMenuWindow().setVisible(true);
+            new TicketSellerMenuWindow(employeeId).setVisible(true);
             break;
         case "store employee":
-            new StoreEmployeeMenuWindow().setVisible(true);
+            new StoreEmployeeMenuWindow(employeeId).setVisible(true);
             break;
         case "gardener":
             new GardenerMenuWindow().setVisible(true);
@@ -276,9 +276,6 @@ public class LoginWindow extends JFrame {
             break;
         case "press officer":
             new PressOfficerMenuWindow().setVisible(true);
-            break;
-        case "shareholder":
-            new ShareholderMenuWindow().setVisible(true);
             break;
         default:
             JOptionPane.showMessageDialog(this, "Unknown position: " + position, "Error", JOptionPane.ERROR_MESSAGE);

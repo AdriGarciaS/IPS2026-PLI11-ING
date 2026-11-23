@@ -820,4 +820,21 @@ INSERT INTO SEASON_PASS (fan_id, team_id, grandstand, section, row_num, seat_num
     (101, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'F', 9,  9,  'Adults', 155.00, '2026-12-19', '2027-06-30'),
     (102, (SELECT id FROM TEAM WHERE name = 'First Team'), 'D', 'F', 10, 10, 'Adults', 155.00, '2026-12-20', '2027-06-30');
     
- 
+-- FACILITY RESERVATIONS (Realistic hourly rates in Jun - Aug 2026)
+INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reservation_date, start_time, end_time, hours, total_price, created_at) VALUES
+    (1, 'Asturias Summer Camp',   '**** **** **** 4001', '2026-06-08', '09:00', '11:00', 2, 200.00, '2026-06-05 10:00:00'),
+    (2, 'Oviedo Youth Academy',   '**** **** **** 4002', '2026-06-15', '16:00', '18:00', 2, 100.00, '2026-06-12 11:30:00'),
+    (3, 'Nalon Football Group',   '**** **** **** 4003', '2026-06-24', '10:00', '12:00', 2,  90.00, '2026-06-20 14:15:00'),
+    (4, 'Cantabrica Fitness SL',  '**** **** **** 4004', '2026-06-29', '18:00', '19:00', 1,  50.00, '2026-06-27 09:20:00'),
+    (1, 'Atlantic Preseason Cup', '**** **** **** 4005', '2026-07-06', '18:00', '20:00', 2, 200.00, '2026-07-02 12:00:00'),
+    (2, 'Gijon Training Stage',   '**** **** **** 4006', '2026-07-14', '09:00', '11:00', 2, 100.00, '2026-07-10 16:40:00'),
+    (5, 'Indoor Summer Clinic',   '**** **** **** 4007', '2026-07-21', '17:00', '19:00', 2,  80.00, '2026-07-18 10:10:00'),
+    (3, 'Aviles Sports Club',     '**** **** **** 4008', '2026-07-28', '11:00', '12:00', 1,  45.00, '2026-07-25 15:00:00'),
+    (1, 'Friendly Match Hire',    '**** **** **** 4009', '2026-08-05', '19:00', '21:00', 2, 200.00, '2026-08-01 11:45:00'),
+    (2, 'Late August Stage',      '**** **** **** 4010', '2026-08-13', '16:00', '18:00', 2, 100.00, '2026-08-10 09:50:00'),
+    (4, 'Squad Conditioning',     '**** **** **** 4011', '2026-08-20', '10:00', '11:00', 1,  50.00, '2026-08-18 13:20:00'),
+    (5, 'Summer Tournament Hall', '**** **** **** 4012', '2026-08-27', '17:00', '19:00', 2,  80.00, '2026-08-24 17:10:00'); 
+    
+-- Lower-priority facility reservation for testing [WARN] on CSV match import (2026-11-24)
+INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reservation_date, start_time, end_time, hours, total_price, created_at) VALUES
+    (2, 'Carlos Warning Test', '**** **** **** 5555', '2026-11-24', '14:00', '16:00', 2, 100.0, '2026-11-23 18:00:00');

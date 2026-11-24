@@ -2,6 +2,7 @@ package com.ips2026.pl11.data.campaign;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
@@ -19,6 +20,7 @@ import com.ips2026.pl11.model.campaign.Campaign;
 import com.ips2026.pl11.model.campaign.CampaignPurchase;
 import com.ips2026.pl11.model.campaign.CampaignPurchaseLimit;
 import com.ips2026.pl11.model.campaign.CampaignStatus;
+import com.ips2026.pl11.model.campaign.ShareholderRegistration;
 import com.ips2026.pl11.model.shareholder.Shareholder;
 
 /**
@@ -165,5 +167,71 @@ class CampaignPurchaseDAOTest {
                 () -> dao.buy(openCampaign(CampaignStatus.PHASE_1), LAURA, 10, MOMENT));
         assertEquals("The campaign is not open for purchases (Finished).", exception.getMessage());
         assertEquals(120, TestDatabase.queryInt("SELECT COUNT(*) FROM SHARE"));
+    }
+
+    // ------------------------------------------------------------------
+    // US 35828: external users
+    // ------------------------------------------------------------------
+
+    private static final ShareholderRegistration ANA = new ShareholderRegistration("Ana", "López Vidal",
+            "ana.lopez@example.com", "12345678Z", "ana_lopez", "secret1");
+
+    @Test
+    @DisplayName("the limit of an external user only counts the remaining shares, and only in phase 3")
+    void findExternalLimit() throws SQLException {
+        CampaignPurchaseLimit inPhase1 = dao.findExternalLimit(2);
+        assertTrue(inPhase1.isExternalUser());
+        assertEquals(480, inPhase1.getRemainingShares());
+        assertEquals(0, inPhase1.getMax());
+
+        TestDatabase.execute("UPDATE SHARE_CAMPAIGN SET status = 'PHASE_3' WHERE id = 2");
+        assertEquals(480, dao.findExternalLimit(2).getMax());
+    }
+
+    @Test
+    @DisplayName("an external user is registered as a shareholder and gets the shares in a new holding")
+    void registerAndBuy() throws SQLException {
+        TestDatabase.execute("UPDATE SHARE_CAMPAIGN SET status = 'PHASE_3' WHERE id = 2");
+
+        CampaignPurchase purchase = dao.registerAndBuy(openCampaign(CampaignStatus.PHASE_3), ANA, "HASH", 25, MOMENT);
+
+        assertEquals("Ana López Vidal", purchase.getShareholderName());
+        assertEquals(25, purchase.getQuantity());
+        assertEquals(121, purchase.getFirstShareId());
+        assertEquals(145, purchase.getLastShareId());
+        assertEquals(new BigDecimal("300.00"), purchase.getTotal());
+
+        assertEquals(1, TestDatabase.queryInt("SELECT COUNT(*) FROM SHAREHOLDER WHERE first_name = 'Ana' "
+                + "AND last_name = 'López Vidal' AND email = 'ana.lopez@example.com' AND national_id = '12345678Z' "
+                + "AND username = 'ana_lopez' AND password = 'HASH'"));
+        assertEquals(25, TestDatabase.queryInt("SELECT COUNT(*) FROM SHARE s JOIN SHARE_HOLDING h ON h.id = s.holding_id "
+                + "JOIN SHAREHOLDER sh ON sh.id = h.shareholder_id WHERE sh.username = 'ana_lopez' AND h.campaign_id = 2 "
+                + "AND h.purchase_price = 12.0 AND h.purchase_date = '2026-11-20 10:30:00'"));
+        assertEquals(455, dao.findExternalLimit(2).getRemainingShares());
+    }
+
+    @Test
+    @DisplayName("outside phase 3 an external user is not registered and buys nothing")
+    void registerAndBuyOutsidePhase3() throws SQLException {
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> dao.registerAndBuy(openCampaign(CampaignStatus.PHASE_3), ANA, "HASH", 10, MOMENT));
+
+        assertEquals("External users can buy shares when the campaign reaches phase 3 (now: Phase 1).",
+                exception.getMessage());
+        assertEquals(3, TestDatabase.queryInt("SELECT COUNT(*) FROM SHAREHOLDER"));
+        assertEquals(120, TestDatabase.queryInt("SELECT COUNT(*) FROM SHARE"));
+    }
+
+    @Test
+    @DisplayName("if the national ID is registered meanwhile, nothing is stored (the whole transaction is undone)")
+    void registerAndBuyRepeatedNationalId() throws SQLException {
+        TestDatabase.execute("UPDATE SHARE_CAMPAIGN SET status = 'PHASE_3' WHERE id = 2");
+        ShareholderRegistration repeated = new ShareholderRegistration("Laura", "Pérez", "laura@example.com",
+                "11111111h", "laura2", "secret1");
+
+        assertThrows(SQLException.class,
+                () -> dao.registerAndBuy(openCampaign(CampaignStatus.PHASE_3), repeated, "HASH", 10, MOMENT));
+        assertEquals(3, TestDatabase.queryInt("SELECT COUNT(*) FROM SHAREHOLDER"));
+        assertEquals(2, TestDatabase.queryInt("SELECT COUNT(*) FROM SHARE_HOLDING"));
     }
 }

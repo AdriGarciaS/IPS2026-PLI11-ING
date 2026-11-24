@@ -79,24 +79,7 @@ public class BuyCampaignSharesController {
      *         number between 1 and the maximum the shareholder can buy
      */
     public Optional<String> findQuantityProblem(String text) {
-        String clean = text == null ? "" : text.strip();
-        int max = limit.getMax();
-        if (max == 0) {
-            return Optional.of(limit.getReasonForNone());
-        }
-        if (clean.isEmpty()) {
-            return Optional.of("Enter the number of shares to buy.");
-        }
-        if (!clean.matches("\\d+")) {
-            return Optional.of("The number of shares must be a whole number.");
-        }
-        if (clean.length() > 9 || Integer.parseInt(clean) > max) {
-            return Optional.of("You can buy at most " + max + " shares.");
-        }
-        if (Integer.parseInt(clean) < 1) {
-            return Optional.of("You must buy at least 1 share.");
-        }
-        return Optional.empty();
+        return limit.findQuantityProblem(text);
     }
 
     /** Price of {@code quantity} shares at the nominal price of the campaign. */

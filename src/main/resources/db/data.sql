@@ -287,12 +287,12 @@ VALUES (
     '2026-10-15', '09:00', '11:00', 5
 );
 
-INSERT INTO SHAREHOLDER (first_name, last_name, national_id, username, password) VALUES
-    ('Laura', 'Pérez Gil', '11111111H', 'shareholder', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
-    ('Marcos', 'Ruiz Soto', '22222222J', 'marcos_ruiz' , '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
-    ('Irene', 'Castillo Mora', '33333333P', 'irene_castillo', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
-    ('Javier', 'Ortega Lima', '44444444A', 'javier_ortega', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
-    ('Sofía', 'Navarro Díaz', '55555555K', 'sofia_navarro', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO');
+INSERT INTO SHAREHOLDER (first_name, last_name, national_id, email, username, password) VALUES
+    ('Laura', 'Pérez Gil', '11111111H', 'laura.perez@example.com', 'shareholder', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+    ('Marcos', 'Ruiz Soto', '22222222J', 'marcos.ruiz@example.com', 'marcos_ruiz', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+    ('Irene', 'Castillo Mora', '33333333P', 'irene.castillo@example.com', 'irene_castillo', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+    ('Javier', 'Ortega Lima', '44444444A', 'javier.ortega@example.com', 'javier_ortega', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+    ('Sofía', 'Navarro Díaz', '55555555K', 'sofia.navarro@example.com', 'sofia_navarro', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO');
 
 INSERT INTO SHARE_CAMPAIGN (name, nominal_price, total_shares, status) VALUES
     ('Founding shares 2023', 9.50, 1000, 'FINISHED'),

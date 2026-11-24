@@ -190,8 +190,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_team_member_one_team_per_player ON TEAM_MEM
 -- Shareholders (US 35747: shares wallet).
 -- ---------------------------------------------------------------------------
 
--- People that own shares of the club. There is no login: a shareholder
--- identifies with the national ID or is searched by name.
+-- People that own shares of the club. They log in with their username and
+-- password (stored hashed with BCrypt).
+-- US 35828: external users become shareholders by buying shares in phase 3
+-- of a campaign; they register their name, surname, email, national ID,
+-- username and password. The email is required for them (it can be NULL only
+-- in old rows).
 -- US 36748: when a shareholder sells all their shares in the market, their row
 -- is deleted. Their old holdings, listings and transfers are kept (they are
 -- the history of the campaigns and of the market) with the shareholder
@@ -201,9 +205,9 @@ CREATE TABLE IF NOT EXISTS SHAREHOLDER (
     first_name  TEXT    NOT NULL,
     last_name   TEXT    NOT NULL,
     national_id TEXT    NOT NULL UNIQUE COLLATE NOCASE,
-    
-    username	TEXT    UNIQUE COLLATE NOCASE,
-    password	TEXT   
+    email       TEXT    UNIQUE COLLATE NOCASE,
+    username    TEXT    UNIQUE COLLATE NOCASE,
+    password    TEXT
 );
 
 -- Campaigns in which the club sells shares (for example a capital increase).

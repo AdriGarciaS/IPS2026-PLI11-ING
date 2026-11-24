@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.ticket;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.sql.SQLException;
 import java.time.LocalDate;
 
@@ -95,6 +97,11 @@ public class SpecialMatchTicketController {
             throw new IllegalStateException("This seat has already been paid and secured for this match.");
         }
 
-        return ticketDAO.bookSpecificSeat(matchId, grandstand, section, row, seat, price);
+        boolean booked = ticketDAO.bookSpecificSeat(matchId, grandstand, section, row, seat, price);
+        if (booked) {
+            SystemLog.record(LogAction.INSERT, "Sold special match ticket for match #" + matchId + " (grandstand "
+                    + grandstand + ", section " + section + ", row " + row + ", seat " + seat + ")");
+        }
+        return booked;
     }
 }

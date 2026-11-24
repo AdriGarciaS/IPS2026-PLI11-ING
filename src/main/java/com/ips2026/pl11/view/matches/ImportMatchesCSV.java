@@ -1,5 +1,7 @@
 package com.ips2026.pl11.view.matches;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -187,6 +189,7 @@ public class ImportMatchesCSV extends JDialog {
             // Use report method so [WARN] lines for lower-priority overlaps are captured and shown
             MatchDAO.BatchImportResult dbResult = matchDAO.insertBatchMatchesWithReport(result.getValidMatches());
             savedCount = dbResult.insertedCount();
+            SystemLog.record(LogAction.INSERT, "Imported " + savedCount + " matches from a file");
 
             if (!dbResult.logLines().isEmpty()) {
                 summary.append("Persistence details:\n");

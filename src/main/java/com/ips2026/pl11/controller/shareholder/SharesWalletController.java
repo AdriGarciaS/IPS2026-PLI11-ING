@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.shareholder;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import com.ips2026.pl11.data.shareholder.MarketPriceDAO;
 import com.ips2026.pl11.data.shareholder.ShareHoldingDAO;
 import com.ips2026.pl11.model.shareholder.MarketPrice;
@@ -35,6 +37,9 @@ public class SharesWalletController {
         }
         MarketPrice current = latest.get(0);
         MarketPrice previous = latest.size() > 1 ? latest.get(1) : null;
-        return new SharesWallet(shareholder, holdingDAO.findByShareholder(shareholder.getId()), current, previous);
+        SharesWallet wallet = new SharesWallet(shareholder, holdingDAO.findByShareholder(shareholder.getId()),
+                current, previous);
+        SystemLog.record(LogAction.QUERY, "Viewed shares wallet of " + shareholder.getFullName());
+        return wallet;
     }
 }

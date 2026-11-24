@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.schedule;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -48,6 +50,8 @@ public class DayScheduleController {
         }
 
         dayScheduleDAO.insertSchedule(newShift);
+        SystemLog.record(LogAction.INSERT, "Added shift for employee #" + employeeId + " on " + newShift.getDate()
+            + " " + newShift.getStartTime() + "-" + newShift.getEndTime());
     }
 
     private WorkSchedule getRecurringSchedule(long workScheduleId) throws SQLException {

@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.gardening;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -39,6 +41,9 @@ public class GardeningSessionController {
         for (Long gardenerId : gardenerIds) {
             gardeningSessionEmployeeDAO.insert(sessionId, gardenerId);
         }
+        SystemLog.record(LogAction.INSERT, "Scheduled gardening session #" + sessionId + " ("
+                + session.getSessionType() + ") on " + session.getDate() + " " + session.getStartTime() + "-"
+                + session.getEndTime() + " for " + gardenerIds.size() + " gardeners");
     }
 
     public List<GardeningSession> getAllGardeningSessions() throws SQLException {
@@ -66,6 +71,7 @@ public class GardeningSessionController {
         try {
             gardeningSessionDAO.delete(id);
             gardeningSessionEmployeeDAO.deleteBySessionId(id);
+            SystemLog.record(LogAction.DELETE, "Cancelled gardening session #" + id);
         } catch (SQLException e) {
             e.printStackTrace();
         }

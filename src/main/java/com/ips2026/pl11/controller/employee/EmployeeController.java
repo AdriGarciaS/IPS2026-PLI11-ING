@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.employee;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -44,6 +46,8 @@ public class EmployeeController {
         }
 
         employeeDAO.insert(employee);
+        SystemLog.record(LogAction.INSERT, "Created employee " + employee.getFirstName() + " "
+            + employee.getLastName() + " (" + employee.getNationalId() + "), " + position);
     }
 
     public List<Employee> getEmployees() throws SQLException {
@@ -74,6 +78,8 @@ public class EmployeeController {
         }
 
         employeeDAO.update(employee);
+        SystemLog.record(LogAction.UPDATE, "Modified employee " + employee.getFirstName() + " "
+            + employee.getLastName() + " (" + employee.getNationalId() + "), " + currentPosition);
     }
 
     // Gender is required: players can only join teams of their gender
@@ -85,6 +91,7 @@ public class EmployeeController {
 
     public void deleteEmployee(int employeeId) throws SQLException {
         employeeDAO.delete(employeeId);
+        SystemLog.record(LogAction.DELETE, "Deleted employee #" + employeeId);
     }
 
     public List<Employee> getEmployeesByRole(String string) throws SQLException {

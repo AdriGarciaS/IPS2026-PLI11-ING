@@ -1,5 +1,8 @@
 package com.ips2026.pl11.view.menu.mainmenus;
 
+import com.ips2026.pl11.controller.log.SystemLogController;
+import com.ips2026.pl11.data.log.SystemLogDAO;
+import com.ips2026.pl11.view.log.SystemLogDialog;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -46,6 +49,7 @@ public class GeneralManagerMenuWindow extends RoleMenuWindow {
     private MenuCardButton btnOption4;
     private MenuCardButton btnOption14;
     private MenuCardButton btnOption15;
+    private MenuCardButton btnSystemLog;
     private JButton selectedButton;
 
     private GMWorkScheduleWindow gmWorkScheduleWindow = new GMWorkScheduleWindow(this);
@@ -55,7 +59,7 @@ public class GeneralManagerMenuWindow extends RoleMenuWindow {
 
     public GeneralManagerMenuWindow() {
         super("General manager main menu — choose an option to start");
-        setCards(new GridLayout(3, 3, 18, 18), getBtnOption1(), getBtnOption2(), getBtnOption3(), getBtnOption6(), getBtnOption10(), getBtnOption12(), getBtnOption13(), getBtnOption4(), getBtnOption14(), getBtnOption15());
+        setCards(new GridLayout(3, 3, 18, 18), getBtnOption1(), getBtnOption2(), getBtnOption3(), getBtnOption6(), getBtnOption10(), getBtnOption12(), getBtnOption13(), getBtnOption4(), getBtnOption14(), getBtnOption15(), getBtnSystemLog());
         Branding.setInitialSize(this, 840, 780, null);
     }
 
@@ -181,6 +185,26 @@ public class GeneralManagerMenuWindow extends RoleMenuWindow {
         return btnOption15;
     }
     
+    /** US 36717: only the general manager can see the system log. */
+    private MenuCardButton getBtnSystemLog() {
+        if (btnSystemLog == null) {
+            btnSystemLog = new MenuCardButton("System Log", "Actions performed by users in the app");
+            btnSystemLog.setMnemonic('L');
+            btnSystemLog.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnSystemLog.addActionListener(event -> openSystemLog());
+        }
+        return btnSystemLog;
+    }
+
+    private void openSystemLog() {
+        try {
+            new SystemLogDialog(new SystemLogController(new SystemLogDAO()), this).setVisible(true);
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this, "The system log could not be opened:\n" + exception.getMessage(),
+                    "System Log", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void openFinancialReports() {
         try {
             FinancialReportsMenu dialog = new FinancialReportsMenu(this);

@@ -287,12 +287,12 @@ VALUES (
     '2026-10-15', '09:00', '11:00', 5
 );
 
-INSERT INTO SHAREHOLDER (first_name, last_name, national_id, username, password) VALUES
-    ('Laura', 'Pérez Gil', '11111111H', 'shareholder', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
-    ('Marcos', 'Ruiz Soto', '22222222J', 'marcos_ruiz' , '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
-    ('Irene', 'Castillo Mora', '33333333P', 'irene_castillo', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
-    ('Javier', 'Ortega Lima', '44444444A', 'javier_ortega', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
-    ('Sofía', 'Navarro Díaz', '55555555K', 'sofia_navarro', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO');
+INSERT INTO SHAREHOLDER (first_name, last_name, national_id, email, username, password) VALUES
+    ('Laura', 'Pérez Gil', '11111111H', 'laura.perez@example.com', 'shareholder', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+    ('Marcos', 'Ruiz Soto', '22222222J', 'marcos.ruiz@example.com', 'marcos_ruiz', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+    ('Irene', 'Castillo Mora', '33333333P', 'irene.castillo@example.com', 'irene_castillo', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+    ('Javier', 'Ortega Lima', '44444444A', 'javier.ortega@example.com', 'javier_ortega', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO'),
+    ('Sofía', 'Navarro Díaz', '55555555K', 'sofia.navarro@example.com', 'sofia_navarro', '$2a$12$GsZH5SrT4iF0BCW8fCpj4OJ6CWrj6UknlMVcNtDR0yvYoUu6AirZO');
 
 INSERT INTO SHARE_CAMPAIGN (name, nominal_price, total_shares, status) VALUES
     ('Founding shares 2023', 9.50, 1000, 'FINISHED'),
@@ -860,3 +860,28 @@ INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reserva
 -- Lower-priority facility reservation for testing [WARN] on CSV match import (2026-11-24)
 INSERT INTO FACILITY_RESERVATION (facility_id, holder_name, card_number, reservation_date, start_time, end_time, hours, total_price, created_at) VALUES
     (2, 'Carlos Warning Test', '**** **** **** 5555', '2026-11-24', '14:00', '16:00', 2, 100.0, '2026-11-23 18:00:00');
+
+-- US 36717: some sessions and actions of the last days, so the System Log is
+-- not empty the first time it is opened.
+INSERT INTO USER_SESSION (id, user_type, user_id, username, role, started_at) VALUES
+    (1, 'GUEST', NULL, NULL, 'Guest', datetime('now', 'localtime', 'start of day', '-2 days', '+9 hours')),
+    (2, 'EMPLOYEE', (SELECT id FROM employees WHERE username = 'general_manager'), 'general_manager', 'General Manager',
+        datetime('now', 'localtime', 'start of day', '-2 days', '+9 hours', '+2 minutes')),
+    (3, 'GUEST', NULL, NULL, 'Guest', datetime('now', 'localtime', 'start of day', '-1 days', '+11 hours')),
+    (4, 'SHAREHOLDER', (SELECT id FROM SHAREHOLDER WHERE username = 'shareholder'), 'shareholder', 'Shareholder',
+        datetime('now', 'localtime', 'start of day', '-1 days', '+11 hours', '+1 minutes'));
+
+INSERT INTO SYSTEM_LOG (session_id, logged_at, action, description) VALUES
+    (1, datetime('now', 'localtime', 'start of day', '-2 days', '+9 hours', '+1 minutes'), 'LOGIN_FAILED',
+        'Failed login for ''general_manager'': wrong password'),
+    (2, datetime('now', 'localtime', 'start of day', '-2 days', '+9 hours', '+2 minutes'), 'LOGIN',
+        'Logged in as General Manager'),
+    (2, datetime('now', 'localtime', 'start of day', '-2 days', '+9 hours', '+5 minutes'), 'QUERY',
+        'Viewed sales history ' || strftime('%d/%m/%Y', 'now', 'localtime', '-30 days') || ' - '
+        || strftime('%d/%m/%Y', 'now', 'localtime', '-2 days')),
+    (3, datetime('now', 'localtime', 'start of day', '-1 days', '+11 hours'), 'LOGIN_FAILED',
+        'Failed login for ''pepe'': unknown username'),
+    (4, datetime('now', 'localtime', 'start of day', '-1 days', '+11 hours', '+1 minutes'), 'LOGIN',
+        'Logged in as Shareholder'),
+    (4, datetime('now', 'localtime', 'start of day', '-1 days', '+11 hours', '+3 minutes'), 'QUERY',
+        'Viewed shares wallet');

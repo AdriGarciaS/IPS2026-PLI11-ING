@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.market;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import com.ips2026.pl11.data.market.MarketDAO;
 import com.ips2026.pl11.model.market.CartItem;
 import com.ips2026.pl11.model.market.MarketFilter;
@@ -52,6 +54,7 @@ public class ShareMarketController {
     /** Reads again the listings of the other shareholders. */
     public void load() throws SQLException {
         listings = marketDAO.findOpenListings(buyer.getId());
+        SystemLog.record(LogAction.QUERY, "Viewed share market (" + listings.size() + " sales)");
     }
 
     /** The listings that match the filter, from the newest to the oldest. */
@@ -130,6 +133,9 @@ public class ShareMarketController {
             throw new IllegalStateException(exception.getMessage() + System.lineSeparator()
                     + "Nothing has been bought: the cart has been emptied and the sales have been updated.");
         }
+        SystemLog.record(LogAction.INSERT, "Bought " + purchase.getShareIds().size()
+                + " shares in the share market (purchase #" + purchase.getPurchaseNumber() + ", "
+                + purchase.getTotal().toPlainString() + " €)");
         cart.clear();
         load();
         return purchase;

@@ -16,6 +16,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
+import com.ips2026.pl11.controller.log.SystemLog;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 
@@ -126,8 +127,9 @@ public abstract class RoleMenuWindow extends JFrame {
     }
 
     /**
-     * Asks for confirmation, closes this menu (and every window it owns) and
-     * opens the login window again.
+     * Asks for confirmation, closes this menu (and every window it owns),
+     * starts a guest session in the system log and opens the login window
+     * again.
      */
     private void logOut() {
         int answer = JOptionPane.showConfirmDialog(this, "Do you want to log out?", "Log out",
@@ -136,6 +138,9 @@ public abstract class RoleMenuWindow extends JFrame {
             return;
         }
         dispose();
+        // US 36717: from now on nobody is logged in, so what happens next (for
+        // example a failed login) goes to a new guest session, not to this user.
+        SystemLog.startGuestSession();
         new LoginWindow().setVisible(true);
     }
 }

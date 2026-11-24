@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.campaign;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -57,6 +59,8 @@ public class BuyCampaignSharesController {
         }
         campaign = open.get();
         limit = purchaseDAO.findLimit(campaign.getId(), shareholder.getId());
+        SystemLog.record(LogAction.QUERY, "Viewed campaign " + campaign.getName() + " to buy shares ("
+                + campaign.getStatus().getLabel() + ", " + limit.getRemainingShares() + " shares remaining)");
         return true;
     }
 
@@ -79,24 +83,7 @@ public class BuyCampaignSharesController {
      *         number between 1 and the maximum the shareholder can buy
      */
     public Optional<String> findQuantityProblem(String text) {
-        String clean = text == null ? "" : text.strip();
-        int max = limit.getMax();
-        if (max == 0) {
-            return Optional.of(limit.getReasonForNone());
-        }
-        if (clean.isEmpty()) {
-            return Optional.of("Enter the number of shares to buy.");
-        }
-        if (!clean.matches("\\d+")) {
-            return Optional.of("The number of shares must be a whole number.");
-        }
-        if (clean.length() > 9 || Integer.parseInt(clean) > max) {
-            return Optional.of("You can buy at most " + max + " shares.");
-        }
-        if (Integer.parseInt(clean) < 1) {
-            return Optional.of("You must buy at least 1 share.");
-        }
-        return Optional.empty();
+        return limit.findQuantityProblem(text);
     }
 
     /** Price of {@code quantity} shares at the nominal price of the campaign. */
@@ -128,7 +115,10 @@ public class BuyCampaignSharesController {
 
         int quantity = Integer.parseInt(quantityText.strip());
         try {
-            return purchaseDAO.buy(campaign, shareholder, quantity, now.get());
+            CampaignPurchase purchase = purchaseDAO.buy(campaign, shareholder, quantity, now.get());
+            SystemLog.record(LogAction.INSERT, "Bought " + quantity + " shares of campaign " + campaign.getName()
+                    + " (IDs " + purchase.getFirstShareId() + " - " + purchase.getLastShareId() + ")");
+            return purchase;
         } finally {
             load();
         }

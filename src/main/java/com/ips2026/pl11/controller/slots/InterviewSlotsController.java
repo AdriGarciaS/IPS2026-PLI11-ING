@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.slots;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -66,6 +68,8 @@ public class InterviewSlotsController {
 
         // 5. Persist slot in database
         slotDAO.createSlot(playerId, coachId, date, start, end);
+        SystemLog.record(LogAction.INSERT, "Created interview slot for player #" + playerId + " on " + date + " "
+                + start + "-" + end);
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.seasonpass;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -65,7 +67,12 @@ public class SeasonPassController {
 
         double finalPrice = calculatePrice(basePrice, ageCategory);
 
-        return seasonPassDAO.createSeasonPassWithHolder(dni, fullName, email, teamName, grandstand, section, rowNum, seatNum, ageCategory, finalPrice, startDate, endDate);
+        boolean created = seasonPassDAO.createSeasonPassWithHolder(dni, fullName, email, teamName, grandstand, section, rowNum, seatNum, ageCategory, finalPrice, startDate, endDate);
+        if (created) {
+            SystemLog.record(LogAction.INSERT, "Sold season pass to " + fullName + " (" + dni + ") for " + teamName
+                    + " (grandstand " + grandstand + ", section " + section + ", row " + rowNum + ", seat " + seatNum + ")");
+        }
+        return created;
     }
 
 }

@@ -1,5 +1,7 @@
 package com.ips2026.pl11.view.gardening.gardener;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -538,6 +540,8 @@ public class ViewGardeningSessions extends JDialog {
         List<GardeningSession> sessions;
         try {
             sessions = gardeningSessionController.getGardenerWeeklySessions(gardenerId, date);
+            SystemLog.record(LogAction.QUERY, "Viewed gardening sessions of gardener #" + gardenerId
+                + ", week of " + date);
         } catch (SQLException e) {
             showError("Sessions could not be loaded:\n" + e.getMessage());
             return;

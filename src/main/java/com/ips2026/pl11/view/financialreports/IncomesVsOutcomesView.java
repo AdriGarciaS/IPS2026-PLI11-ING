@@ -1,5 +1,7 @@
 package com.ips2026.pl11.view.financialreports;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Color;
@@ -351,6 +353,8 @@ public class IncomesVsOutcomesView extends JFrame {
         try {
             String period = (String) cmbViewPeriod.getSelectedItem();
             IncomesVsOutcomesData data = reportDAO.getIncomesVsOutcomesReport(fromDate, toDate, period);
+            SystemLog.record(LogAction.QUERY, "Viewed incomes vs outcomes report " + fromDate + " - " + toDate
+                    + " (" + period + ")");
 
             lblTotalIncomeValue.setText(MoneyFormat.format(data.totalIncome()));
             lblTotalOutcomeValue.setText(MoneyFormat.format(data.totalOutcome()));

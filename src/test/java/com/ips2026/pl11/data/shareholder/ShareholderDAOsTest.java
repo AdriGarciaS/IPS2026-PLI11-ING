@@ -74,6 +74,24 @@ class ShareholderDAOsTest {
         assertEquals("33333333P", shareholders.get(0).getNationalId());
     }
 
+    @Test
+    @DisplayName("US 35828: the national ID, email and username already registered are found, ignoring case")
+    void existingRegistrationData() throws SQLException {
+        TestDatabase.execute("UPDATE SHAREHOLDER SET email = 'laura@example.com', username = 'laura' WHERE id = 1");
+        TestDatabase.execute("INSERT INTO employees (first_name, last_name, national_id, birth_date, phone_number, "
+                + "category, position, gross_annual_salary, gender, username) VALUES "
+                + "('Pedro', 'Gómez', '99999999R', '1980-01-01', '600000000', 'NON_SPORTS', 'Gardener', 20000, 'MALE', 'pgomez')");
+        ShareholderDAO dao = new ShareholderDAO();
+
+        assertTrue(dao.existsNationalId("11111111h"));
+        assertFalse(dao.existsNationalId("12345678Z"));
+        assertTrue(dao.existsEmail("LAURA@example.com"));
+        assertFalse(dao.existsEmail("ana@example.com"));
+        assertTrue(dao.existsUsername("Laura"));
+        assertTrue(dao.existsUsername("PGOMEZ")); // the username of an employee cannot be used either
+        assertFalse(dao.existsUsername("ana_lopez"));
+    }
+
     // ------------------------------------------------------------------
     // ShareHoldingDAO
     // ------------------------------------------------------------------

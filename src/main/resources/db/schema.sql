@@ -190,8 +190,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_team_member_one_team_per_player ON TEAM_MEM
 -- Shareholders (US 35747: shares wallet).
 -- ---------------------------------------------------------------------------
 
--- People that own shares of the club. There is no login: a shareholder
--- identifies with the national ID or is searched by name.
+-- People that own shares of the club. They log in with their username and
+-- password (stored hashed with BCrypt).
+-- US 35828: external users become shareholders by buying shares in phase 3
+-- of a campaign; they register their name, surname, email, national ID,
+-- username and password. The email is required for them (it can be NULL only
+-- in old rows).
 -- US 36748: when a shareholder sells all their shares in the market, their row
 -- is deleted. Their old holdings, listings and transfers are kept (they are
 -- the history of the campaigns and of the market) with the shareholder
@@ -201,9 +205,9 @@ CREATE TABLE IF NOT EXISTS SHAREHOLDER (
     first_name  TEXT    NOT NULL,
     last_name   TEXT    NOT NULL,
     national_id TEXT    NOT NULL UNIQUE COLLATE NOCASE,
-    
-    username	TEXT    UNIQUE COLLATE NOCASE,
-    password	TEXT   
+    email       TEXT    UNIQUE COLLATE NOCASE,
+    username    TEXT    UNIQUE COLLATE NOCASE,
+    password    TEXT
 );
 
 -- Campaigns in which the club sells shares (for example a capital increase).
@@ -436,3 +440,37 @@ CREATE TABLE IF NOT EXISTS INJURY (
 	FOREIGN KEY (training_id) REFERENCES trainings(id)
 );
 
+
+-- ---------------------------------------------------------------------------
+-- System log (US 36717): every login (also the failed ones), data query and
+-- database change made by any user. Only the general manager can see it.
+-- ---------------------------------------------------------------------------
+
+-- A session: from the moment someone logs in until the application is closed.
+-- When the application starts there is a GUEST session (nobody has logged in
+-- yet): failed logins and the purchases of external users (US 35828) go there.
+-- user_id and username are not foreign keys on purpose: the log must keep
+-- showing who it was even if the employee or shareholder is removed later.
+-- started_at: YYYY-MM-DD HH:MM:SS, local time.
+CREATE TABLE IF NOT EXISTS USER_SESSION (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_type  TEXT    NOT NULL CHECK (user_type IN ('EMPLOYEE', 'SHAREHOLDER', 'GUEST')),
+    user_id    INTEGER,                -- employees.id or SHAREHOLDER.id (NULL for GUEST)
+    username   TEXT,                   -- NULL for GUEST
+    role       TEXT    NOT NULL,       -- 'General Manager', 'Shareholder', 'Guest'...
+    started_at TEXT    NOT NULL,
+    CHECK ((user_type = 'GUEST') = (username IS NULL))
+);
+
+-- One row per action, always inside a session.
+-- logged_at: YYYY-MM-DD HH:MM:SS, local time.
+CREATE TABLE IF NOT EXISTS SYSTEM_LOG (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id  INTEGER NOT NULL REFERENCES USER_SESSION (id),
+    logged_at   TEXT    NOT NULL,
+    action      TEXT    NOT NULL
+                CHECK (action IN ('LOGIN', 'LOGIN_FAILED', 'QUERY', 'INSERT', 'UPDATE', 'DELETE')),
+    description TEXT    NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_system_log_logged_at ON SYSTEM_LOG (logged_at);

@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.store;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -89,6 +91,8 @@ public class StoreSalesController {
         BigDecimal finalPrice = cart.getTotal();
         int saleNumber = saleDAO.registerSale(cart.getLines(), now);
         SaleReceipt receipt = new SaleReceipt(saleNumber, now.toLocalDate(), cart.getLines(), finalPrice);
+        SystemLog.record(LogAction.INSERT, "Store sale #" + saleNumber + " (" + cart.getLines().size()
+                + " products, " + finalPrice.toPlainString() + " €)");
         
         return receipt;
     }

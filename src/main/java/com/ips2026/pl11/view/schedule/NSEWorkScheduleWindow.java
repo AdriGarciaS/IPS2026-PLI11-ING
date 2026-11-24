@@ -1,5 +1,7 @@
 package com.ips2026.pl11.view.schedule;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -426,6 +428,20 @@ public class NSEWorkScheduleWindow extends JDialog {
 
     //////////////////////////////////////// METHODS   /////////////////////////////////////////////////////////////////////////////////////
 
+    /** US 36717: records in the system log the work schedule being looked at. */
+    private void recordQuery() {
+        SystemLog.record(LogAction.QUERY, "Viewed work schedule of employee #" + txtWorkerId.getText().trim()
+            + ", week of " + getSelectedMonday());
+    }
+
+    @Override
+    public void setVisible(boolean visible) {
+        if (visible && !isVisible()) {
+            recordQuery();
+        }
+        super.setVisible(visible);
+    }
+
     public void refreshShiftsTable() {
         try {
             occupiedShiftCells.clear();
@@ -438,6 +454,9 @@ public class NSEWorkScheduleWindow extends JDialog {
 
             for (WeeklyShift shift : dsController.getWeekShifts(employeeId, getSelectedMonday())) {
                 paintShift(model, shift);
+            }
+            if (isVisible()) {
+                recordQuery(); // US 36717: only what the user looks at (not when the menu builds this window)
             }
 
         } catch (NumberFormatException e) {

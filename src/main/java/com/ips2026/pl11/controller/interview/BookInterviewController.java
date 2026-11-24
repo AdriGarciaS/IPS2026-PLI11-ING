@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.interview;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -18,7 +20,9 @@ public class BookInterviewController {
      * Loads all slots currently marked as AVAILABLE.
      */
     public List<AvailableSlotRecord> loadAvailableSlots() throws SQLException {
-        return bookingDAO.getAvailableSlots();
+        List<AvailableSlotRecord> slots = bookingDAO.getAvailableSlots();
+        SystemLog.record(LogAction.QUERY, "Viewed available interview slots (" + slots.size() + ")");
+        return slots;
     }
 
     /**
@@ -39,5 +43,7 @@ public class BookInterviewController {
                 mediaName.trim(),
                 mediaContact != null ? mediaContact.trim() : ""
         );
+        SystemLog.record(LogAction.INSERT, "Booked interview with " + slot.getPlayerName() + " on " + slot.getDate()
+                + " " + slot.getStartTime() + " for " + mediaName.trim());
     }
 }

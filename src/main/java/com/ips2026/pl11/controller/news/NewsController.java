@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.news;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -30,5 +32,6 @@ public class NewsController {
         String joinedImages = String.join(",", imagePaths);
 
         newsDAO.insertArticle(headline.trim(), bodyText.trim(), joinedImages, authorId);
+        SystemLog.record(LogAction.INSERT, "Published news article \"" + headline.trim() + "\"");
     }
 }

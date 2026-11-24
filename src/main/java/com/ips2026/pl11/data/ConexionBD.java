@@ -24,9 +24,11 @@ import java.util.Properties;
  * base de datos se mantiene entre ejecuciones o se borra al cerrar la
  * aplicacion.</p>
  *
- * <p>La ruta del archivo se puede cambiar con la propiedad del sistema
- * {@code bd.ruta} (por ejemplo, los tests usan una base de datos temporal
- * para no tocar {@code data/demo.db}).</p>
+ * <p>La ruta del archivo se puede cambiar con la opcion {@code bd.ruta}, como
+ * propiedad del sistema o en {@code config.properties}. Los tests tienen su
+ * propio {@code src/test/resources/db/config.properties}, que apunta a
+ * {@code target/test.db}, asi que nunca tocan {@code data/demo.db} (que ahora
+ * se mantiene entre ejecuciones).</p>
  */
 public final class ConexionBD {
 
@@ -42,10 +44,14 @@ public final class ConexionBD {
         // Clase de utilidades: no se instancia.
     }
 
-    /** Ruta del archivo de la base de datos: {@code bd.ruta} si esta definida, si no {@code data/demo.db}. */
-    private static Path rutaBD() {
-        String ruta = System.getProperty(PROPIEDAD_RUTA);
-        return ruta == null || ruta.isBlank() ? RUTA_POR_DEFECTO : Path.of(ruta);
+    /**
+     * Ruta del archivo de la base de datos: la opcion {@code bd.ruta} (de las
+     * propiedades del sistema o de {@code config.properties}) si esta
+     * definida, si no {@code data/demo.db}.
+     */
+    private static Path rutaBD() throws SQLException {
+        String ruta = leerOpcion(PROPIEDAD_RUTA, "");
+        return ruta.isBlank() ? RUTA_POR_DEFECTO : Path.of(ruta.trim());
     }
 
     /**
@@ -56,7 +62,20 @@ public final class ConexionBD {
      * sin usar.</p>
      */
     public static Connection obtenerConexion() throws SQLException {
-        return DriverManager.getConnection("jdbc:sqlite:" + rutaBD());
+        Path rutaBD = rutaBD();
+        crearCarpeta(rutaBD);
+        return DriverManager.getConnection("jdbc:sqlite:" + rutaBD);
+    }
+
+    /** Crea la carpeta del archivo de la base de datos si todavia no existe. */
+    private static void crearCarpeta(Path rutaBD) throws SQLException {
+        try {
+            if (rutaBD.getParent() != null) {
+                Files.createDirectories(rutaBD.getParent());
+            }
+        } catch (IOException excepcion) {
+            throw new SQLException("No se pudo crear la carpeta de la base de datos " + rutaBD.getParent(), excepcion);
+        }
     }
 
     /**
@@ -68,10 +87,8 @@ public final class ConexionBD {
         boolean borrarAlCerrar = debeBorrarseAlCerrar();
         Path rutaBD = rutaBD();
 
+        crearCarpeta(rutaBD);
         try {
-            if (rutaBD.getParent() != null) {
-                Files.createDirectories(rutaBD.getParent());
-            }
             if (borrarAlCerrar) {
                 // Por si una ejecucion anterior termino de forma brusca y no
                 // llego a borrar el archivo: siempre empezamos desde cero.
@@ -103,19 +120,28 @@ public final class ConexionBD {
      * {@code config.properties}. Por defecto la base de datos se mantiene.
      */
     private static boolean debeBorrarseAlCerrar() throws SQLException {
-        String valor = System.getProperty(PROPIEDAD_BORRAR_AL_CERRAR);
-        if (valor == null) {
-            Properties config = new Properties();
-            try (InputStream entrada = ConexionBD.class.getResourceAsStream(ARCHIVO_CONFIG)) {
-                if (entrada != null) {
-                    config.load(entrada);
-                }
-            } catch (IOException excepcion) {
-                throw new SQLException("No se pudo leer " + ARCHIVO_CONFIG, excepcion);
-            }
-            valor = config.getProperty(PROPIEDAD_BORRAR_AL_CERRAR, "false");
+        return Boolean.parseBoolean(leerOpcion(PROPIEDAD_BORRAR_AL_CERRAR, "false").trim());
+    }
+
+    /**
+     * Valor de una opcion: primero de las propiedades del sistema
+     * ({@code -Dopcion=valor}) y, si no esta, de {@code config.properties}
+     * (el de los tests cuando se ejecutan los tests).
+     */
+    private static String leerOpcion(String opcion, String valorPorDefecto) throws SQLException {
+        String valor = System.getProperty(opcion);
+        if (valor != null) {
+            return valor;
         }
-        return Boolean.parseBoolean(valor.trim());
+        Properties config = new Properties();
+        try (InputStream entrada = ConexionBD.class.getResourceAsStream(ARCHIVO_CONFIG)) {
+            if (entrada != null) {
+                config.load(entrada);
+            }
+        } catch (IOException excepcion) {
+            throw new SQLException("No se pudo leer " + ARCHIVO_CONFIG, excepcion);
+        }
+        return config.getProperty(opcion, valorPorDefecto);
     }
 
     /**

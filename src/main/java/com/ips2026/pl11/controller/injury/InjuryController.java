@@ -20,10 +20,6 @@ public class InjuryController {
         injuryDAO.registerInjury(injury);
     }
     
-    public void updateInjury(Injury injury) throws SQLException {
-        injuryDAO.updateInjury(injury);
-    }
-    
     public void loadInjuries() throws SQLException {
         injuries = injuryDAO.getAllInjuries();
     }

@@ -43,7 +43,6 @@ public class ShareholderMenuWindow extends RoleMenuWindow {
     private MenuCardButton btnShareMarket;
     private MenuCardButton btnBuyCampaignShares;
 
-    /** @param shareholder the shareholder who has logged in */
     public ShareholderMenuWindow(Shareholder shareholder) {
         super(shareholder.getFullName() + " — shareholder main menu");
         this.shareholder = shareholder;

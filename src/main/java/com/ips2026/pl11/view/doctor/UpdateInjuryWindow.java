@@ -7,6 +7,8 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -79,7 +81,7 @@ public class UpdateInjuryWindow extends JDialog {
     private JTextField txtDate;
     private JTextField txtTime;
     private JSeparator separator;
-    private JScrollPane spnInjuries;
+    private JScrollPane spnNotes;
     private JTable tableInjuries;
     private JLabel lblInjuries;
     private JLabel lblNotes;
@@ -105,6 +107,18 @@ public class UpdateInjuryWindow extends JDialog {
         }
     };
 
+    private DefaultTableModel evolutionModel = new DefaultTableModel(new Object[][] {},
+        new String[] { "Date", "Notes" }) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false;
+        }
+    };
+
+    private JScrollPane spnHistory;
+    private JTable tableNotes;
+    private JLabel lblInjuryEvolution;
+
     /**
      * Create the dialog.
      */
@@ -122,8 +136,20 @@ public class UpdateInjuryWindow extends JDialog {
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         contentPane.add(getPnFooter(), BorderLayout.SOUTH);
         setLocationRelativeTo(parent);
-        Branding.setInitialSize(this, 900, 545, null);
+        Branding.setInitialSize(this, 900, 675, null);
         rootPane.setDefaultButton(getBtnUpdate());
+
+        loadFacilitiesIntoController();
+
+    }
+
+    private void loadFacilitiesIntoController() {
+        try {
+            facilityController.loadFacilities();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error loading facilities: " + e.getMessage(), "Database Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
 
     }
 
@@ -148,11 +174,13 @@ public class UpdateInjuryWindow extends JDialog {
             pnButtons.add(getTxtDate());
             pnButtons.add(getTxtTime());
             pnButtons.add(getSeparator());
-            pnButtons.add(getSpnInjuries());
+            pnButtons.add(getSpnNotes());
             pnButtons.add(getLblInjuries());
             pnButtons.add(getLblNotes());
             pnButtons.add(getScpNotes());
             pnButtons.add(getChckbxNewCheckBox());
+            pnButtons.add(getSpnHistory());
+            pnButtons.add(getLblInjuryEvolution());
 
         }
         return pnButtons;
@@ -213,7 +241,7 @@ public class UpdateInjuryWindow extends JDialog {
             lblDescription = new JLabel("Injury description:");
             lblDescription.setForeground(new Color(0, 64, 128));
             lblDescription.setFont(new Font("Tahoma", Font.BOLD, 16));
-            lblDescription.setBounds(500, 212, 171, 20);
+            lblDescription.setBounds(500, 229, 171, 20);
         }
         return lblDescription;
     }
@@ -221,10 +249,18 @@ public class UpdateInjuryWindow extends JDialog {
     private JButton getBtnUpdate() {
         if (btnUpdate == null) {
             btnUpdate = new JButton("Update");
+            btnUpdate.setEnabled(false);
             btnUpdate.setFont(new Font("Tahoma", Font.PLAIN, 12));
             btnUpdate.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    if (txtaNotes.getText().isBlank()) {
+                        JOptionPane.showMessageDialog(UpdateInjuryWindow.this,
+                            "Please enter evolution notes before updating the injury.", "Input Error",
+                            JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
                     Injury selectedInjury = null;
                     for (Injury injury : injuries) {
                         if (injury.getId() == (int) tableInjuries.getValueAt(tableInjuries.getSelectedRow(), 0)) {
@@ -234,15 +270,21 @@ public class UpdateInjuryWindow extends JDialog {
                     }
 
                     if (selectedInjury != null) {
-                        selectedInjury.setHealed(chckbxNewCheckBox.isSelected());
-                        if (!txtaNotes.getText().isBlank()) {
-                            selectedInjury.setDescription(txtaNotes.getText());
-                        }
+                        boolean isHealed = chckbxNewCheckBox.isSelected();
+                        List<String[]> notes = new ArrayList<>(selectedInjury.getEvolutionNotes());
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd");
+                        notes.add(new String[] { LocalDate.now().format(formatter).toString(), txtaNotes.getText() });
+
+                        Injury newInjury = new Injury(0, selectedInjury.getPlayerId(), selectedInjury.getMatchId(),
+                            selectedInjury.getTrainingId(), selectedInjury.getDescription(),
+                            selectedInjury.getInjuryDate(), isHealed, selectedInjury.getDoctorId(),
+                            selectedInjury.getInjuryTime(), notes);
 
                         try {
-                            injuryController.updateInjury(selectedInjury);
+                            injuryController.registerInjury(newInjury);
                             JOptionPane.showMessageDialog(UpdateInjuryWindow.this, "Injury updated successfully.",
                                 "Success", JOptionPane.INFORMATION_MESSAGE);
+                            ;
                             loadInjuries();
                             initializeFields();
                         } catch (SQLException ex) {
@@ -257,7 +299,7 @@ public class UpdateInjuryWindow extends JDialog {
                 }
 
             });
-            btnUpdate.setBounds(778, 365, 89, 25);
+            btnUpdate.setBounds(778, 497, 89, 25);
         }
         return btnUpdate;
     }
@@ -273,7 +315,7 @@ public class UpdateInjuryWindow extends JDialog {
                 }
             });
             btnReturn.setMnemonic('R');
-            btnReturn.setBounds(679, 365, 89, 25);
+            btnReturn.setBounds(679, 497, 89, 25);
         }
         return btnReturn;
     }
@@ -281,7 +323,7 @@ public class UpdateInjuryWindow extends JDialog {
     private JScrollPane getScpDescription() {
         if (scpDescription == null) {
             scpDescription = new JScrollPane();
-            scpDescription.setBounds(500, 234, 319, 110);
+            scpDescription.setBounds(500, 257, 319, 80);
             scpDescription.setViewportView(getTxtaDescription_1());
         }
         return scpDescription;
@@ -382,18 +424,18 @@ public class UpdateInjuryWindow extends JDialog {
         if (separator == null) {
             separator = new JSeparator();
             separator.setOrientation(SwingConstants.VERTICAL);
-            separator.setBounds(460, 21, 27, 338);
+            separator.setBounds(460, 21, 27, 293);
         }
         return separator;
     }
 
-    private JScrollPane getSpnInjuries() {
-        if (spnInjuries == null) {
-            spnInjuries = new JScrollPane();
-            spnInjuries.setBounds(21, 52, 397, 156);
-            spnInjuries.setViewportView(getTableInjuries());
+    private JScrollPane getSpnNotes() {
+        if (spnNotes == null) {
+            spnNotes = new JScrollPane();
+            spnNotes.setBounds(21, 52, 397, 156);
+            spnNotes.setViewportView(getTableInjuries());
         }
-        return spnInjuries;
+        return spnNotes;
     }
 
     private JTable getTableInjuries() {
@@ -404,6 +446,7 @@ public class UpdateInjuryWindow extends JDialog {
             column.setMaxWidth(50);
             tableInjuries.getSelectionModel().addListSelectionListener(e -> {
                 if (!e.getValueIsAdjusting() && tableInjuries.getSelectedRow() != -1) {
+                    btnUpdate.setEnabled(true);
 
                     int selectedRow = tableInjuries.getSelectedRow();
                     Injury selectedInjury = injuries.get(selectedRow);
@@ -429,13 +472,42 @@ public class UpdateInjuryWindow extends JDialog {
                     txtFacility.setText(facilityName);
                     txtTime.setText(selectedInjury.getInjuryTime().toString());
 
+                    loadEvolutionNotes(selectedInjury);
+
                 }
             });
         }
         return tableInjuries;
     }
 
-   
+    private JScrollPane getSpnHistory() {
+        if (spnHistory == null) {
+            spnHistory = new JScrollPane();
+            spnHistory.setBounds(21, 368, 849, 121);
+            spnHistory.setViewportView(getTableNotes());
+        }
+        return spnHistory;
+    }
+
+    private JTable getTableNotes() {
+        if (tableNotes == null) {
+            tableNotes = new JTable();
+            tableNotes.setModel(evolutionModel);
+            TableColumn column = tableNotes.getColumnModel().getColumn(0);
+            column.setMaxWidth(60);
+        }
+        return tableNotes;
+    }
+
+    private JLabel getLblInjuryEvolution() {
+        if (lblInjuryEvolution == null) {
+            lblInjuryEvolution = new JLabel("Injury evolution:");
+            lblInjuryEvolution.setForeground(new Color(0, 64, 128));
+            lblInjuryEvolution.setFont(new Font("Tahoma", Font.BOLD, 16));
+            lblInjuryEvolution.setBounds(21, 346, 171, 20);
+        }
+        return lblInjuryEvolution;
+    }
 
     private JLabel getLblInjuries() {
         if (lblInjuries == null) {
@@ -452,7 +524,7 @@ public class UpdateInjuryWindow extends JDialog {
             lblNotes = new JLabel("Healing process notes:");
             lblNotes.setForeground(new Color(0, 64, 128));
             lblNotes.setFont(new Font("Tahoma", Font.BOLD, 16));
-            lblNotes.setBounds(21, 212, 233, 20);
+            lblNotes.setBounds(21, 229, 233, 20);
         }
         return lblNotes;
     }
@@ -460,7 +532,7 @@ public class UpdateInjuryWindow extends JDialog {
     private JScrollPane getScpNotes() {
         if (scpNotes == null) {
             scpNotes = new JScrollPane();
-            scpNotes.setBounds(21, 234, 397, 110);
+            scpNotes.setBounds(21, 257, 397, 80);
             scpNotes.setViewportView(getTxtaDescription_1_1());
         }
         return scpNotes;
@@ -481,7 +553,7 @@ public class UpdateInjuryWindow extends JDialog {
             chckbxNewCheckBox = new JCheckBox("  Recovered?");
             chckbxNewCheckBox.setForeground(new Color(0, 64, 128));
             chckbxNewCheckBox.setFont(new Font("Tahoma", Font.BOLD, 16));
-            chckbxNewCheckBox.setBounds(21, 359, 267, 35);
+            chckbxNewCheckBox.setBounds(294, 227, 130, 25);
         }
         return chckbxNewCheckBox;
     }
@@ -507,7 +579,18 @@ public class UpdateInjuryWindow extends JDialog {
         }
 
     }
-    
+
+    private void loadEvolutionNotes(Injury injury) {
+        evolutionModel.setRowCount(0);
+        List<String[]> notes = injury.getEvolutionNotes();
+
+        for (String[] note : notes) {
+            if (note.length == 2) {
+                evolutionModel.addRow(new Object[] { note[0], note[1] });
+            }
+        }
+    }
+
     private void initializeFields() {
         txtPlayer.setText("");
         txtDate.setText("");
@@ -517,16 +600,16 @@ public class UpdateInjuryWindow extends JDialog {
         txtFacility.setText("");
         txtTime.setText("");
         txtaNotes.setText("");
-        
+        evolutionModel.setRowCount(0);
+        btnUpdate.setEnabled(false);
     }
 
     private String getPlayerName(Injury injury) throws SQLException {
-        return employeeController.getEmployees().stream()
-            .filter(employee -> employee.getId() == injury.getPlayerId())
+        return employeeController.getEmployees().stream().filter(employee -> employee.getId() == injury.getPlayerId())
             .map(employee -> employee.getFirstName() + " " + employee.getLastName()).findFirst()
             .orElse("Unknown Player");
     }
-    
+
     private String findFacilityName(Injury selectedInjury) {
         int matchId = selectedInjury.getMatchId();
         int trainingId = selectedInjury.getTrainingId();
@@ -534,6 +617,7 @@ public class UpdateInjuryWindow extends JDialog {
             if (matchId != -1) {
                 Optional<Match> om = matchController.findMatchById(matchId);
                 if (om.isPresent()) {
+
                     Optional<Facility> of = facilityController.findFacilityById(om.get().getFacilityId());
                     if (of.isPresent()) {
                         return of.get().getName();

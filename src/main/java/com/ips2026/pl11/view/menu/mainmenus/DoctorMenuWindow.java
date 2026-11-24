@@ -76,6 +76,7 @@ public class DoctorMenuWindow extends RoleMenuWindow {
             btnOption3 = new MenuCardButton("Update Injury", "For a given player");
             btnOption3.addActionListener(e -> {
                 updateInjuryWindow.loadInjuries(); 
+                
                 updateInjuryWindow.setVisible(true);
                 
             });

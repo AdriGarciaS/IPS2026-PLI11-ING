@@ -429,6 +429,7 @@ CREATE TABLE IF NOT EXISTS INJURY (
 	is_healed INTEGER NOT NULL CHECK (is_healed IN (0, 1)), -- 1 = healed, 0 = not healed
 	doctor_id INTEGER NOT NULL,
 	injury_time TEXT NOT NULL,
+	evolution_notes TEXT NOT NULL ,
 	
 	FOREIGN KEY (doctor_id) REFERENCES employees(id),
 	FOREIGN KEY (player_id) REFERENCES employees(id),

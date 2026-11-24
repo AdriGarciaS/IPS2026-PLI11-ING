@@ -8,6 +8,7 @@ import java.util.Random;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import com.ips2026.pl11.controller.log.SystemLog;
 import com.ips2026.pl11.data.ConexionBD;
 import com.ips2026.pl11.data.shareholder.MarketPriceDAO;
 import com.ips2026.pl11.view.common.Branding;
@@ -45,6 +46,10 @@ public final class App {
             // Precio de mercado de las acciones de hoy (aleatorio), solo si
             // todavia no existe: asi se crea una vez al dia.
             new MarketPriceDAO().ensurePriceFor(LocalDate.now(), new Random());
+            // US 36717: registro del sistema. Hasta que alguien inicie sesion,
+            // lo que pase (intentos de login fallidos, compras de usuarios
+            // externos) va a una sesion de invitado.
+            SystemLog.startGuestSession();
         } catch (SQLException excepcion) {
             JOptionPane.showMessageDialog(null,
                     "No se pudo inicializar la base de datos:\n" + excepcion.getMessage(),

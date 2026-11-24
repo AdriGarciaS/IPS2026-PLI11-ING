@@ -27,6 +27,7 @@ import javax.swing.border.TitledBorder;
 import com.ips2026.pl11.controller.PasswordEncrypting;
 import com.ips2026.pl11.controller.campaign.ExternalSharePurchaseController;
 import com.ips2026.pl11.controller.employee.EmployeeController;
+import com.ips2026.pl11.controller.log.SystemLog;
 import com.ips2026.pl11.controller.shareholder.ShareholderPortalController;
 import com.ips2026.pl11.data.campaign.CampaignDAO;
 import com.ips2026.pl11.data.campaign.CampaignPurchaseDAO;
@@ -34,6 +35,8 @@ import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.data.shareholder.ShareholderDAO;
 import com.ips2026.pl11.model.campaign.Campaign;
 import com.ips2026.pl11.model.employee.Employee;
+import com.ips2026.pl11.model.log.LogAction;
+import com.ips2026.pl11.model.log.UserType;
 import com.ips2026.pl11.model.shareholder.Shareholder;
 import com.ips2026.pl11.view.campaign.ExternalBuySharesDialog;
 import com.ips2026.pl11.view.common.Branding;
@@ -302,6 +305,8 @@ public class LoginWindow extends JFrame {
             Optional<Shareholder> os = shareholderController.findShareholderByUsername(getTxtUsername().getText());
 
             if (oe.isEmpty() && os.isEmpty()) {
+                SystemLog.record(LogAction.LOGIN_FAILED,
+                        "Failed login for '" + getTxtUsername().getText() + "': unknown username");
                 JOptionPane.showMessageDialog(this, "Invalid username.", "Authentication Error",
                         JOptionPane.ERROR_MESSAGE);
                 initialize();
@@ -310,22 +315,30 @@ public class LoginWindow extends JFrame {
 
             if (oe.isPresent()) {
                 if (!PasswordEncrypting.checkPassword(password, oe.get().getPassword())) {
+                    SystemLog.record(LogAction.LOGIN_FAILED,
+                            "Failed login for '" + getTxtUsername().getText() + "': wrong password");
                     JOptionPane.showMessageDialog(this, "Invalid password.", "Authentication Error",
                             JOptionPane.ERROR_MESSAGE);
                     getPswPassword().setText("");
                     return;
                 }
+                SystemLog.startUserSession(UserType.EMPLOYEE, oe.get().getId(), oe.get().getUsername(),
+                        oe.get().getPosition());
                 JOptionPane.showMessageDialog(this, "Welcome, " + oe.get().getFirstName() + "!", "Login Successful",
                         JOptionPane.INFORMATION_MESSAGE);
                 openPositionMenu(oe.get().getPosition(), oe.get().getId());
                 dispose();
             } else {
                 if (!PasswordEncrypting.checkPassword(password, os.get().getPassword())) {
+                    SystemLog.record(LogAction.LOGIN_FAILED,
+                            "Failed login for '" + getTxtUsername().getText() + "': wrong password");
                     JOptionPane.showMessageDialog(this, "Invalid password.", "Authentication Error",
                             JOptionPane.ERROR_MESSAGE);
                     getPswPassword().setText("");
                     return;
                 }
+                SystemLog.startUserSession(UserType.SHAREHOLDER, os.get().getId(), os.get().getUsername(),
+                        "Shareholder");
                 JOptionPane.showMessageDialog(this, "Welcome, " + os.get().getFirstName() + "!", "Login Successful",
                         JOptionPane.INFORMATION_MESSAGE);
                 new ShareholderMenuWindow(os.get()).setVisible(true);

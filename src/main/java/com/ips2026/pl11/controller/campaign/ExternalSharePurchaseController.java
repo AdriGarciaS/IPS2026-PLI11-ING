@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import com.ips2026.pl11.controller.PasswordEncrypting;
+import com.ips2026.pl11.controller.log.SystemLog;
 import com.ips2026.pl11.data.campaign.CampaignDAO;
 import com.ips2026.pl11.data.campaign.CampaignPurchaseDAO;
 import com.ips2026.pl11.data.shareholder.ShareholderDAO;
@@ -16,6 +17,7 @@ import com.ips2026.pl11.model.campaign.Campaign;
 import com.ips2026.pl11.model.campaign.CampaignPurchase;
 import com.ips2026.pl11.model.campaign.CampaignPurchaseLimit;
 import com.ips2026.pl11.model.campaign.ShareholderRegistration;
+import com.ips2026.pl11.model.log.LogAction;
 import com.ips2026.pl11.model.reservation.CardValidator;
 
 /**
@@ -135,8 +137,13 @@ public class ExternalSharePurchaseController {
 
         int quantity = Integer.parseInt(quantityText.strip());
         try {
-            return purchaseDAO.registerAndBuy(campaign, registration, passwordHasher.apply(registration.getPassword()),
-                    quantity, now.get());
+            CampaignPurchase purchase = purchaseDAO.registerAndBuy(campaign, registration,
+                    passwordHasher.apply(registration.getPassword()), quantity, now.get());
+            SystemLog.record(LogAction.INSERT, "Registered shareholder " + registration.getUsername() + " ("
+                    + registration.getFullName() + ", " + registration.getNationalId() + ") and bought "
+                    + quantity + " shares of campaign " + campaign.getName() + " (IDs "
+                    + purchase.getFirstShareId() + " - " + purchase.getLastShareId() + ")");
+            return purchase;
         } finally {
             load();
         }

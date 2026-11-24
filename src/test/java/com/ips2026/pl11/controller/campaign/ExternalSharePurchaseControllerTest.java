@@ -6,7 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,8 +18,10 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.ips2026.pl11.controller.log.SystemLog;
 import com.ips2026.pl11.data.campaign.CampaignDAO;
 import com.ips2026.pl11.data.campaign.CampaignPurchaseDAO;
+import com.ips2026.pl11.data.log.SystemLogDAO;
 import com.ips2026.pl11.data.shareholder.ShareholderDAO;
 import com.ips2026.pl11.model.campaign.Campaign;
 import com.ips2026.pl11.model.campaign.CampaignPurchase;
@@ -135,6 +140,24 @@ class ExternalSharePurchaseControllerTest {
         assertEquals("Ana López Vidal", purchase.getShareholderName());
         assertEquals(new BigDecimal("240.00"), purchase.getTotal());
         assertEquals(410, controller.getLimit().getRemainingShares()); // read again after buying
+    }
+
+    @Test
+    @DisplayName("US 36717: the registration and purchase is recorded in the system log (and nothing when it fails)")
+    void registerAndBuyIsLogged() throws SQLException {
+        ByteArrayOutputStream console = new ByteArrayOutputStream();
+        SystemLog.configure(new SystemLogDAO(), () -> MOMENT, new PrintStream(console, true, StandardCharsets.UTF_8));
+        try {
+            controller.load();
+            assertThrows(IllegalArgumentException.class, () -> controller.registerAndBuy("0", ANA, VALID_CARD));
+            assertEquals("", console.toString(StandardCharsets.UTF_8));
+
+            controller.registerAndBuy("20", ANA, VALID_CARD);
+            assertTrue(console.toString(StandardCharsets.UTF_8).contains("| INSERT | Registered shareholder ana_lopez "
+                    + "(Ana López Vidal, 12345678Z) and bought 20 shares of campaign Capital increase 2027 (IDs 3071 - 3090)"));
+        } finally {
+            SystemLog.reset();
+        }
     }
 
     @Test

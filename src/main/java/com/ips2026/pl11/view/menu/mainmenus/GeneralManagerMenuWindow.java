@@ -1,5 +1,8 @@
 package com.ips2026.pl11.view.menu.mainmenus;
 
+import com.ips2026.pl11.controller.log.SystemLogController;
+import com.ips2026.pl11.data.log.SystemLogDAO;
+import com.ips2026.pl11.view.log.SystemLogDialog;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -59,6 +62,7 @@ public class GeneralManagerMenuWindow extends JFrame {
     private MenuCardButton btnOption4;
     private MenuCardButton btnOption14;
     private MenuCardButton btnOption15;
+    private MenuCardButton btnSystemLog;
     private JPanel pnFooter;
     private JLabel lblFooter;
     private JButton selectedButton;
@@ -106,6 +110,7 @@ public class GeneralManagerMenuWindow extends JFrame {
             pnButtons.add(getBtnOption4());
             pnButtons.add(getBtnOption14());
             pnButtons.add(getBtnOption15());
+            pnButtons.add(getBtnSystemLog());
         }
         return pnButtons;
     }
@@ -232,6 +237,26 @@ public class GeneralManagerMenuWindow extends JFrame {
         return btnOption15;
     }
     
+    /** US 36717: only the general manager can see the system log. */
+    private MenuCardButton getBtnSystemLog() {
+        if (btnSystemLog == null) {
+            btnSystemLog = new MenuCardButton("System Log", "Actions performed by users in the app");
+            btnSystemLog.setMnemonic('L');
+            btnSystemLog.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 16));
+            btnSystemLog.addActionListener(event -> openSystemLog());
+        }
+        return btnSystemLog;
+    }
+
+    private void openSystemLog() {
+        try {
+            new SystemLogDialog(new SystemLogController(new SystemLogDAO()), this).setVisible(true);
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this, "The system log could not be opened:\n" + exception.getMessage(),
+                    "System Log", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void openFinancialReports() {
         try {
             FinancialReportsMenu dialog = new FinancialReportsMenu(this);

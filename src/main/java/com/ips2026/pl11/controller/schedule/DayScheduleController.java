@@ -148,7 +148,6 @@ public class DayScheduleController {
                 result.add(s);
             }
         }
-        SystemLog.record(LogAction.QUERY, "Viewed work schedule of employee #" + employeeId + ", week of " + monday);
 
         return result;
     }

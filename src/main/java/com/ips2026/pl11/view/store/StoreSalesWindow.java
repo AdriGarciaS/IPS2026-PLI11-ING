@@ -1,5 +1,8 @@
 package com.ips2026.pl11.view.store;
 
+import static com.ips2026.pl11.controller.email.EmailController.generateTicketCode;
+import static com.ips2026.pl11.controller.pdf.InvoiceGenerator.buildInvoiceHtml;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -11,8 +14,14 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.math.RoundingMode;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -34,7 +43,13 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import com.ips2026.pl11.controller.email.EmailController;
+import com.ips2026.pl11.controller.employee.EmployeeController;
+import com.ips2026.pl11.controller.pdf.InvoiceGenerator.InvoiceData;
+import com.ips2026.pl11.controller.pdf.InvoiceGenerator.InvoiceLine;
 import com.ips2026.pl11.controller.store.StoreSalesController;
+import com.ips2026.pl11.data.employee.EmployeeDAO;
+import com.ips2026.pl11.model.employee.Employee;
+import com.ips2026.pl11.model.store.Cart;
 import com.ips2026.pl11.model.store.CartLine;
 import com.ips2026.pl11.model.store.Merchandise;
 import com.ips2026.pl11.model.store.SaleReceipt;
@@ -61,6 +76,10 @@ import jakarta.mail.MessagingException;
 public class StoreSalesWindow extends JDialog {
 
     private static final long serialVersionUID = 1L;
+
+    private int employeeId;
+    private String userEmail = "";
+    private EmployeeController employeeController = new EmployeeController(new EmployeeDAO());
     private EmailController emailController = new EmailController("smtp.gmail.com", 587, "ipswichmgmt@gmail.com",
         "lndqblaxqraeetjw");
 
@@ -113,8 +132,9 @@ public class StoreSalesWindow extends JDialog {
      * @param owner      window that opens it (the main menu); it stays blocked
      *                   until this window is closed
      */
-    public StoreSalesWindow(StoreSalesController controller, Window owner) {
+    public StoreSalesWindow(StoreSalesController controller, Window owner, int employeeId) {
         super(owner, ModalityType.APPLICATION_MODAL);
+        this.employeeId = employeeId;
         this.controller = controller;
         this.catalogModel = new CatalogTableModel(controller.getCart());
         this.cartModel = new CartTableModel(controller.getCart());
@@ -658,26 +678,122 @@ public class StoreSalesWindow extends JDialog {
             return;
         }
 
-        String email = askForEmail();
-        if (email == null) {
-            return;
+        boolean wantsInvoice = askForInvoice();
+        if (!wantsInvoice) {
+            askForEmail();
+            if (userEmail == null || userEmail.isEmpty()) {
+                return;
+            }
+            sendReceipt(receipt);
+        } else {
+            String[] customerDetails = askForCustomerDetails();
+            if (customerDetails == null) {
+                return;
+            }
+            sendReceipt(receipt);
+            sendInvoice(controller.getCart(), customerDetails);
         }
-
+        
+        try {
+            controller.clearCart();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Failed to clear the cart after purchase: " + e.getMessage(), "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
         cartModel.reload();
         updateCartActions();
         refreshCatalog();
         updateTotal();
 
+        JOptionPane.showMessageDialog(this, buildSummary(receipt) + "\nReceipt sent to " + userEmail,
+            "Purchase completed", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void sendInvoice(Cart cart, String[] customerDetails) {
         try {
-            emailController.sendReceipt(email, receipt);
-        
+            String[] employeeData = getEmployeeDetails();
+
+            List<InvoiceLine> lines = new ArrayList<>();
+            for (CartLine line : cart.getLines()) {
+                lines.add(new InvoiceLine(line.getUnits(), line.getMerchandise().getName(),
+                    line.getSubtotal().setScale(2, RoundingMode.HALF_UP)));
+            }
+
+            InvoiceData data = new InvoiceData(customerDetails[0], customerDetails[1], userEmail, employeeData[0],
+                employeeData[1], "Ticket sale", "ipswichmgmt@gmail.com", LocalDateTime.now(), generateTicketCode("SLE"),
+                lines);
+
+            String html = buildInvoiceHtml(data);
+            String fileName = "invoice_" + data.code() + ".pdf";
+
+            emailController.sendInvoiceByEmail(data.customerEmail(), html, fileName);
+            JOptionPane.showMessageDialog(this, "Invoice sent to " + data.customerEmail(), "Invoice sent",
+                JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Invoice generation failed: " + e.getMessage(), "Error",
+                JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Employee data retrieval failed: " + e.getMessage(), "Error",
+                JOptionPane.ERROR_MESSAGE);
+        } catch (MessagingException e) {
+            JOptionPane.showMessageDialog(this, "Invoice email sending failed: " + e.getMessage(), "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+
+    }
+
+    private boolean askForInvoice() {
+        int result = JOptionPane.showConfirmDialog(this, "Would you like an invoice for this purchase?",
+            "Invoice Request", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+        return result == JOptionPane.YES_OPTION;
+    }
+
+    private String[] getEmployeeDetails() throws SQLException {
+        Optional<Employee> employeeOpt = employeeController.getEmployeeById(employeeId);
+        if (employeeOpt.isPresent()) {
+            Employee employee = employeeOpt.get();
+            return new String[] { employee.getFirstName() + " " + employee.getLastName(), employee.getNationalId() };
+        } else {
+            throw new SQLException("Employee not found for ID: " + employeeId);
+        }
+    }
+
+    private String[] askForCustomerDetails() {
+        while (true) {
+            JTextField txtName = new JTextField(25);
+            JTextField txtDni = new JTextField(25);
+            JTextField txtEmail = new JTextField(25);
+
+            int result = JOptionPane.showConfirmDialog(this,
+                new Object[] { "Customer full name:", txtName, "Customer DNI:", txtDni, "Customer e-mail:", txtEmail },
+                "Invoice details", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+            if (result != JOptionPane.OK_OPTION) {
+                return null;
+            }
+
+            String name = txtName.getText().trim();
+            String dni = txtDni.getText().trim();
+            userEmail = txtEmail.getText().trim();
+            if (!name.isEmpty() && !dni.isEmpty()) {
+                return new String[] { name, dni };
+            }
+
+            JOptionPane.showMessageDialog(this, "Name and DNI are required for an invoice.", "Missing data",
+                JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private void sendReceipt(SaleReceipt receipt) {
+        try {
+            emailController.sendReceipt(userEmail, receipt);
+
         } catch (MessagingException | IllegalStateException exception) {
             JOptionPane.showMessageDialog(this, "The receipt could not be sent:\n" + exception.getMessage(),
                 "Email error", JOptionPane.ERROR_MESSAGE);
         }
-
-        JOptionPane.showMessageDialog(this, buildSummary(receipt) + "\nReceipt sent to " + email,
-            "Purchase completed", JOptionPane.INFORMATION_MESSAGE);
     }
 
     /** HTML summary of the purchase: one row per line and the final price. */

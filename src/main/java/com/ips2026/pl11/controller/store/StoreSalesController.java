@@ -1,17 +1,17 @@
 package com.ips2026.pl11.controller.store;
 
-import com.ips2026.pl11.data.store.MerchandiseDAO;
-import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
-import com.ips2026.pl11.model.store.Cart;
-import com.ips2026.pl11.model.store.Merchandise;
-import com.ips2026.pl11.model.store.SaleReceipt;
-
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import com.ips2026.pl11.data.store.MerchandiseDAO;
+import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
+import com.ips2026.pl11.model.store.Cart;
+import com.ips2026.pl11.model.store.Merchandise;
+import com.ips2026.pl11.model.store.SaleReceipt;
 
 /**
  * Controller of the store sales window: keeps the catalog and the cart and
@@ -89,9 +89,12 @@ public class StoreSalesController {
         BigDecimal finalPrice = cart.getTotal();
         int saleNumber = saleDAO.registerSale(cart.getLines(), now);
         SaleReceipt receipt = new SaleReceipt(saleNumber, now.toLocalDate(), cart.getLines(), finalPrice);
-
+        
+        return receipt;
+    }
+    
+    public void clearCart() throws SQLException {
         cart.clear();
         loadCatalog();
-        return receipt;
     }
 }

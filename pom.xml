@@ -62,6 +62,21 @@
 		    <artifactId>pdfbox</artifactId>
 		    <version>3.0.8</version>
 		</dependency>
+		
+		<!-- HTML formatting for the invoice with open html to pdf -->
+		<dependency>
+		    <groupId>io.github.openhtmltopdf</groupId>
+		    <artifactId>openhtmltopdf-pdfbox</artifactId>
+		    <version>1.1.97</version>
+		</dependency>
+		
+		
+		<!-- Financial Charts with JFreeChart-->
+		<dependency>
+		    <groupId>org.jfree</groupId>
+		    <artifactId>jfreechart</artifactId>
+		    <version>1.5.6</version>
+		</dependency>
 
     </dependencies>
     

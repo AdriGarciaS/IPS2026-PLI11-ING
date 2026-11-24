@@ -17,6 +17,8 @@ import com.ips2026.pl11.model.ticket.HomeMatch;
 
 public class MatchDAO {
 
+    public record BatchImportResult(int insertedCount, List<String> logLines) {}
+
     public List<HomeMatch> getHomeMatches() throws SQLException {
         List<HomeMatch> matches = new ArrayList<>();
         String sql = "SELECT m.id, t.name AS team_name, m.rival, m.match_date, m.start_time, m.is_special_match " +
@@ -161,10 +163,10 @@ public class MatchDAO {
         return activities;
     }
 
-    public int createHomeMatchWithConflictsCleared(int teamId, String rival, String date, 
-                                                  String startTime, String endTime, 
+    public int createHomeMatchWithConflictsCleared(int teamId, String rival, String date,
+                                                  String startTime, String endTime,
                                                   boolean isSpecial, int facilityId) throws SQLException {
-        
+
         String sqlCheckTraining = "SELECT COUNT(*) FROM trainings " +
                                   "WHERE facility_id = ? AND training_date = ? " +
                                   "AND (start_time < ? AND end_time > ?)";
@@ -201,7 +203,7 @@ public class MatchDAO {
 
         String sqlMatch = "INSERT INTO matches (team_id, rival, match_date, start_time, end_time, is_home, is_special_match, facility_id) " +
                           "VALUES (?, ?, ?, ?, ?, 1, ?, ?)";
-        
+
         String sqlCancelReservations = "DELETE FROM FACILITY_RESERVATION " +
                 "WHERE facility_id = ? AND reservation_date = ? " +
                 "AND (start_time < ? AND end_time > ?)";
@@ -347,9 +349,13 @@ public class MatchDAO {
     }
 
     public int insertBatchMatches(List<MatchCSV> matches) {
+        return insertBatchMatchesWithReport(matches).insertedCount();
+    }
+
+    public BatchImportResult insertBatchMatchesWithReport(List<MatchCSV> matches) {
         String sqlInsert = "INSERT INTO matches (team_id, match_date, start_time, end_time, rival, is_home, is_special_match, facility_id) " +
                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        
+
         String sqlCancelReservations = "DELETE FROM FACILITY_RESERVATION " +
                 "WHERE facility_id = ? AND reservation_date = ? " +
                 "AND (start_time < ? AND end_time > ?)";
@@ -367,9 +373,10 @@ public class MatchDAO {
                 "AND (start_time < ? AND end_time > ?)";
 
         int insertedCount = 0;
+        List<String> logLines = new ArrayList<>();
 
         try (Connection conn = ConexionBD.obtenerConexion()) {
-            conn.setAutoCommit(false); 
+            conn.setAutoCommit(false);
 
             try (PreparedStatement pstmtInsert = conn.prepareStatement(sqlInsert);
                  PreparedStatement pstmtRes = conn.prepareStatement(sqlCancelReservations);
@@ -377,47 +384,59 @@ public class MatchDAO {
                  PreparedStatement pstmtInt = conn.prepareStatement(sqlCancelInterviews);
                  PreparedStatement pstmtIntSlots = conn.prepareStatement(sqlCancelInterviewSlots)) {
 
+                int rowIndex = 1;
                 for (MatchCSV match : matches) {
                     Integer facilityId = match.getFacilityId();
                     if (match.isHome() && (facilityId == null || facilityId <= 0)) {
                         facilityId = 1;
                     }
 
+                    String startStr = match.getStartTime() != null ? match.getStartTime().toString() : "00:00";
+                    String endStr = match.getEndTime() != null ? match.getEndTime().toString() : "00:00";
+
                     if (match.isHome()) {
-                        boolean conflict = hasConflict(
-                            facilityId, 
-                            match.getMatchDate(), 
-                            match.getStartTime(), 
+                        // Block match if there is a high-priority conflict (matches or trainings)
+                        boolean highPriorityConflict = hasConflict(
+                            facilityId,
+                            match.getMatchDate(),
+                            match.getStartTime(),
                             match.getEndTime()
                         );
-                        
-                        if (conflict) {
-                            System.out.println("[BLOCKED] Match against " + match.getRival() + " on " + match.getMatchDate() + " due to schedule conflict.");
-                            continue; 
+
+                        if (highPriorityConflict) {
+                            String blockedLine = "[BLOCKED] Row " + rowIndex + " - Match vs " + match.getRival()
+                                    + " on " + match.getMatchDate() + " (" + startStr + "-" + endStr + "): conflict with match or training.";
+                            System.out.println(blockedLine);
+                            logLines.add(blockedLine);
+                            rowIndex++;
+                            continue;
                         }
                     }
 
+                    // Detect overlapping lower-priority activities (reservations, gardening, interview slots)
+                    List<String> lowerPriorityOverlaps = (match.isHome() && facilityId != null)
+                            ? findLowerPriorityOverlaps(conn, facilityId, match.getMatchDate(), startStr, endStr)
+                            : List.of();
+
                     pstmtInsert.setInt(1, match.getTeamId());
                     pstmtInsert.setString(2, match.getMatchDate());
-                    pstmtInsert.setString(3, match.getStartTime() != null ? match.getStartTime().toString() : "00:00");
-                    pstmtInsert.setString(4, match.getEndTime() != null ? match.getEndTime().toString() : "00:00");
+                    pstmtInsert.setString(3, startStr);
+                    pstmtInsert.setString(4, endStr);
                     pstmtInsert.setString(5, match.getRival());
                     pstmtInsert.setBoolean(6, match.isHome());
                     pstmtInsert.setBoolean(7, match.isSpecialMatch());
-                    
+
                     if (match.isHome()) {
                         pstmtInsert.setInt(8, facilityId);
                     } else {
                         pstmtInsert.setNull(8, java.sql.Types.INTEGER);
                     }
-                    
+
                     pstmtInsert.executeUpdate();
                     insertedCount++;
 
                     if (match.isHome() && facilityId != null) {
                         String dateStr = match.getMatchDate();
-                        String startStr = match.getStartTime().toString();
-                        String endStr = match.getEndTime().toString();
 
                         pstmtRes.setInt(1, facilityId);
                         pstmtRes.setString(2, dateStr);
@@ -441,9 +460,26 @@ public class MatchDAO {
                         pstmtIntSlots.setString(3, startStr);
                         pstmtIntSlots.executeUpdate();
                     }
+
+                    // Mark line with [WARN] when overlapping with lower-priority activities
+                    if (!lowerPriorityOverlaps.isEmpty()) {
+                        String warnLine = "[WARN] Row " + rowIndex + " - Match vs " + match.getRival()
+                                + " on " + match.getMatchDate() + " (" + startStr + "-" + endStr
+                                + ") imported despite overlap with lower-priority activity: "
+                                + String.join(", ", lowerPriorityOverlaps);
+                        System.out.println(warnLine);
+                        logLines.add(warnLine);
+                    } else {
+                        String okLine = "[OK] Row " + rowIndex + " - Match vs " + match.getRival()
+                                + " on " + match.getMatchDate() + " (" + startStr + "-" + endStr + ") imported.";
+                        System.out.println(okLine);
+                        logLines.add(okLine);
+                    }
+
+                    rowIndex++;
                 }
 
-                conn.commit(); 
+                conn.commit();
 
             } catch (SQLException ex) {
                 conn.rollback();
@@ -454,9 +490,63 @@ public class MatchDAO {
             e.printStackTrace();
         }
 
-        return insertedCount;
+        return new BatchImportResult(insertedCount, logLines);
     }
-    
+
+ // Detect overlapping lower-priority activities and log any SQL error instead of swallowing it silently
+    private List<String> findLowerPriorityOverlaps(Connection conn, int facilityId, String dateStr, String startStr, String endStr) {
+        List<String> overlaps = new ArrayList<>();
+
+        String sqlRes = "SELECT holder_name, start_time, end_time FROM FACILITY_RESERVATION " +
+                        "WHERE facility_id = ? AND reservation_date = ? AND time(start_time) < time(?) AND time(end_time) > time(?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sqlRes)) {
+            pstmt.setInt(1, facilityId);
+            pstmt.setString(2, dateStr);
+            pstmt.setString(3, endStr);
+            pstmt.setString(4, startStr);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    overlaps.add("Reservation (" + rs.getString("holder_name") + " " + rs.getString("start_time") + "-" + rs.getString("end_time") + ")");
+                }
+            }
+        } catch (SQLException ex) {
+            System.err.println("[WARN-CHECK] Error checking reservations overlap: " + ex.getMessage());
+        }
+
+        String sqlGard = "SELECT type, start_time, end_time FROM gardening_session " +
+                         "WHERE facility_id = ? AND date = ? AND time(start_time) < time(?) AND time(end_time) > time(?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sqlGard)) {
+            pstmt.setInt(1, facilityId);
+            pstmt.setString(2, dateStr);
+            pstmt.setString(3, endStr);
+            pstmt.setString(4, startStr);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    overlaps.add("Gardening (" + rs.getString("type") + " " + rs.getString("start_time") + "-" + rs.getString("end_time") + ")");
+                }
+            }
+        } catch (SQLException ex) {
+            System.err.println("[WARN-CHECK] Error checking gardening overlap: " + ex.getMessage());
+        }
+
+        String sqlSlots = "SELECT id, start_time, end_time FROM interview_slots " +
+                          "WHERE slot_date = ? AND time(start_time) < time(?) AND time(end_time) > time(?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sqlSlots)) {
+            pstmt.setString(1, dateStr);
+            pstmt.setString(2, endStr);
+            pstmt.setString(3, startStr);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    overlaps.add("Interview Slot #" + rs.getInt("id") + " (" + rs.getString("start_time") + "-" + rs.getString("end_time") + ")");
+                }
+            }
+        } catch (SQLException ex) {
+            System.err.println("[WARN-CHECK] Error checking interview slots overlap: " + ex.getMessage());
+        }
+
+        return overlaps;
+    }
+
     public boolean hasConflict(int facilityId, String matchDate, LocalTime startTime, LocalTime endTime) {
         if (startTime == null || endTime == null) {
             return false;
@@ -472,7 +562,7 @@ public class MatchDAO {
                              "AND time(start_time) < time(?) AND time(end_time) > time(?)";
 
         try (Connection conn = ConexionBD.obtenerConexion()) {
-            
+
             try (PreparedStatement pstmt = conn.prepareStatement(sqlMatch)) {
                 pstmt.setInt(1, facilityId);
                 pstmt.setString(2, matchDate);
@@ -500,9 +590,7 @@ public class MatchDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        
+
         return false;
     }
-
 }
-

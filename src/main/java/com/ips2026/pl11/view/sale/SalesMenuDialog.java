@@ -1,22 +1,5 @@
 package com.ips2026.pl11.view.sale;
 
-import com.ips2026.pl11.controller.history.SalesHistoryController;
-import com.ips2026.pl11.controller.store.StoreSalesController;
-import com.ips2026.pl11.controller.ticket.MatchTicketController;
-import com.ips2026.pl11.data.history.IncomeDAO;
-import com.ips2026.pl11.data.store.MerchandiseDAO;
-import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
-import com.ips2026.pl11.data.ticket.MatchDAO;
-import com.ips2026.pl11.model.history.SalesHistory;
-import com.ips2026.pl11.model.ticket.HomeMatch;
-import com.ips2026.pl11.view.common.Branding;
-import com.ips2026.pl11.view.common.HeaderPanel;
-import com.ips2026.pl11.view.history.SalesHistoryDialog;
-import com.ips2026.pl11.view.menu.MenuCardButton;
-import com.ips2026.pl11.view.store.StoreSalesWindow;
-import com.ips2026.pl11.view.ticket.SelectMatchDialog;
-import com.ips2026.pl11.view.ticket.SellMatchTicketDialog;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -33,6 +16,22 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
+
+import com.ips2026.pl11.controller.history.SalesHistoryController;
+import com.ips2026.pl11.controller.store.StoreSalesController;
+import com.ips2026.pl11.data.history.IncomeDAO;
+import com.ips2026.pl11.data.store.MerchandiseDAO;
+import com.ips2026.pl11.data.store.MerchandiseSaleDAO;
+import com.ips2026.pl11.data.ticket.MatchDAO;
+import com.ips2026.pl11.model.history.SalesHistory;
+import com.ips2026.pl11.model.ticket.HomeMatch;
+import com.ips2026.pl11.view.common.Branding;
+import com.ips2026.pl11.view.common.HeaderPanel;
+import com.ips2026.pl11.view.history.SalesHistoryDialog;
+import com.ips2026.pl11.view.menu.MenuCardButton;
+import com.ips2026.pl11.view.store.StoreSalesWindow;
+import com.ips2026.pl11.view.ticket.SelectMatchDialog;
+import com.ips2026.pl11.view.ticket.SellMatchTicketDialog;
 
 /**
  * Sales menu: shop sales, match ticket sales and the sales history.
@@ -178,7 +177,7 @@ public class SalesMenuDialog extends JDialog {
                     "Shop Sale", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        new StoreSalesWindow(controller, this).setVisible(true);
+        new StoreSalesWindow(controller, this, -1).setVisible(true);
     }
 
     private void openTicketSale() {
@@ -194,7 +193,7 @@ public class SalesMenuDialog extends JDialog {
 
             HomeMatch selected = selector.getSelectedMatch();
             if (selected != null) {
-                new SellMatchTicketDialog(this, selected.getId(), selected.getDisplayName()).setVisible(true);
+                new SellMatchTicketDialog(this, selected.getId(), selected.getDisplayName(), -1).setVisible(true);
             }
         } catch (Exception exception) {
             JOptionPane.showMessageDialog(this,

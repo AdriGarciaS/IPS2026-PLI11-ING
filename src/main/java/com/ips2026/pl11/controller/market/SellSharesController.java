@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.market;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import com.ips2026.pl11.data.market.ListingDAO;
 import com.ips2026.pl11.model.market.OwnedShare;
 import com.ips2026.pl11.model.reservation.CardValidator;
@@ -134,6 +136,9 @@ public class SellSharesController {
         BigDecimal pack = isBlank(packPrice) ? null : parsePrice(packPrice);
         int listingId = listingDAO.insertListing(seller.getId(), shareIds.stream().sorted().toList(),
                 parsePrice(pricePerShare), pack, now.get());
+        SystemLog.record(LogAction.INSERT, "Put " + shareIds.size() + " shares up for sale (sale #" + listingId
+                + ", " + parsePrice(pricePerShare).toPlainString() + " € per share"
+                + (pack == null ? "" : ", pack " + pack.toPlainString() + " €") + ")");
         load();
         return listingId;
     }

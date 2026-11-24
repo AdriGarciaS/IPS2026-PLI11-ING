@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.matches;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +30,8 @@ public class ScheduleMatchController {
 
         // Save active price configuration in MATCH_PRICE
         matchPriceDAO.saveMatchPrice(matchId, grandstand, section, price);
+        SystemLog.record(LogAction.INSERT, "Created match #" + matchId + ": team #" + teamId + " vs " + rival
+                + " on " + date + " " + startTime + (isSpecial ? " (special)" : " (normal)"));
 
         return matchId;
     }

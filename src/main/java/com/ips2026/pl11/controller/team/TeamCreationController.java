@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.team;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.sql.SQLException;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -178,6 +180,8 @@ public class TeamCreationController {
             throw new IllegalArgumentException(String.join("\n", problems));
         }
         int id = teamDAO.insert(checked, LocalDateTime.now(clock).withNano(0));
+        SystemLog.record(LogAction.INSERT, "Created team " + checked.getName() + " (" + checked.getCategory()
+                + ", " + checked.getGender() + ", " + checked.getPlayers().size() + " players)");
         teamPlayers.clear();
         teamStaff.clear();
         allPlayers = current;

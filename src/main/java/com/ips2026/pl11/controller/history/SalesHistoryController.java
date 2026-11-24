@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.history;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import com.ips2026.pl11.data.history.IncomeDAO;
 import com.ips2026.pl11.model.history.Income;
 import com.ips2026.pl11.model.history.IncomeType;
@@ -45,6 +47,8 @@ public class SalesHistoryController {
     }
 
     /** The income of the last 30 days, of every type. */
+    private static final java.time.format.DateTimeFormatter DAY = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     public SalesHistory searchDefault() throws SQLException {
         return search(getDefaultFrom(), getDefaultTo(), null);
     }
@@ -65,6 +69,8 @@ public class SalesHistoryController {
         List<Income> incomes = incomeDAO.findBetween(from, to).stream()
                 .filter(income -> type == null || income.getType() == type)
                 .toList();
+        SystemLog.record(LogAction.QUERY, "Viewed sales history " + from.format(DAY) + " - " + to.format(DAY)
+                + (type == null ? "" : " (" + type.getPluralLabel() + ")"));
         return new SalesHistory(from, to, incomes);
     }
 

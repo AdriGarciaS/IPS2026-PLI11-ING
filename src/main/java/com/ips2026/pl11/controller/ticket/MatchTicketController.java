@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.ticket;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -151,7 +153,11 @@ public class MatchTicketController {
                     consecutiveFree++;
 
                     if (consecutiveFree == quantity) {
-                        return ticketDAO.bookContiguousSeats(matchId, grandstand, section, r + 1, startCol + 1, quantity, price);
+                        List<int[]> seats = ticketDAO.bookContiguousSeats(matchId, grandstand, section, r + 1,
+                                startCol + 1, quantity, price);
+                        SystemLog.record(LogAction.INSERT, "Sold " + quantity + " tickets for match #" + matchId
+                                + " (grandstand " + grandstand + ", section " + section + ", row " + (r + 1) + ")");
+                        return seats;
                     }
                 } else {
                     consecutiveFree = 0;

@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.campaign;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import com.ips2026.pl11.data.campaign.CampaignDAO;
 import com.ips2026.pl11.model.campaign.Campaign;
 import com.ips2026.pl11.model.campaign.CampaignStatus;
@@ -60,6 +62,8 @@ public class CampaignController {
                     + "' has changed meanwhile. Close the window and open it again.");
         }
         campaignDAO.changePhase(campaign.getId(), campaign.getStatus(), next, LocalDateTime.now());
+        SystemLog.record(LogAction.UPDATE, "Campaign " + campaign.getName() + ": "
+                + campaign.getStatus().getLabel() + " -> " + next.getLabel());
         return campaign.withStatus(next);
     }
 
@@ -96,7 +100,10 @@ public class CampaignController {
         if (!problems.isEmpty()) {
             throw new IllegalArgumentException(String.join(System.lineSeparator(), problems));
         }
-        return campaignDAO.insert(cleanName, price, shares);
+        Campaign created = campaignDAO.insert(cleanName, price, shares);
+        SystemLog.record(LogAction.INSERT, "Created campaign " + cleanName + " (" + shares + " shares at "
+                + price.toPlainString() + " € each)");
+        return created;
     }
 
     /** The price with 2 decimals, or null (and a problem added) if it is not valid. */

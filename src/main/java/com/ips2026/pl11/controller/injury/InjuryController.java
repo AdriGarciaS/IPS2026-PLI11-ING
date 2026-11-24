@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.injury;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,14 +20,18 @@ public class InjuryController {
     
     public void registerInjury(Injury injury) throws SQLException {   
         injuryDAO.registerInjury(injury);
+        SystemLog.record(LogAction.INSERT, "Registered injury of player #" + injury.getPlayerId() + " on "
+            + injury.getInjuryDate() + ": " + injury.getDescription());
     }
     
     public void updateInjury(Injury injury) throws SQLException {
         injuryDAO.updateInjury(injury);
+        SystemLog.record(LogAction.UPDATE, "Updated injury #" + injury.getId() + " of player #" + injury.getPlayerId());
     }
     
     public void loadInjuries() throws SQLException {
         injuries = injuryDAO.getAllInjuries();
+        SystemLog.record(LogAction.QUERY, "Viewed injuries (" + injuries.size() + ")");
     }
 
     public List<Injury> findInjuriesByDoctor(int doctorId) {

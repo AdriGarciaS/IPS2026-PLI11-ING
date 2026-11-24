@@ -1,5 +1,7 @@
 package com.ips2026.pl11.view.news;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -136,6 +138,7 @@ public class NewsFeedWindow extends JDialog {
         pnListContainer.removeAll();
         try {
             currentArticles = newsDAO.getAllArticles();
+            SystemLog.record(LogAction.QUERY, "Viewed news articles (" + currentArticles.size() + ")");
 
             if (currentArticles.isEmpty()) {
                 JLabel lblEmpty = new JLabel("No news published yet", SwingConstants.CENTER);

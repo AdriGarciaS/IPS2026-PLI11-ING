@@ -1,5 +1,7 @@
 package com.ips2026.pl11.view.financialreports;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -366,6 +368,7 @@ public class IncomesGlossaryView extends JFrame {
 
         try {
             IncomeReportData data = reportDAO.getIncomesReport(fromDate, toDate);
+            SystemLog.record(LogAction.QUERY, "Viewed incomes report " + fromDate + " - " + toDate);
 
             lblTotalIncomeValue.setText(MoneyFormat.format(data.totalIncome()));
 

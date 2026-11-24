@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.reservation;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.Clock;
@@ -116,6 +118,9 @@ public class FacilityReservationController {
         Reservation reservation = new Reservation(null, facility, name, CardValidator.mask(cardNumber),
                 date, startMinute, hours, getPrice(hours), LocalDateTime.now(clock).withNano(0));
         Reservation stored = reservationDAO.insert(reservation);
+        SystemLog.record(LogAction.INSERT, "Reserved " + facility.getName() + " on " + date.format(
+                java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " " + startMinute + " for " + hours
+                + " h (" + name + ")");
         selectDay(facility, date);
         return stored;
     }
@@ -148,6 +153,8 @@ public class FacilityReservationController {
     public void cancelReservation(LocalDate date, LocalTime start) throws SQLException {
         checkDaySelected();
         reservationDAO.deleteByDateTime(facility.getId(), date, start);
+        SystemLog.record(LogAction.DELETE, "Cancelled reservation of " + facility.getName() + " on " + date.format(
+                java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " " + start);
         selectDay(facility, date);
     }
     

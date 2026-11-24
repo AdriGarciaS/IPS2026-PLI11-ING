@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.training;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +31,9 @@ public class TrainingSessionController {
         }
 
         trainingSessionDAO.insert(session);
+        SystemLog.record(LogAction.INSERT, "Created training session for team #" + session.getTeam() + " on "
+                + session.getDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " " + session.getStartTime() + "-"
+                + session.getEndTime() + " (facility #" + session.getFacility() + ")");
     }
     
     public List<TrainingSession> getAllTrainingSessions() throws Exception {

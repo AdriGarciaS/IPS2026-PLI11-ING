@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.schedule;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.List;
@@ -72,6 +74,8 @@ public class WorkScheduleController {
         
         // If the new shift meets all the requirements, it gets added to the worker's schedule
         workScheduleDAO.insertSchedule(newShift);
+        SystemLog.record(LogAction.INSERT, "Added recurring shift for employee #" + newShift.getEmployeeId()
+            + " on week day " + newShift.getWeekDay() + " " + newShift.getStartTime() + "-" + newShift.getEndTime());
 
     }
 }

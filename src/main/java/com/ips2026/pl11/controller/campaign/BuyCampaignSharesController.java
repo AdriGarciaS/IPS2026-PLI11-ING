@@ -1,5 +1,7 @@
 package com.ips2026.pl11.controller.campaign;
 
+import com.ips2026.pl11.controller.log.SystemLog;
+import com.ips2026.pl11.model.log.LogAction;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -57,6 +59,8 @@ public class BuyCampaignSharesController {
         }
         campaign = open.get();
         limit = purchaseDAO.findLimit(campaign.getId(), shareholder.getId());
+        SystemLog.record(LogAction.QUERY, "Viewed campaign " + campaign.getName() + " to buy shares ("
+                + campaign.getStatus().getLabel() + ", " + limit.getRemainingShares() + " shares remaining)");
         return true;
     }
 
@@ -111,7 +115,10 @@ public class BuyCampaignSharesController {
 
         int quantity = Integer.parseInt(quantityText.strip());
         try {
-            return purchaseDAO.buy(campaign, shareholder, quantity, now.get());
+            CampaignPurchase purchase = purchaseDAO.buy(campaign, shareholder, quantity, now.get());
+            SystemLog.record(LogAction.INSERT, "Bought " + quantity + " shares of campaign " + campaign.getName()
+                    + " (IDs " + purchase.getFirstShareId() + " - " + purchase.getLastShareId() + ")");
+            return purchase;
         } finally {
             load();
         }

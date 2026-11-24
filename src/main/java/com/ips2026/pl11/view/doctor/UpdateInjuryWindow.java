@@ -496,8 +496,8 @@ public class UpdateInjuryWindow extends JDialog {
             injuryController.loadInjuries();
             injuries = injuryController.findInjuriesByDoctor(doctorId);
             if (!injuries.isEmpty()) {
-                String playerName = getPlayerName();
                 for (Injury injury : injuries) {
+                    String playerName = getPlayerName(injury);
                     injuriesModel.addRow(new Object[] { injury.getId(), injury.getInjuryDate(), playerName });
                 }
             }
@@ -520,9 +520,9 @@ public class UpdateInjuryWindow extends JDialog {
         
     }
 
-    private String getPlayerName() throws SQLException {
+    private String getPlayerName(Injury injury) throws SQLException {
         return employeeController.getEmployees().stream()
-            .filter(employee -> employee.getId() == injuries.get(0).getPlayerId())
+            .filter(employee -> employee.getId() == injury.getPlayerId())
             .map(employee -> employee.getFirstName() + " " + employee.getLastName()).findFirst()
             .orElse("Unknown Player");
     }

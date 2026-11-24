@@ -306,9 +306,11 @@ public class RegisterInjuryWindow extends JDialog {
                     if(registerInjury()) {
                         JOptionPane.showMessageDialog(RegisterInjuryWindow.this, "Injury registered successfully!",
                             "Success", JOptionPane.INFORMATION_MESSAGE);      
-
+                        clearWindow();
                     }
                 }
+
+                
 
             });
             btnRegister.setBounds(402, 417, 89, 25);
@@ -502,6 +504,16 @@ public class RegisterInjuryWindow extends JDialog {
         } 
 
         return new Injury(0, playerId, matchId, trainingId, description, date, false, doctorId, time);
+    }
+    
+    private void clearWindow() {
+        cbTeams.setSelectedIndex(0);
+        cbPlayers.setSelectedIndex(0);
+        cbTrainings.setSelectedIndex(0);
+        cbMatches.setSelectedIndex(0);
+        txtrNoDescriptionProvided.setText("");
+        
+        
     }
 
 }

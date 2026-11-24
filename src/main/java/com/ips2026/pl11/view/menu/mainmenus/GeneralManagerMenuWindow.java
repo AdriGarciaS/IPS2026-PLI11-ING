@@ -1,23 +1,14 @@
 package com.ips2026.pl11.view.menu.mainmenus;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 
 import com.ips2026.pl11.controller.history.SalesHistoryController;
 import com.ips2026.pl11.controller.team.TeamCreationController;
@@ -26,12 +17,13 @@ import com.ips2026.pl11.data.team.SportsEmployeeDAO;
 import com.ips2026.pl11.data.team.TeamDAO;
 import com.ips2026.pl11.model.history.SalesHistory;
 import com.ips2026.pl11.view.common.Branding;
-import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.employee.EmployeeMenuDialog;
+import com.ips2026.pl11.view.financialreports.FinancialReportsMenu;
 import com.ips2026.pl11.view.history.SalesHistoryDialog;
 import com.ips2026.pl11.view.matches.ImportMatchesCSV;
 import com.ips2026.pl11.view.matches.ScheduleMatchDialog;
 import com.ips2026.pl11.view.menu.MenuCardButton;
+import com.ips2026.pl11.view.menu.RoleMenuWindow;
 import com.ips2026.pl11.view.news.NewsFeedWindow;
 import com.ips2026.pl11.view.schedule.GMWorkScheduleWindow;
 import com.ips2026.pl11.view.schedule.NSEWorkScheduleWindow;
@@ -41,13 +33,9 @@ import com.ips2026.pl11.view.training.TrainingSessionWindow;
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
  */
-public class GeneralManagerMenuWindow extends JFrame {
+public class GeneralManagerMenuWindow extends RoleMenuWindow {
 
     private static final long serialVersionUID = 1L;
-
-    private JPanel contentPane;
-    private HeaderPanel pnHeader;
-    private JPanel pnButtons;
     private MenuCardButton btnOption1;
     private MenuCardButton btnOption2;
     private MenuCardButton btnOption3;
@@ -57,8 +45,7 @@ public class GeneralManagerMenuWindow extends JFrame {
     private MenuCardButton btnOption13;    
     private MenuCardButton btnOption4;
     private MenuCardButton btnOption14;
-    private JPanel pnFooter;
-    private JLabel lblFooter;
+    private MenuCardButton btnOption15;
     private JButton selectedButton;
 
     private GMWorkScheduleWindow gmWorkScheduleWindow = new GMWorkScheduleWindow(this);
@@ -67,44 +54,9 @@ public class GeneralManagerMenuWindow extends JFrame {
 	
 
     public GeneralManagerMenuWindow() {
-        setTitle("Football Club Management");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(640, 480));
-        contentPane = new JPanel();
-        contentPane.setLayout(new BorderLayout(0, 0));
-        setContentPane(contentPane);
-        Branding.applyTo(this);
-        contentPane.add(getPnHeader(), BorderLayout.NORTH);
-        contentPane.add(getPnButtons(), BorderLayout.CENTER);
-        contentPane.add(getPnFooter(), BorderLayout.SOUTH);
+        super("General manager main menu — choose an option to start");
+        setCards(new GridLayout(3, 3, 18, 18), getBtnOption1(), getBtnOption2(), getBtnOption3(), getBtnOption6(), getBtnOption10(), getBtnOption12(), getBtnOption13(), getBtnOption4(), getBtnOption14(), getBtnOption15());
         Branding.setInitialSize(this, 840, 780, null);
-    }
-
-    private HeaderPanel getPnHeader() {
-        if (pnHeader == null) {
-            pnHeader = new HeaderPanel("Football Club Management",
-                    "General manager main menu — choose an option to start", true);
-        }
-        return pnHeader;
-    }
-
-    private JPanel getPnButtons() {
-        if (pnButtons == null) {
-            pnButtons = new JPanel();
-            pnButtons.setOpaque(false);
-            pnButtons.setBorder(new EmptyBorder(24, 24, 16, 24));
-            pnButtons.setLayout(new GridLayout(3, 3, 18, 18));
-            pnButtons.add(getBtnOption1());
-            pnButtons.add(getBtnOption2());
-            pnButtons.add(getBtnOption3());
-            pnButtons.add(getBtnOption6());
-            pnButtons.add(getBtnOption10());
-            pnButtons.add(getBtnOption12());
-            pnButtons.add(getBtnOption13());
-            pnButtons.add(getBtnOption4());
-            pnButtons.add(getBtnOption14());
-        }
-        return pnButtons;
     }
 
     private MenuCardButton getBtnOption1() {
@@ -219,6 +171,27 @@ public class GeneralManagerMenuWindow extends JFrame {
         return btnOption14;
     }
     
+    private MenuCardButton getBtnOption15() {
+        if (btnOption15 == null) {
+            btnOption15 = new MenuCardButton("See Financial Reports", "Display all the info regarding the financial situation of the club");
+            btnOption15.setMnemonic('F');
+            btnOption15.setFont(new Font("Tahoma", Font.PLAIN, 16));
+            btnOption15.addActionListener(event -> openFinancialReports());
+        }
+        return btnOption15;
+    }
+    
+    private void openFinancialReports() {
+        try {
+            FinancialReportsMenu dialog = new FinancialReportsMenu(this);
+            dialog.setVisible(true);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error opening Financial Reports menu dialog: " + ex.getMessage(),
+                    "Import Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
     private void openImportSchedule() {
         try {
             ImportMatchesCSV dialog = new ImportMatchesCSV(this);
@@ -294,28 +267,6 @@ public class GeneralManagerMenuWindow extends JFrame {
         }
     }
 
-    private JPanel getPnFooter() {
-        if (pnFooter == null) {
-            pnFooter = new JPanel();
-            pnFooter.setOpaque(false);
-            pnFooter.setBorder(BorderFactory.createCompoundBorder(
-                    new MatteBorder(1, 0, 0, 0, Branding.BORDER),
-                    new EmptyBorder(8, 0, 10, 0)));
-            pnFooter.setLayout(new BorderLayout(0, 0));
-            pnFooter.add(getLblFooter(), BorderLayout.CENTER);
-        }
-        return pnFooter;
-    }
-
-    private JLabel getLblFooter() {
-        if (lblFooter == null) {
-            lblFooter = new JLabel("IPS 2026 · Team PL11");
-            lblFooter.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 11));
-            lblFooter.setForeground(Branding.TEXT_MUTED);
-            lblFooter.setHorizontalAlignment(SwingConstants.CENTER);
-        }
-        return lblFooter;
-    }
     
     
 }

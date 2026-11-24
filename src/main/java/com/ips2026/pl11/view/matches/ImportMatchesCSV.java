@@ -30,7 +30,6 @@ import com.ips2026.pl11.service.matches.ScheduleImportMatch;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 
-
 public class ImportMatchesCSV extends JDialog {
 
     private static final long serialVersionUID = 1L;
@@ -55,7 +54,7 @@ public class ImportMatchesCSV extends JDialog {
 
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
-            pnHeader = new HeaderPanel("IMPORT MATCH SCHEDULE", 
+            pnHeader = new HeaderPanel("IMPORT MATCH SCHEDULE",
                 "Upload a CSV or JSON file to import the full seasonal match schedule in bulk", true);
         }
         return pnHeader;
@@ -82,7 +81,7 @@ public class ImportMatchesCSV extends JDialog {
         pnlFileSelector.add(new JLabel("File: "), BorderLayout.WEST);
         pnlFileSelector.add(txtFilePath, BorderLayout.CENTER);
         pnlFileSelector.add(btnBrowse, BorderLayout.EAST);
-        
+
         JPanel pnTopWrapper = new JPanel(new BorderLayout());
         pnTopWrapper.setOpaque(false);
         pnTopWrapper.add(pnlFileSelector, BorderLayout.CENTER);
@@ -94,7 +93,7 @@ public class ImportMatchesCSV extends JDialog {
         JPanel pnlPreview = new JPanel(new BorderLayout(0, 5));
         pnlPreview.setOpaque(false);
         pnlPreview.setBorder(new RoundedTitledBorder("PREVIEW CONTENT", 16));
-        
+
         txtPreviewArea = new JTextArea();
         txtPreviewArea.setEditable(false);
         txtPreviewArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
@@ -142,7 +141,7 @@ public class ImportMatchesCSV extends JDialog {
         if (result == JFileChooser.APPROVE_OPTION) {
             selectedFile = fileChooser.getSelectedFile();
             txtFilePath.setText(selectedFile.getAbsolutePath());
-            
+
             try {
                 String content = java.nio.file.Files.readString(selectedFile.toPath());
                 txtPreviewArea.setText(content);
@@ -155,16 +154,15 @@ public class ImportMatchesCSV extends JDialog {
 
     private void handleImportAction() {
         if (selectedFile == null || !selectedFile.exists()) {
-            JOptionPane.showMessageDialog(this, "Please select a valid CSV or JSON file first.", 
+            JOptionPane.showMessageDialog(this, "Please select a valid CSV or JSON file first.",
                 "File Required", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        int defaultTeamId = 1; 
-        
+        int defaultTeamId = 1;
         int defaultFacilityId = -1;
-        
+
         ScheduleImportMatch.ImportResult result = importService.processFile(selectedFile, defaultTeamId, defaultFacilityId);
-    
+
         StringBuilder summary = new StringBuilder();
         summary.append("--- IMPORT VALIDATION & PERSISTENCE REPORT ---\n\n");
 
@@ -186,7 +184,18 @@ public class ImportMatchesCSV extends JDialog {
 
         int savedCount = 0;
         if (!result.getValidMatches().isEmpty()) {
-            savedCount = matchDAO.insertBatchMatches(result.getValidMatches());
+            // Use report method so [WARN] lines for lower-priority overlaps are captured and shown
+            MatchDAO.BatchImportResult dbResult = matchDAO.insertBatchMatchesWithReport(result.getValidMatches());
+            savedCount = dbResult.insertedCount();
+
+            if (!dbResult.logLines().isEmpty()) {
+                summary.append("Persistence details:\n");
+                for (String line : dbResult.logLines()) {
+                    summary.append(line).append("\n");
+                }
+                summary.append("\n");
+            }
+
             summary.append("[SUCCESS] Successfully imported and saved ").append(savedCount).append(" matches to the database!\n");
         } else {
             summary.append("[INFO] No valid matches were found to import.\n");
@@ -195,13 +204,12 @@ public class ImportMatchesCSV extends JDialog {
         txtSummaryArea.setText(summary.toString());
 
         if (savedCount > 0) {
-            JOptionPane.showMessageDialog(this, 
-                "Schedule imported successfully! " + savedCount + " matches are now available for ticket sales.", 
+            JOptionPane.showMessageDialog(this,
+                "Schedule imported successfully! " + savedCount + " matches are now available for ticket sales.",
                 "Import Finished", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
-    
     private static class RoundedTitledBorder extends AbstractBorder {
         private static final long serialVersionUID = 1L;
         private final String title;

@@ -1,97 +1,41 @@
 package com.ips2026.pl11.view.menu.mainmenus;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.sql.SQLException;
 
-import javax.swing.BorderFactory;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 
-import com.ips2026.pl11.controller.reservation.FacilityReservationController;
-import com.ips2026.pl11.data.reservation.FacilityDAO;
-import com.ips2026.pl11.data.reservation.ReservationDAO;
-import com.ips2026.pl11.data.reservation.TeamUseDAO;
 import com.ips2026.pl11.view.campaign.CampaignsDialog;
 import com.ips2026.pl11.view.common.Branding;
-import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.gardening.manager.GardeningScheduleWindow;
 import com.ips2026.pl11.view.matches.ScheduleMatchDialog;
 import com.ips2026.pl11.view.menu.MenuCardButton;
+import com.ips2026.pl11.view.menu.RoleMenuWindow;
 import com.ips2026.pl11.view.news.NewsFeedWindow;
-import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.schedule.DayScheduleWindow;
 import com.ips2026.pl11.view.schedule.NSEWorkScheduleWindow;
 
 /**
  * Ventana principal (la "V" de MVC): menu principal de la aplicacion.
  */
-public class FacilityManagerMenuWindow extends JFrame {
+public class FacilityManagerMenuWindow extends RoleMenuWindow {
 
     private static final long serialVersionUID = 1L;
-
-    private JPanel contentPane;
-    private HeaderPanel pnHeader;
-    private JPanel pnButtons;
     private MenuCardButton btnOption1;
     private MenuCardButton btnOption2;
     private MenuCardButton btnOption9;
     private MenuCardButton btnOption10;
     private MenuCardButton btnOption11;
     private MenuCardButton btnOption13;
-
-    private JPanel pnFooter;
-    private JLabel lblFooter;
-
     private GardeningScheduleWindow scheduleGardeningSession = new GardeningScheduleWindow(this);
     private DayScheduleWindow dayScheduleWindow = new DayScheduleWindow(this);
     private NSEWorkScheduleWindow nseWorkScheduleWindow = new NSEWorkScheduleWindow(this);
-    private MenuCardButton btnOption4;
+
 
     public FacilityManagerMenuWindow() {
-        setTitle("Football Club Management");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(740, 600));
-        contentPane = new JPanel();
-        contentPane.setLayout(new BorderLayout(0, 0));
-        setContentPane(contentPane);
-        Branding.applyTo(this);
-        contentPane.add(getPnHeader(), BorderLayout.NORTH);
-        contentPane.add(getPnButtons(), BorderLayout.CENTER);
-        contentPane.add(getPnFooter(), BorderLayout.SOUTH);
+        super("Manager main menu — choose an option to start");
+        setCards(new GridLayout(3, 2, 18, 18), getBtnOption2(), getBtnOption1(), getBtnOption11(), getBtnOption10(), getBtnOption9(), getBtnOption13());
         Branding.setInitialSize(this, 640, 580, null);
-    }
-
-    private HeaderPanel getPnHeader() {
-        if (pnHeader == null) {
-            pnHeader = new HeaderPanel("Football Club Management",
-                    "Manager main menu — choose an option to start", true);
-        }
-        return pnHeader;
-    }
-
-    private JPanel getPnButtons() {
-        if (pnButtons == null) {
-            pnButtons = new JPanel();
-            pnButtons.setOpaque(false);
-            pnButtons.setBorder(new EmptyBorder(24, 24, 16, 24));
-            pnButtons.setLayout(new GridLayout(3, 2, 18, 18));
-            pnButtons.add(getBtnOption2());
-            pnButtons.add(getBtnOption1());
-            pnButtons.add(getBtnOption11());
-            pnButtons.add(getBtnOption10());
-            pnButtons.add(getBtnOption9());
-            pnButtons.add(getBtnOption13());
-            pnButtons.add(getBtnOption4());
-        }
-        return pnButtons;
     }
 
     private MenuCardButton getBtnOption2() {
@@ -200,52 +144,6 @@ public class FacilityManagerMenuWindow extends JFrame {
         }
     }
 
-    private JPanel getPnFooter() {
-        if (pnFooter == null) {
-            pnFooter = new JPanel();
-            pnFooter.setOpaque(false);
-            pnFooter.setBorder(BorderFactory.createCompoundBorder(
-                    new MatteBorder(1, 0, 0, 0, Branding.BORDER),
-                    new EmptyBorder(8, 0, 10, 0)));
-            pnFooter.setLayout(new BorderLayout(0, 0));
-            pnFooter.add(getLblFooter(), BorderLayout.CENTER);
-        }
-        return pnFooter;
-    }
-
-    private JLabel getLblFooter() {
-        if (lblFooter == null) {
-            lblFooter = new JLabel("IPS 2026 · Team PL11");
-            lblFooter.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 11));
-            lblFooter.setForeground(Branding.TEXT_MUTED);
-            lblFooter.setHorizontalAlignment(SwingConstants.CENTER);
-        }
-        return lblFooter;
-    }
     
     
-    
-    private MenuCardButton getBtnOption4() {
-        if (btnOption4 == null) {
-        	btnOption4 = new MenuCardButton("Facility Reservations", "Book club facilities for external people");
-        	btnOption4.setMnemonic('F');
-        	btnOption4.setFont(new Font("Tahoma", Font.PLAIN, 16));
-        	btnOption4.addActionListener(event -> openFacilityReservations());
-        }
-        return btnOption4;
-    }
-    
-    private void openFacilityReservations() {
-        FacilityReservationController controller = new FacilityReservationController(
-                new FacilityDAO(), new TeamUseDAO(), new ReservationDAO());
-        try {
-            controller.loadFacilities();
-        } catch (SQLException exception) {
-            JOptionPane.showMessageDialog(this,
-                    "The facilities could not be loaded:\n" + exception.getMessage(),
-                    "Facility Reservations", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        new FacilityReservationWindow(controller, this).setVisible(true);
-    }
 }

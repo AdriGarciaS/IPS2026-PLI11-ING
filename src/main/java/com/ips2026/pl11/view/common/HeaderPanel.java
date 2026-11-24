@@ -3,9 +3,11 @@ package com.ips2026.pl11.view.common;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 
 import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
@@ -78,5 +80,18 @@ public class HeaderPanel extends JPanel {
 
     public void setSubtitle(String subtitle) {
         lblSubtitle.setText(subtitle);
+    }
+
+    /**
+     * Puts a component (for example the "Log out" button of the main menus)
+     * at the right of the header, centered vertically. Windows that do not
+     * call it are not changed.
+     */
+    public void setRightComponent(JComponent component) {
+        JPanel pnRight = new JPanel(new GridBagLayout());
+        pnRight.setOpaque(false);
+        pnRight.add(component);
+        add(pnRight, BorderLayout.EAST);
+        revalidate();
     }
 }

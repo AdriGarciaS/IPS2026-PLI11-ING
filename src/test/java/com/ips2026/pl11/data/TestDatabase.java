@@ -21,12 +21,14 @@ public final class TestDatabase {
      * Creates an empty database in {@code folder}: same tables as the
      * application but without the sample data of the merchandising, the
      * facility reservations, the employees, the sports teams and their
-     * trainings, matches and tickets, the season tickets, and the shareholders
-     * and their shares.
+     * trainings, matches and tickets, the season tickets, the shareholders
+     * and their shares, and the system log.
      */
     public static void create(Path folder) throws SQLException {
         System.setProperty(ConexionBD.PROPIEDAD_RUTA, folder.resolve("test.db").toString());
         ConexionBD.inicializar();
+        execute("DELETE FROM SYSTEM_LOG");
+        execute("DELETE FROM USER_SESSION");
         execute("DELETE FROM MERCHANDISING_SALE");
         execute("DELETE FROM MERCHANDISING");
         execute("DELETE FROM FACILITY_RESERVATION");

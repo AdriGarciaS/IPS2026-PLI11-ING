@@ -480,3 +480,27 @@ INSERT INTO news (id, headline, body_text, image_paths, publication_date, author
 (2, 'New improvements in training facilities', 'Renovation work has started a couple of days ago on the club training pitches and medical recovery center. These state-of-the-art upgrades will ensure our professional and youth academy players have world-class infrastructure for the upcoming seasons.', 'images/training1.png,images/training2.png,images/training3.png,images/training4.jpg', '2026-11-05', 1),
 
 (3, 'Intense prep for upcoming match', 'The coaching staff has designed a week of rigorous tactical sessions and physical conditioning to prepare the squad for the next away fixture. Morale is exceptionally high following the recent victories and support from traveling supporters.', 'images/prep1.jpg,images/prep2.jpg,images/prep3.jpeg,images/prep4.jpg', '2026-11-02', 2);
+-- US 36717: some sessions and actions of the last days, so the System Log is
+-- not empty the first time it is opened.
+INSERT INTO USER_SESSION (id, user_type, user_id, username, role, started_at) VALUES
+    (1, 'GUEST', NULL, NULL, 'Guest', datetime('now', 'localtime', 'start of day', '-2 days', '+9 hours')),
+    (2, 'EMPLOYEE', (SELECT id FROM employees WHERE username = 'general_manager'), 'general_manager', 'General Manager',
+        datetime('now', 'localtime', 'start of day', '-2 days', '+9 hours', '+2 minutes')),
+    (3, 'GUEST', NULL, NULL, 'Guest', datetime('now', 'localtime', 'start of day', '-1 days', '+11 hours')),
+    (4, 'SHAREHOLDER', (SELECT id FROM SHAREHOLDER WHERE username = 'shareholder'), 'shareholder', 'Shareholder',
+        datetime('now', 'localtime', 'start of day', '-1 days', '+11 hours', '+1 minutes'));
+
+INSERT INTO SYSTEM_LOG (session_id, logged_at, action, description) VALUES
+    (1, datetime('now', 'localtime', 'start of day', '-2 days', '+9 hours', '+1 minutes'), 'LOGIN_FAILED',
+        'Failed login for ''general_manager'': wrong password'),
+    (2, datetime('now', 'localtime', 'start of day', '-2 days', '+9 hours', '+2 minutes'), 'LOGIN',
+        'Logged in as General Manager'),
+    (2, datetime('now', 'localtime', 'start of day', '-2 days', '+9 hours', '+5 minutes'), 'QUERY',
+        'Viewed sales history ' || strftime('%d/%m/%Y', 'now', 'localtime', '-30 days') || ' - '
+        || strftime('%d/%m/%Y', 'now', 'localtime', '-2 days')),
+    (3, datetime('now', 'localtime', 'start of day', '-1 days', '+11 hours'), 'LOGIN_FAILED',
+        'Failed login for ''pepe'': unknown username'),
+    (4, datetime('now', 'localtime', 'start of day', '-1 days', '+11 hours', '+1 minutes'), 'LOGIN',
+        'Logged in as Shareholder'),
+    (4, datetime('now', 'localtime', 'start of day', '-1 days', '+11 hours', '+3 minutes'), 'QUERY',
+        'Viewed shares wallet');

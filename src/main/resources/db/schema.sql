@@ -440,3 +440,37 @@ CREATE TABLE IF NOT EXISTS INJURY (
 	FOREIGN KEY (training_id) REFERENCES trainings(id)
 );
 
+
+-- ---------------------------------------------------------------------------
+-- System log (US 36717): every login (also the failed ones), data query and
+-- database change made by any user. Only the general manager can see it.
+-- ---------------------------------------------------------------------------
+
+-- A session: from the moment someone logs in until the application is closed.
+-- When the application starts there is a GUEST session (nobody has logged in
+-- yet): failed logins and the purchases of external users (US 35828) go there.
+-- user_id and username are not foreign keys on purpose: the log must keep
+-- showing who it was even if the employee or shareholder is removed later.
+-- started_at: YYYY-MM-DD HH:MM:SS, local time.
+CREATE TABLE IF NOT EXISTS USER_SESSION (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_type  TEXT    NOT NULL CHECK (user_type IN ('EMPLOYEE', 'SHAREHOLDER', 'GUEST')),
+    user_id    INTEGER,                -- employees.id or SHAREHOLDER.id (NULL for GUEST)
+    username   TEXT,                   -- NULL for GUEST
+    role       TEXT    NOT NULL,       -- 'General Manager', 'Shareholder', 'Guest'...
+    started_at TEXT    NOT NULL,
+    CHECK ((user_type = 'GUEST') = (username IS NULL))
+);
+
+-- One row per action, always inside a session.
+-- logged_at: YYYY-MM-DD HH:MM:SS, local time.
+CREATE TABLE IF NOT EXISTS SYSTEM_LOG (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id  INTEGER NOT NULL REFERENCES USER_SESSION (id),
+    logged_at   TEXT    NOT NULL,
+    action      TEXT    NOT NULL
+                CHECK (action IN ('LOGIN', 'LOGIN_FAILED', 'QUERY', 'INSERT', 'UPDATE', 'DELETE')),
+    description TEXT    NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_system_log_logged_at ON SYSTEM_LOG (logged_at);

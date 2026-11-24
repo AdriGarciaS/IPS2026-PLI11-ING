@@ -305,7 +305,8 @@ public class RegisterInjuryWindow extends JDialog {
                     
                     if(registerInjury()) {
                         JOptionPane.showMessageDialog(RegisterInjuryWindow.this, "Injury registered successfully!",
-                            "Success", JOptionPane.INFORMATION_MESSAGE);                        
+                            "Success", JOptionPane.INFORMATION_MESSAGE);      
+
                     }
                 }
 

@@ -43,7 +43,7 @@ public class FacilityManagerMenuWindow extends RoleMenuWindow {
         super("Manager main menu — choose an option to start");
         setCards(new GridLayout(3, 2, 18, 18), getBtnOption2(), getBtnOption1(), getBtnOption11(), getBtnOption10(),
             getBtnOption9(), getBtnOption13(), getBtnOption4());
-        Branding.setInitialSize(this, 640, 580, null);
+        Branding.setInitialSize(this, 740, 680, null);
     }
 
     private MenuCardButton getBtnOption2() {

@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.sql.SQLException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -14,6 +15,10 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
+import com.ips2026.pl11.controller.reservation.FacilityReservationController;
+import com.ips2026.pl11.data.reservation.FacilityDAO;
+import com.ips2026.pl11.data.reservation.ReservationDAO;
+import com.ips2026.pl11.data.reservation.TeamUseDAO;
 import com.ips2026.pl11.view.campaign.CampaignsDialog;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
@@ -21,6 +26,7 @@ import com.ips2026.pl11.view.gardening.manager.GardeningScheduleWindow;
 import com.ips2026.pl11.view.matches.ScheduleMatchDialog;
 import com.ips2026.pl11.view.menu.MenuCardButton;
 import com.ips2026.pl11.view.news.NewsFeedWindow;
+import com.ips2026.pl11.view.reservation.FacilityReservationWindow;
 import com.ips2026.pl11.view.schedule.DayScheduleWindow;
 import com.ips2026.pl11.view.schedule.NSEWorkScheduleWindow;
 
@@ -47,11 +53,12 @@ public class FacilityManagerMenuWindow extends JFrame {
     private GardeningScheduleWindow scheduleGardeningSession = new GardeningScheduleWindow(this);
     private DayScheduleWindow dayScheduleWindow = new DayScheduleWindow(this);
     private NSEWorkScheduleWindow nseWorkScheduleWindow = new NSEWorkScheduleWindow(this);
+    private MenuCardButton btnOption4;
 
     public FacilityManagerMenuWindow() {
         setTitle("Football Club Management");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(640, 480));
+        setMinimumSize(new Dimension(740, 600));
         contentPane = new JPanel();
         contentPane.setLayout(new BorderLayout(0, 0));
         setContentPane(contentPane);
@@ -82,6 +89,7 @@ public class FacilityManagerMenuWindow extends JFrame {
             pnButtons.add(getBtnOption10());
             pnButtons.add(getBtnOption9());
             pnButtons.add(getBtnOption13());
+            pnButtons.add(getBtnOption4());
         }
         return pnButtons;
     }
@@ -217,4 +225,27 @@ public class FacilityManagerMenuWindow extends JFrame {
     
     
     
+    private MenuCardButton getBtnOption4() {
+        if (btnOption4 == null) {
+        	btnOption4 = new MenuCardButton("Facility Reservations", "Book club facilities for external people");
+        	btnOption4.setMnemonic('F');
+        	btnOption4.setFont(new Font("Tahoma", Font.PLAIN, 16));
+        	btnOption4.addActionListener(event -> openFacilityReservations());
+        }
+        return btnOption4;
+    }
+    
+    private void openFacilityReservations() {
+        FacilityReservationController controller = new FacilityReservationController(
+                new FacilityDAO(), new TeamUseDAO(), new ReservationDAO());
+        try {
+            controller.loadFacilities();
+        } catch (SQLException exception) {
+            JOptionPane.showMessageDialog(this,
+                    "The facilities could not be loaded:\n" + exception.getMessage(),
+                    "Facility Reservations", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        new FacilityReservationWindow(controller, this).setVisible(true);
+    }
 }

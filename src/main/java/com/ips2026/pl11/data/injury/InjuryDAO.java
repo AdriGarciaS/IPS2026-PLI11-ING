@@ -19,7 +19,7 @@ public class InjuryDAO {
             pst.setInt(3, injury.getTrainingId());
             pst.setString(4, injury.getDescription());
             pst.setString(5, String.valueOf(injury.getInjuryDate()));
-            pst.setInt(6, 0); // All injuries start off as not healed
+            pst.setInt(6, injury.isHealed() ? 1 : 0);
             pst.setInt(7, injury.getDoctorId());
             pst.setString(8, String.valueOf(injury.getInjuryTime()));
             pst.setString(9, injury.getParsedEvolutionNotes()); 

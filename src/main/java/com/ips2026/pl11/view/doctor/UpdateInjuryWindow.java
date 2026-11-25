@@ -284,7 +284,7 @@ public class UpdateInjuryWindow extends JDialog {
                             injuryController.registerInjury(newInjury);
                             JOptionPane.showMessageDialog(UpdateInjuryWindow.this, "Injury updated successfully.",
                                 "Success", JOptionPane.INFORMATION_MESSAGE);
-                            ;
+                            
                             loadInjuries();
                             initializeFields();
                         } catch (SQLException ex) {
@@ -424,7 +424,7 @@ public class UpdateInjuryWindow extends JDialog {
         if (separator == null) {
             separator = new JSeparator();
             separator.setOrientation(SwingConstants.VERTICAL);
-            separator.setBounds(460, 21, 27, 293);
+            separator.setBounds(460, 27, 27, 310);
         }
         return separator;
     }

@@ -6,9 +6,12 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -26,6 +29,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 
 import com.ips2026.pl11.controller.injury.InjuryController;
@@ -46,11 +50,12 @@ import com.ips2026.pl11.model.reservation.Facility;
 import com.ips2026.pl11.model.training.TrainingSession;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
+import com.toedter.calendar.JDateChooser;
 
 public class RegisterInjuryWindow extends JDialog {
 
     private static final long serialVersionUID = 1L;
-    
+
     private int doctorId;
 
     private HeaderPanel pnHeader;
@@ -82,13 +87,15 @@ public class RegisterInjuryWindow extends JDialog {
     private List<Match> matches = new ArrayList<>();
     private JScrollPane scpDescription;
     private JTextArea txtrNoDescriptionProvided;
+    private JLabel lblFrom;
+    private JDateChooser dateFrom;
 
     /**
      * Create the dialog.
      */
     public RegisterInjuryWindow(JFrame parent, int doctorId) {
         this.doctorId = doctorId;
-        
+
         setTitle("Football Club Management");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setMinimumSize(new Dimension(550, 480));
@@ -100,7 +107,7 @@ public class RegisterInjuryWindow extends JDialog {
         contentPane.add(getPnButtons(), BorderLayout.CENTER);
         contentPane.add(getPnFooter(), BorderLayout.SOUTH);
         setLocationRelativeTo(parent);
-        Branding.setInitialSize(this, 550, 610, null);
+        Branding.setInitialSize(this, 550, 670, null);
         rootPane.setDefaultButton(getBtnRegister());
 
         initialize();
@@ -124,6 +131,8 @@ public class RegisterInjuryWindow extends JDialog {
             pnButtons.add(getBtnRegister());
             pnButtons.add(getBtnReturn());
             pnButtons.add(getScpDescription());
+            pnButtons.add(getLblFrom());
+            pnButtons.add(getDateFrom());
 
         }
         return pnButtons;
@@ -186,7 +195,7 @@ public class RegisterInjuryWindow extends JDialog {
             lblTraining.setLabelFor(getCbTrainings());
             lblTraining.setForeground(new Color(0, 64, 128));
             lblTraining.setFont(new Font("Tahoma", Font.BOLD, 16));
-            lblTraining.setBounds(59, 161, 78, 20);
+            lblTraining.setBounds(59, 213, 78, 20);
         }
         return lblTraining;
     }
@@ -196,7 +205,7 @@ public class RegisterInjuryWindow extends JDialog {
             lblDescription = new JLabel("Injury description:");
             lblDescription.setForeground(new Color(0, 64, 128));
             lblDescription.setFont(new Font("Tahoma", Font.BOLD, 16));
-            lblDescription.setBounds(60, 263, 171, 20);
+            lblDescription.setBounds(59, 330, 171, 20);
         }
         return lblDescription;
     }
@@ -207,7 +216,7 @@ public class RegisterInjuryWindow extends JDialog {
             lblMatches.setLabelFor(getCbMatches());
             lblMatches.setForeground(new Color(0, 64, 128));
             lblMatches.setFont(new Font("Tahoma", Font.BOLD, 16));
-            lblMatches.setBounds(60, 213, 78, 20);
+            lblMatches.setBounds(60, 265, 78, 20);
         }
         return lblMatches;
     }
@@ -222,7 +231,7 @@ public class RegisterInjuryWindow extends JDialog {
                         loadPlayers();
                         loadTrainings();
                         loadMatches();
-                        
+
                         cbTrainings.setSelectedIndex(0);
                         cbMatches.setSelectedIndex(0);
                         cbTrainings.setEnabled(true);
@@ -243,7 +252,7 @@ public class RegisterInjuryWindow extends JDialog {
                 public void actionPerformed(ActionEvent e) {
                     loadTrainings();
                     loadMatches();
-                    
+
                     cbTrainings.setSelectedIndex(0);
                     cbMatches.setSelectedIndex(0);
                     cbTrainings.setEnabled(true);
@@ -269,7 +278,7 @@ public class RegisterInjuryWindow extends JDialog {
                     }
                 }
             });
-            cbTrainings.setBounds(204, 154, 287, 38);
+            cbTrainings.setBounds(204, 206, 287, 38);
         }
         return cbTrainings;
     }
@@ -288,7 +297,7 @@ public class RegisterInjuryWindow extends JDialog {
                     }
                 }
             });
-            cbMatches.setBounds(204, 206, 287, 38);
+            cbMatches.setBounds(204, 258, 287, 38);
         }
         return cbMatches;
     }
@@ -299,21 +308,19 @@ public class RegisterInjuryWindow extends JDialog {
             btnRegister.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    if(!checkMatchOrTrainingSelected() || !checkDescriptionProvided()) {
+                    if (!checkMatchOrTrainingSelected() || !checkDescriptionProvided()) {
                         return;
                     }
-                    
-                    if(registerInjury()) {
+
+                    if (registerInjury()) {
                         JOptionPane.showMessageDialog(RegisterInjuryWindow.this, "Injury registered successfully!",
-                            "Success", JOptionPane.INFORMATION_MESSAGE);      
+                            "Success", JOptionPane.INFORMATION_MESSAGE);
                         clearWindow();
                     }
                 }
 
-                
-
             });
-            btnRegister.setBounds(402, 417, 89, 25);
+            btnRegister.setBounds(402, 483, 89, 25);
         }
         return btnRegister;
     }
@@ -328,7 +335,7 @@ public class RegisterInjuryWindow extends JDialog {
                 }
             });
             btnReturn.setMnemonic('R');
-            btnReturn.setBounds(303, 417, 89, 25);
+            btnReturn.setBounds(303, 483, 89, 25);
         }
         return btnReturn;
     }
@@ -336,7 +343,7 @@ public class RegisterInjuryWindow extends JDialog {
     private JScrollPane getScpDescription() {
         if (scpDescription == null) {
             scpDescription = new JScrollPane();
-            scpDescription.setBounds(246, 263, 245, 130);
+            scpDescription.setBounds(246, 332, 245, 130);
             scpDescription.setViewportView(getTxtaDescription_1());
         }
         return scpDescription;
@@ -407,8 +414,18 @@ public class RegisterInjuryWindow extends JDialog {
             List<String> trainingDescriptions = new ArrayList<>();
             trainingDescriptions.add("No training session selected");
             for (TrainingSession session : trainings) {
+                if (dateFrom.getDate() != null) {
+                    boolean isBeforeDate = session.getDate()
+                        .isBefore(dateFrom.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+
+                    if (isBeforeDate) {
+                        continue;
+                    }
+                }
+
                 String facility = getFacilityName((int) session.getFacility());
                 trainingDescriptions.add(facility + " (" + session.getDate() + " / " + session.getStartTime() + ")");
+
             }
 
             cbTrainings.setModel(new DefaultComboBoxModel<>(trainingDescriptions.toArray(new String[0])));
@@ -428,8 +445,18 @@ public class RegisterInjuryWindow extends JDialog {
             List<String> matchDescriptions = new ArrayList<>();
             matchDescriptions.add("No match selected");
             for (Match match : matches) {
+                if (dateFrom.getDate() != null) {
+                    boolean isBeforeDate = LocalDate.parse(match.getMatchDate())
+                        .isBefore(dateFrom.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+
+                    if (isBeforeDate) {
+                        continue;
+                    }
+                }
+
                 String facility = getFacilityName(match.getFacilityId());
                 matchDescriptions.add(facility + " (" + match.getMatchDate() + " / " + match.getStartTime() + ")");
+
             }
 
             cbMatches.setModel(new DefaultComboBoxModel<>(matchDescriptions.toArray(new String[0])));
@@ -489,31 +516,61 @@ public class RegisterInjuryWindow extends JDialog {
         LocalDate date;
         LocalTime time;
         int facilityId = -1;
-        
-        if(cbTrainings.getSelectedIndex() > 0) {
+
+        if (cbTrainings.getSelectedIndex() > 0) {
             TrainingSession selectedTraining = trainings.get(cbTrainings.getSelectedIndex() - 1);
             trainingId = (int) selectedTraining.getId();
             date = selectedTraining.getDate();
             time = selectedTraining.getStartTime();
-            
+
         } else {
             Match selectedMatch = matches.get(cbMatches.getSelectedIndex() - 1);
             matchId = selectedMatch.getId();
             date = LocalDate.parse(selectedMatch.getMatchDate());
             time = selectedMatch.getStartTime();
-        } 
+        }
 
         return new Injury(0, playerId, matchId, trainingId, description, date, false, doctorId, time);
     }
-    
+
     private void clearWindow() {
         cbTeams.setSelectedIndex(0);
         cbPlayers.setSelectedIndex(0);
         cbTrainings.setSelectedIndex(0);
         cbMatches.setSelectedIndex(0);
         txtrNoDescriptionProvided.setText("");
-        
-        
+        dateFrom.setDate(null);
     }
 
+    private JLabel getLblFrom() {
+        if (lblFrom == null) {
+            lblFrom = new JLabel("From:");
+            lblFrom.setForeground(new Color(0, 64, 128));
+            lblFrom.setFont(new Font("Tahoma", Font.BOLD, 16));
+            lblFrom.setBounds(59, 161, 78, 20);
+        }
+        return lblFrom;
+    }
+
+    private JDateChooser getDateFrom() {
+        if (dateFrom == null) {
+            dateFrom = new JDateChooser();
+            dateFrom.setFont(new Font("Tahoma", Font.PLAIN, 13));
+            dateFrom.setDateFormatString("yyyy-MM-dd");
+            dateFrom.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Branding.BORDER, 1, true),
+                BorderFactory.createEmptyBorder(2, 2, 2, 2)));
+            dateFrom.addPropertyChangeListener("date", new PropertyChangeListener() {
+                @Override
+                public void propertyChange(PropertyChangeEvent evt) {
+                    if (dateFrom.getDate() != null) {
+                        loadMatches();
+                        loadTrainings();
+                    }
+                }
+            });
+            dateFrom.setBackground(Color.WHITE);
+            dateFrom.setBounds(204, 154, 181, 38);
+        }
+        return dateFrom;
+    }
 }

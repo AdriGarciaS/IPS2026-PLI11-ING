@@ -5,9 +5,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import com.ips2026.pl11.controller.PasswordEncrypting;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.model.employee.Employee;
+import com.ips2026.pl11.service.login.PasswordEncrypting;
 
 public class EmployeeController {
 

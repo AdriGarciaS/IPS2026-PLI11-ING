@@ -19,13 +19,13 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
-import com.ips2026.pl11.controller.PasswordEncrypting;
 import com.ips2026.pl11.controller.employee.EmployeeController;
 import com.ips2026.pl11.controller.shareholder.ShareholderPortalController;
 import com.ips2026.pl11.data.employee.EmployeeDAO;
 import com.ips2026.pl11.data.shareholder.ShareholderDAO;
 import com.ips2026.pl11.model.employee.Employee;
 import com.ips2026.pl11.model.shareholder.Shareholder;
+import com.ips2026.pl11.service.login.PasswordEncrypting;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
 import com.ips2026.pl11.view.menu.mainmenus.CoachMenuWindow;

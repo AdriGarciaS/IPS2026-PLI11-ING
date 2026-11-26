@@ -4,16 +4,21 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.FlowLayout;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.net.URL;
 import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -38,7 +43,7 @@ public class NewsFeedWindow extends JDialog {
     private final NewsDAO newsDAO;
     private JPanel pnListContainer;
     private JPanel pnDetailContent;
-    
+
     private JLabel lblDetailHeadline;
     private JLabel lblDetailMeta;
     private JLabel lblCarouselImage;
@@ -172,13 +177,13 @@ public class NewsFeedWindow extends JDialog {
         card.add(lblHeadline, BorderLayout.NORTH);
 
         String dateStr = article.getPublicationDate().format(DateTimeFormatter.ofPattern("MMM dd, yyyy"));
-        JLabel lblMeta = new JLabel(dateStr + "  |  By Patricia Lago Martín"); // O autor real según ID
+        JLabel lblMeta = new JLabel(dateStr + "  |  By Patricia Lago Martín");
         lblMeta.setFont(new Font(Branding.FONT_FAMILY, Font.PLAIN, 11));
         lblMeta.setForeground(Branding.TEXT_MUTED);
         card.add(lblMeta, BorderLayout.CENTER);
 
-        String bodySnippet = article.getBodyText().length() > 65 
-                ? article.getBodyText().substring(0, 62) + "..." 
+        String bodySnippet = article.getBodyText().length() > 65
+                ? article.getBodyText().substring(0, 62) + "..."
                 : article.getBodyText();
         JLabel lblSnippet = new JLabel(bodySnippet);
         lblSnippet.setFont(new Font(Branding.FONT_FAMILY, Font.ITALIC, 11));
@@ -205,8 +210,8 @@ public class NewsFeedWindow extends JDialog {
     private void displayArticleDetail(NewsArticle article) {
         this.selectedArticle = article;
         this.currentImageIndex = 0;
-        
-        String pathsRaw = article.getImagePaths(); 
+
+        String pathsRaw = article.getImagePaths();
         if (pathsRaw != null && !pathsRaw.isEmpty()) {
             activeImagePaths = List.of(pathsRaw.split(","));
         } else {
@@ -299,37 +304,50 @@ public class NewsFeedWindow extends JDialog {
         }
 
         String imgPath = activeImagePaths.get(currentImageIndex).trim();
-        boolean loaded = false;
+        Image sourceImage = loadImageFromPathOrResource(imgPath);
 
+        if (sourceImage != null) {
+            Image scaledImage = sourceImage.getScaledInstance(420, 210, Image.SCALE_SMOOTH);
+            lblCarouselImage.setIcon(new ImageIcon(scaledImage));
+            lblCarouselImage.setText("");
+        } else {
+            lblCarouselImage.setIcon(null);
+            lblCarouselImage.setText("<html><center><b>Image Preview Not Available</b><br>("
+                    + (currentImageIndex + 1) + " of " + activeImagePaths.size() + ")<br>" + imgPath + "</center></html>");
+        }
+    }
+
+    private Image loadImageFromPathOrResource(String imgPath) {
         try {
+            // Try classpath resource first
             String resourcePath = imgPath.startsWith("/") ? imgPath : "/" + imgPath;
-            java.net.URL imgUrl = getClass().getResource(resourcePath);
-
+            URL imgUrl = getClass().getResource(resourcePath);
             if (imgUrl != null) {
-                javax.swing.ImageIcon originalIcon = new javax.swing.ImageIcon(imgUrl);
-                java.awt.Image scaledImage = originalIcon.getImage().getScaledInstance(420, 210, java.awt.Image.SCALE_SMOOTH);
-                lblCarouselImage.setIcon(new javax.swing.ImageIcon(scaledImage));
-                lblCarouselImage.setText("");
-                loaded = true;
-            } else {
-                File imgFile = new File(imgPath);
-                if (imgFile.exists()) {
-                    javax.swing.ImageIcon originalIcon = new javax.swing.ImageIcon(imgPath);
-                    java.awt.Image scaledImage = originalIcon.getImage().getScaledInstance(420, 210, java.awt.Image.SCALE_SMOOTH);
-                    lblCarouselImage.setIcon(new javax.swing.ImageIcon(scaledImage));
-                    lblCarouselImage.setText("");
-                    loaded = true;
+                BufferedImage buffered = ImageIO.read(imgUrl);
+                if (buffered != null) {
+                    return buffered;
+                }
+                ImageIcon icon = new ImageIcon(imgUrl);
+                if (icon.getIconWidth() > 0) {
+                    return icon.getImage();
                 }
             }
 
-            if (!loaded) {
-                lblCarouselImage.setIcon(null);
-                lblCarouselImage.setText("<html><center><b>Image Preview Not Available</b><br>(" + (currentImageIndex + 1) + " of " + activeImagePaths.size() + ")<br>" + imgPath + "</center></html>");
+            // Fallback to local filesystem path (including .webp via ImageIO SPI plugins)
+            File imgFile = new File(imgPath);
+            if (imgFile.exists() && imgFile.isFile()) {
+                BufferedImage buffered = ImageIO.read(imgFile);
+                if (buffered != null) {
+                    return buffered;
+                }
+                ImageIcon icon = new ImageIcon(imgPath);
+                if (icon.getIconWidth() > 0) {
+                    return icon.getImage();
+                }
             }
-
         } catch (Exception ex) {
-            lblCarouselImage.setIcon(null);
-            lblCarouselImage.setText("Error loading image: " + imgPath);
+            return null;
         }
+        return null;
     }
 }

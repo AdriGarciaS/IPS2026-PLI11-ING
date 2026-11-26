@@ -1,18 +1,13 @@
 package com.ips2026.pl11.view.financialreports;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
@@ -25,18 +20,19 @@ public class FinancialReportsMenu extends JFrame {
     private static final long serialVersionUID = 1L;
 
     private JButton btnIncomesGlossary;
+    private JButton btnIncomesBarChart;
     private JButton btnIncomesVsOutcomes;
     private final JFrame owner;
 
     public FinancialReportsMenu(JFrame owner) {
-    	this.owner = owner;
+        this.owner = owner;
         initComponents();
     }
 
     private void initComponents() {
         setTitle("Football Club Management - Financial Reports");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        Branding.setInitialSize(this, 460, 430, null);
+        Branding.setInitialSize(this, 460, 520, null);
         setResizable(false);
         Branding.applyTo(this);
 
@@ -61,16 +57,25 @@ public class FinancialReportsMenu extends JFrame {
         );
         btnIncomesGlossary.setPreferredSize(new Dimension(320, 82));
         gbc.gridy = 0;
-        gbc.insets = new Insets(8, 0, 16, 0);
+        gbc.insets = new Insets(8, 0, 12, 0);
         buttonsPanel.add(btnIncomesGlossary, gbc);
+
+        btnIncomesBarChart = new MenuCardButton(
+                "INCOMES EVOLUTION",
+                "Bar chart of incomes over time and detailed income summary"
+        );
+        btnIncomesBarChart.setPreferredSize(new Dimension(320, 82));
+        gbc.gridy = 1;
+        gbc.insets = new Insets(4, 0, 12, 0);
+        buttonsPanel.add(btnIncomesBarChart, gbc);
 
         btnIncomesVsOutcomes = new MenuCardButton(
                 "INCOMES VS OUTCOMES",
                 "Compare income, expenses and net balance over time"
         );
         btnIncomesVsOutcomes.setPreferredSize(new Dimension(320, 82));
-        gbc.gridy = 1;
-        gbc.insets = new Insets(8, 0, 8, 0);
+        gbc.gridy = 2;
+        gbc.insets = new Insets(4, 0, 8, 0);
         buttonsPanel.add(btnIncomesVsOutcomes, gbc);
 
         mainPanel.add(buttonsPanel, BorderLayout.CENTER);
@@ -81,11 +86,15 @@ public class FinancialReportsMenu extends JFrame {
 
     private void initListeners() {
         btnIncomesGlossary.addActionListener(e -> {
-        	new IncomesGlossaryView(this).setVisible(true);
+            new IncomesGlossaryView(this).setVisible(true);
+        });
+
+        btnIncomesBarChart.addActionListener(e -> {
+            new IncomesBarChartView(this).setVisible(true);
         });
 
         btnIncomesVsOutcomes.addActionListener(e -> {
-        	new IncomesVsOutcomesView(this).setVisible(true);
+            new IncomesVsOutcomesView(this).setVisible(true);
         });
     }
 }

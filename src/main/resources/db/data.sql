@@ -475,7 +475,7 @@ INSERT INTO matches (team_id, rival, match_date, start_time, end_time, is_home, 
     
     
 INSERT INTO news (id, headline, body_text, image_paths, publication_date, author_id) VALUES
-(1, 'Huge victory in the derby (3-0)', 'The first team achieved a resounding 3-0 against our traditional rivals in an unforgettable match at Portman Road. The goals came in the second half after an intense tactical masterclass by the coaching staff. Fans celebrated passionately across the stadium.', 'images/derby1.jpg,images/derby2.jpg', '2026-11-10', 1),
+(1, 'Huge victory in the derby (3-0)', 'The first team achieved a resounding 3-0 against our traditional rivals in an unforgettable match at Portman Road. The goals came in the second half after an intense tactical masterclass by the coaching staff. Fans celebrated passionately across the stadium.', 'images/derby1.jpg,images/derby2.jpg,images/derby3.webp', '2026-11-10', 1),
 
 (2, 'New improvements in training facilities', 'Renovation work has started a couple of days ago on the club training pitches and medical recovery center. These state-of-the-art upgrades will ensure our professional and youth academy players have world-class infrastructure for the upcoming seasons.', 'images/training1.png,images/training2.png,images/training3.png,images/training4.jpg', '2026-11-05', 1),
 

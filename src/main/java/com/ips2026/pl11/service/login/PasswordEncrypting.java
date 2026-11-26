@@ -1,4 +1,4 @@
-package com.ips2026.pl11.controller;
+package com.ips2026.pl11.service.login;
 
 import org.mindrot.jbcrypt.BCrypt;
 

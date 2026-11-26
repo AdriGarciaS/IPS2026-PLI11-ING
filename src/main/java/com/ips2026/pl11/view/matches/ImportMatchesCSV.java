@@ -11,6 +11,7 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.io.File;
+import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -19,13 +20,16 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableModel;
 
 import com.ips2026.pl11.data.ticket.MatchDAO;
+import com.ips2026.pl11.model.matches.MatchCSV;
 import com.ips2026.pl11.service.matches.ScheduleImportMatch;
 import com.ips2026.pl11.view.common.Branding;
 import com.ips2026.pl11.view.common.HeaderPanel;
@@ -36,7 +40,8 @@ public class ImportMatchesCSV extends JDialog {
 
     private HeaderPanel pnHeader;
     private JTextField txtFilePath;
-    private JTextArea txtPreviewArea;
+    private DefaultTableModel previewTableModel;
+    private JTable tblPreview;
     private JTextArea txtSummaryArea;
     private File selectedFile;
     private ScheduleImportMatch importService = new ScheduleImportMatch();
@@ -46,7 +51,7 @@ public class ImportMatchesCSV extends JDialog {
         super(parent, "Import Match Schedule", true);
 
         Branding.applyTo(this);
-        Branding.setInitialSize(this, 920, 650, parent);
+        Branding.setInitialSize(this, 980, 650, parent);
         getContentPane().setLayout(new BorderLayout(0, 0));
 
         initComponents();
@@ -55,7 +60,7 @@ public class ImportMatchesCSV extends JDialog {
     private HeaderPanel getPnHeader() {
         if (pnHeader == null) {
             pnHeader = new HeaderPanel("IMPORT MATCH SCHEDULE",
-                "Upload a CSV or JSON file to import the full seasonal match schedule in bulk", true);
+                "Upload a CSV schedule file to preview and import the seasonal match schedule in bulk", true);
         }
         return pnHeader;
     }
@@ -69,7 +74,7 @@ public class ImportMatchesCSV extends JDialog {
 
         JPanel pnlFileSelector = new JPanel(new BorderLayout(10, 0));
         pnlFileSelector.setOpaque(false);
-        pnlFileSelector.setBorder(new RoundedTitledBorder("SELECT SCHEDULE FILE (.csv or .json)", 16));
+        pnlFileSelector.setBorder(new RoundedTitledBorder("SELECT SCHEDULE FILE (.csv)", 16));
 
         txtFilePath = new JTextField();
         txtFilePath.setEditable(false);
@@ -90,15 +95,32 @@ public class ImportMatchesCSV extends JDialog {
         JPanel pnPreviewAndSummary = new JPanel(new GridLayout(1, 2, 15, 0));
         pnPreviewAndSummary.setOpaque(false);
 
+        // Left panel: Table of matches to import
         JPanel pnlPreview = new JPanel(new BorderLayout(0, 5));
         pnlPreview.setOpaque(false);
-        pnlPreview.setBorder(new RoundedTitledBorder("PREVIEW CONTENT", 16));
+        pnlPreview.setBorder(new RoundedTitledBorder("MATCHES TO IMPORT (PREVIEW)", 16));
 
-        txtPreviewArea = new JTextArea();
-        txtPreviewArea.setEditable(false);
-        txtPreviewArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
-        pnlPreview.add(new JScrollPane(txtPreviewArea), BorderLayout.CENTER);
+        String[] columns = { "TEAM", "DATE", "START", "END", "RIVAL", "HOME/AWAY", "SPECIAL", "FACILITY" };
+        previewTableModel = new DefaultTableModel(columns, 0) {
+            private static final long serialVersionUID = 1L;
 
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        tblPreview = new JTable(previewTableModel);
+        tblPreview.setFont(Branding.DEFAULT_FONT.deriveFont(Font.PLAIN, 12f));
+        tblPreview.setRowHeight(24);
+        tblPreview.getTableHeader().setFont(Branding.DEFAULT_FONT.deriveFont(Font.BOLD, 12f));
+        tblPreview.getTableHeader().setReorderingAllowed(false);
+
+        JScrollPane spPreview = new JScrollPane(tblPreview);
+        spPreview.getViewport().setBackground(Branding.WHITE);
+        pnlPreview.add(spPreview, BorderLayout.CENTER);
+
+        // Right panel: Validation summary & conflicts
         JPanel pnlSummary = new JPanel(new BorderLayout(0, 5));
         pnlSummary.setOpaque(false);
         pnlSummary.setBorder(new RoundedTitledBorder("VALIDATION SUMMARY & CONFLICTS", 16));
@@ -107,7 +129,7 @@ public class ImportMatchesCSV extends JDialog {
         txtSummaryArea.setEditable(false);
         txtSummaryArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
         txtSummaryArea.setForeground(Branding.NAVY_DARKER);
-        txtSummaryArea.setText("No file loaded yet.\nSelect a CSV or JSON file to run validations for required fields\n(rival, date, start time, home/away) and check stadium conflicts.");
+        txtSummaryArea.setText("No file loaded yet.\nSelect a CSV file to preview valid matches and check conflicts.");
         pnlSummary.add(new JScrollPane(txtSummaryArea), BorderLayout.CENTER);
 
         pnPreviewAndSummary.add(pnlPreview);
@@ -135,26 +157,54 @@ public class ImportMatchesCSV extends JDialog {
     private void handleBrowseFile() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Select Match Schedule File");
-        fileChooser.setFileFilter(new FileNameExtensionFilter("Schedule Files (*.csv, *.json)", "csv", "json"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("CSV Schedule Files (*.csv)", "csv"));
 
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             selectedFile = fileChooser.getSelectedFile();
             txtFilePath.setText(selectedFile.getAbsolutePath());
 
-            try {
-                String content = java.nio.file.Files.readString(selectedFile.toPath());
-                txtPreviewArea.setText(content);
-                txtSummaryArea.setText("File loaded successfully.\nReady to validate required fields and check stadium conflicts.");
-            } catch (Exception ex) {
-                txtPreviewArea.setText("Error reading file: " + ex.getMessage());
+            int defaultTeamId = 1;
+            int defaultFacilityId = -1;
+            ScheduleImportMatch.ImportResult previewResult =
+                importService.processFile(selectedFile, defaultTeamId, defaultFacilityId);
+
+            populatePreviewTable(previewResult.getValidMatches());
+
+            StringBuilder status = new StringBuilder();
+            status.append("Preview ready: ").append(previewResult.getValidMatches().size())
+                  .append(" valid match(es) to import.\n");
+            if (!previewResult.getErrorLogs().isEmpty()) {
+                status.append("Errors detected: ").append(previewResult.getErrorLogs().size())
+                      .append(" (click VALIDATE & IMPORT for details).\n");
             }
+            if (!previewResult.getWarningLogs().isEmpty()) {
+                status.append("Warnings detected: ").append(previewResult.getWarningLogs().size()).append("\n");
+            }
+            txtSummaryArea.setText(status.toString());
+        }
+    }
+
+    private void populatePreviewTable(List<MatchCSV> matches) {
+        previewTableModel.setRowCount(0);
+        for (MatchCSV m : matches) {
+            Object[] row = {
+                m.getTeamId(),
+                m.getMatchDate(),
+                m.getStartTime(),
+                m.getEndTime(),
+                m.getRival(),
+                m.isHome() ? "HOME" : "AWAY",
+                m.isSpecialMatch() ? "YES" : "NO",
+                m.getFacilityId() != null ? m.getFacilityId() : "-"
+            };
+            previewTableModel.addRow(row);
         }
     }
 
     private void handleImportAction() {
         if (selectedFile == null || !selectedFile.exists()) {
-            JOptionPane.showMessageDialog(this, "Please select a valid CSV or JSON file first.",
+            JOptionPane.showMessageDialog(this, "Please select a valid CSV file first.",
                 "File Required", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -162,6 +212,7 @@ public class ImportMatchesCSV extends JDialog {
         int defaultFacilityId = -1;
 
         ScheduleImportMatch.ImportResult result = importService.processFile(selectedFile, defaultTeamId, defaultFacilityId);
+        populatePreviewTable(result.getValidMatches());
 
         StringBuilder summary = new StringBuilder();
         summary.append("--- IMPORT VALIDATION & PERSISTENCE REPORT ---\n\n");
@@ -184,7 +235,6 @@ public class ImportMatchesCSV extends JDialog {
 
         int savedCount = 0;
         if (!result.getValidMatches().isEmpty()) {
-            // Use report method so [WARN] lines for lower-priority overlaps are captured and shown
             MatchDAO.BatchImportResult dbResult = matchDAO.insertBatchMatchesWithReport(result.getValidMatches());
             savedCount = dbResult.insertedCount();
 

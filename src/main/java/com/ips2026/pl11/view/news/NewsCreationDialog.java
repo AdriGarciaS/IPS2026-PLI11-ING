@@ -11,6 +11,7 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -25,6 +26,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.ips2026.pl11.controller.news.NewsController;
 import com.ips2026.pl11.data.news.NewsDAO;
@@ -44,7 +46,7 @@ public class NewsCreationDialog extends JDialog {
     private JList<String> listImages;
 
     private NewsController newsController;
-    private int loggedInEmployeeId = 1; 
+    private int loggedInEmployeeId = 1;
 
     public NewsCreationDialog(JFrame parent) {
         super(parent, "Create New Article", true);
@@ -160,16 +162,37 @@ public class NewsCreationDialog extends JDialog {
     private void chooseMultipleImages() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setMultiSelectionEnabled(true);
+        // Include WebP alongside standard image formats in the file dialog filter
+        FileNameExtensionFilter imageFilter = new FileNameExtensionFilter(
+                "Images (*.jpg, *.jpeg, *.png, *.gif, *.webp)", "jpg", "jpeg", "png", "gif", "webp");
+        fileChooser.setFileFilter(imageFilter);
+        fileChooser.setAcceptAllFileFilterUsed(true);
+
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File[] selectedFiles = fileChooser.getSelectedFiles();
             for (File file : selectedFiles) {
+                if (!isSupportedImageFile(file)) {
+                    JOptionPane.showMessageDialog(this,
+                            "Unsupported image format for file: " + file.getName(),
+                            "Invalid Image Format", JOptionPane.WARNING_MESSAGE);
+                    continue;
+                }
                 String path = file.getAbsolutePath();
                 if (!imageListModel.contains(path)) {
                     imageListModel.addElement(path);
                 }
             }
         }
+    }
+
+    private boolean isSupportedImageFile(File file) {
+        if (file == null) {
+            return false;
+        }
+        String name = file.getName().toLowerCase(Locale.ROOT);
+        return name.endsWith(".jpg") || name.endsWith(".jpeg")
+                || name.endsWith(".png") || name.endsWith(".gif") || name.endsWith(".webp");
     }
 
     private void publishArticleAction() {

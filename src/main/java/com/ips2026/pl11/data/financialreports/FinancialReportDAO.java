@@ -8,7 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
@@ -34,7 +33,7 @@ public class FinancialReportDAO {
             Map<String, BigDecimal> breakdownByCategory,
             List<IncomeTransaction> transactions
     ) {}
-    
+
     public record BucketComparison(
             String label,
             BigDecimal income,
@@ -57,56 +56,68 @@ public class FinancialReportDAO {
             List<CashFlowTransaction> transactions
     ) {}
 
+    private static final String INCOME_UNION_SQL = """
+            SELECT substr(sale_date, 1, 10) AS tx_date,
+                   'MERCHANDISING' AS category,
+                   'Merchandising sale #' || sale_number AS description,
+                   total_price AS amount
+            FROM MERCHANDISING_SALE
+            WHERE sale_date BETWEEN ? AND ?
+
+            UNION ALL
+
+            SELECT substr(created_at, 1, 10) AS tx_date,
+                   'MATCH TICKETS' AS category,
+                   'Match ticket (purchase #' || purchase_number || ')' AS description,
+                   price AS amount
+            FROM MATCH_TICKET
+            WHERE created_at BETWEEN ? AND ?
+
+            UNION ALL
+
+            SELECT substr(created_at, 1, 10) AS tx_date,
+                   'SEASON TICKETS' AS category,
+                   'Season ticket (' || season || ') - ' || holder_name AS description,
+                   price AS amount
+            FROM SEASON_TICKET
+            WHERE created_at BETWEEN ? AND ?
+
+            UNION ALL
+
+            SELECT start_date AS tx_date,
+                   'SEASON PASSES' AS category,
+                   'Season pass - ' || grandstand || section || ' R' || row_num || 'S' || seat_num AS description,
+                   price AS amount
+            FROM SEASON_PASS
+            WHERE (start_date || ' 00:00:00') BETWEEN ? AND ?
+
+            UNION ALL
+
+            SELECT substr(created_at, 1, 10) AS tx_date,
+                   'FACILITY RESERVATIONS' AS category,
+                   'Facility reservation - ' || holder_name AS description,
+                   total_price AS amount
+            FROM FACILITY_RESERVATION
+            WHERE created_at BETWEEN ? AND ?
+
+            UNION ALL
+
+            SELECT substr(h.purchase_date, 1, 10) AS tx_date,
+                   'SHARE CAMPAIGN' AS category,
+                   'Campaign shares (' || c.name || ') - ' || COUNT(s.id) || ' shares' AS description,
+                   COUNT(s.id) * h.purchase_price AS amount
+            FROM SHARE_HOLDING h
+            JOIN SHARE_CAMPAIGN c ON c.id = h.campaign_id
+            JOIN SHARE s ON s.holding_id = h.id
+            WHERE h.purchase_date BETWEEN ? AND ?
+            GROUP BY h.id, h.purchase_date, h.purchase_price, c.name
+            """;
+
     public IncomeReportData getIncomesReport(LocalDate fromDate, LocalDate toDate) {
         String fromStr = fromDate.toString() + " 00:00:00";
         String toStr = toDate.toString() + " 23:59:59";
 
-        String sql = """
-                SELECT substr(sale_date, 1, 10) AS tx_date,
-                       'MERCHANDISING' AS category,
-                       'Merchandising sale #' || sale_number AS description,
-                       total_price AS amount
-                FROM MERCHANDISING_SALE
-                WHERE sale_date BETWEEN ? AND ?
-
-                UNION ALL
-
-                SELECT substr(created_at, 1, 10) AS tx_date,
-                       'MATCH TICKETS' AS category,
-                       'Match ticket (purchase #' || purchase_number || ')' AS description,
-                       price AS amount
-                FROM MATCH_TICKET
-                WHERE created_at BETWEEN ? AND ?
-
-                UNION ALL
-
-                SELECT substr(created_at, 1, 10) AS tx_date,
-                       'SEASON TICKETS' AS category,
-                       'Season ticket (' || season || ') - ' || holder_name AS description,
-                       price AS amount
-                FROM SEASON_TICKET
-                WHERE created_at BETWEEN ? AND ?
-
-                UNION ALL
-
-                SELECT start_date AS tx_date,
-                       'SEASON PASSES' AS category,
-                       'Season pass - ' || grandstand || section || ' R' || row_num || 'S' || seat_num AS description,
-                       price AS amount
-                FROM SEASON_PASS
-                WHERE (start_date || ' 00:00:00') BETWEEN ? AND ?
-
-                UNION ALL
-
-                SELECT substr(created_at, 1, 10) AS tx_date,
-                       'FACILITY RESERVATIONS' AS category,
-                       'Facility reservation - ' || holder_name AS description,
-                       total_price AS amount
-                FROM FACILITY_RESERVATION
-                WHERE created_at BETWEEN ? AND ?
-
-                ORDER BY tx_date DESC
-                """;
+        String sql = INCOME_UNION_SQL + " ORDER BY tx_date DESC";
 
         Map<String, BigDecimal> breakdown = new LinkedHashMap<>();
         List<IncomeTransaction> transactions = new ArrayList<>();
@@ -115,10 +126,7 @@ public class FinancialReportDAO {
         try (Connection conn = ConexionBD.obtenerConexion();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            for (int i = 1; i <= 10; i += 2) {
-                stmt.setString(i, fromStr);
-                stmt.setString(i + 1, toStr);
-            }
+            bindDateRangeParams(stmt, fromStr, toStr);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -138,7 +146,7 @@ public class FinancialReportDAO {
 
         return new IncomeReportData(total, breakdown, transactions);
     }
-    
+
     public IncomesVsOutcomesData getIncomesVsOutcomesReport(LocalDate fromDate, LocalDate toDate, String period) {
         Map<String, BigDecimal[]> bucketMap = initBuckets(fromDate, toDate, period);
         List<CashFlowTransaction> transactions = new ArrayList<>();
@@ -148,60 +156,12 @@ public class FinancialReportDAO {
         String fromStr = fromDate.toString() + " 00:00:00";
         String toStr = toDate.toString() + " 23:59:59";
 
-        String incomeSql = """
-                SELECT substr(sale_date, 1, 10) AS tx_date,
-                       'MERCHANDISING' AS category,
-                       'Merchandising sale #' || sale_number AS description,
-                       total_price AS amount
-                FROM MERCHANDISING_SALE
-                WHERE sale_date BETWEEN ? AND ?
-
-                UNION ALL
-
-                SELECT substr(created_at, 1, 10) AS tx_date,
-                       'MATCH TICKETS' AS category,
-                       'Match ticket (purchase #' || purchase_number || ')' AS description,
-                       price AS amount
-                FROM MATCH_TICKET
-                WHERE created_at BETWEEN ? AND ?
-
-                UNION ALL
-
-                SELECT substr(created_at, 1, 10) AS tx_date,
-                       'SEASON TICKETS' AS category,
-                       'Season ticket (' || season || ') - ' || holder_name AS description,
-                       price AS amount
-                FROM SEASON_TICKET
-                WHERE created_at BETWEEN ? AND ?
-
-                UNION ALL
-
-                SELECT start_date AS tx_date,
-                       'SEASON PASSES' AS category,
-                       'Season pass - ' || grandstand || section || ' R' || row_num || 'S' || seat_num AS description,
-                       price AS amount
-                FROM SEASON_PASS
-                WHERE (start_date || ' 00:00:00') BETWEEN ? AND ?
-
-                UNION ALL
-
-                SELECT substr(created_at, 1, 10) AS tx_date,
-                       'FACILITY RESERVATIONS' AS category,
-                       'Facility reservation - ' || holder_name AS description,
-                       total_price AS amount
-                FROM FACILITY_RESERVATION
-                WHERE created_at BETWEEN ? AND ?
-
-                ORDER BY tx_date ASC
-                """;
+        String incomeSql = INCOME_UNION_SQL + " ORDER BY tx_date ASC";
 
         try (Connection conn = ConexionBD.obtenerConexion();
              PreparedStatement stmt = conn.prepareStatement(incomeSql)) {
 
-            for (int i = 1; i <= 10; i += 2) {
-                stmt.setString(i, fromStr);
-                stmt.setString(i + 1, toStr);
-            }
+            bindDateRangeParams(stmt, fromStr, toStr);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -265,13 +225,20 @@ public class FinancialReportDAO {
         return new IncomesVsOutcomesData(totalIncome, totalOutcome, netBalance, buckets, transactions);
     }
 
+    // Bind from/to parameters for all 6 income sources in INCOME_UNION_SQL
+    private static void bindDateRangeParams(PreparedStatement stmt, String fromStr, String toStr) throws SQLException {
+        for (int i = 1; i <= 12; i += 2) {
+            stmt.setString(i, fromStr);
+            stmt.setString(i + 1, toStr);
+        }
+    }
+
     // Initialize chart buckets strictly following fromDate -> toDate chronological order
     private Map<String, BigDecimal[]> initBuckets(LocalDate fromDate, LocalDate toDate, String period) {
         Map<String, BigDecimal[]> map = new LinkedHashMap<>();
         Locale en = Locale.ENGLISH;
 
         if ("YEARLY".equals(period)) {
-            // Generate month buckets dynamically from fromDate's YearMonth to toDate's YearMonth
             YearMonth start = YearMonth.from(fromDate);
             YearMonth end = YearMonth.from(toDate);
             YearMonth current = start;
@@ -307,6 +274,4 @@ public class FinancialReportDAO {
             return "Week " + week;
         }
     }
-    
-    
 }
